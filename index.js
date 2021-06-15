@@ -1,21 +1,32 @@
+const fileName = 'config.yml'
+
+const defaultConfig = {
+  project: 'Current-Release-Sprint',
+  column: 'New issues',
+  milestone: 'next-release',
+}
+
 /**
  * This is the main entrypoint to your Probot app
  * @param {import('probot').Probot} app
  */
 module.exports = (app) => {
-  // Your code here
-  app.log.info("Yay, the app was loaded!");
+  app.on("pull_request.closed", async (context) => {
+    const { pull_number, ...params } = context.pullRequest()
 
-  app.on("issues.opened", async (context) => {
-    const issueComment = context.issue({
-      body: "Thanks for opening this issue!",
-    });
-    return context.octokit.issues.createComment(issueComment);
-  });
+    let milestoneNumber = null
 
-  // For more information on building apps:
-  // https://probot.github.io/docs/
+    if (context.payload.pull_request.merged) {
+      const milestones = await context.octokit.issues.listMilestones(params)
+      config = await context.config(fileName, defaultConfig)
+      const milestone = milestones.data.find((milestone) => milestone.title === config.milestone)
+      milestoneNumber = milestone.number
+    }
 
-  // To get your app running against GitHub, see:
-  // https://probot.github.io/docs/development/
-};
+    return context.octokit.issues.update({
+      ...params,
+      issue_number: pull_number,
+      milestone: milestoneNumber
+    })
+  })
+}
