@@ -11,6 +11,9 @@ const defaultConfig = {
  * @param {import('probot').Probot} app
  */
 module.exports = (app) => {
+  // on pr closed
+  // -> merged? -> add "next-release" milestone
+  // -> closed? -> remove milestone
   app.on("pull_request.closed", async (context) => {
     const { pull_number, ...params } = context.pullRequest()
 
@@ -27,6 +30,30 @@ module.exports = (app) => {
       ...params,
       issue_number: pull_number,
       milestone: milestoneNumber
+    })
+  })
+
+  // on issue opened
+  // -> add to Current-Release-Sprint, New issues 
+  app.on("issues.opened", async (context) => {
+    const params = context.repo()
+
+    const config = await context.config(fileName, defaultConfig)
+
+    const projects = await context.octokit.projects.listForRepo(params)
+    const project = projects.data.find((project) => project.name === config.project)
+
+    const columns = await context.octokit.projects.listColumns({
+      ...params,
+      project_id: project.id
+    })
+    const column = columns.data.find((column) => column.name === config.column)
+
+    // https://github.com/probot/probot/issues/931#issuecomment-489813390
+    context.octokit.projects.createCard({
+      column_id: column.id,
+      content_type: 'Issue',
+      content_id: context.payload.issue.id,
     })
   })
 }
