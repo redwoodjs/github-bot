@@ -38,7 +38,7 @@ const defaultConfig = {
 }
 
 // we use the same update function,
-// just passing an actualy milestone number or null
+// just passing an actual milestone number or null
 // for merged or closed respectively
 const changeMilestone = async (context) => {
   const { pull_number, ...params } = context.pullRequest()
