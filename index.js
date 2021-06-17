@@ -37,6 +37,9 @@ const defaultConfig = {
   }
 }
 
+// we use the same update function,
+// just passing an actualy milestone number or null
+// for merged or closed respectively
 const changeMilestone = async (context) => {
   const { pull_number, ...params } = context.pullRequest()
 
@@ -56,6 +59,8 @@ const changeMilestone = async (context) => {
   })
 }
 
+// definitely feels like there's a better way to do this.
+// namely, content_type--it's pretty annoying
 const addToProjectColumn = async (context) => {
   config = await context.config(fileName, defaultConfig)
 
