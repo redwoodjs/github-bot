@@ -1,3 +1,6 @@
+const { getMilestoneId, getProjectColumnId, getProjectCardId } = require('./lib/octokit')
+const { fileName, defaultConfig } = require('./lib/config')
+
 /**
  * This is the main entrypoint
  * @param {import('probot').Probot} app
@@ -23,101 +26,118 @@ module.exports = (app) => {
   app.on('issues.demilestoned', removeFromProject)
 }
 
+// change milestone
 // ------------------------ 
 
-const fileName = 'config.yml'
-
-const defaultConfig = {
-  projectName: 'Current-Release-Sprint',
-  newIssuesColumn: 'New issues',
-  mergedMilestone: 'next-release',
-  milestoneToColumn: {
-    'future-release': 'On deck (help-wanted)',
-    'next-release-priority': 'In progress (priority)',
+const updatePRMilestoneMutation = `
+  mutation ($pullRequestId: ID!, $milestoneId: ID) {
+    updatePullRequest(input: { 
+      pullRequestId: $pullRequestId,
+      milestoneId: $milestoneId
+    }) {
+      clientMutationId
+    }
   }
-}
+`
 
 // we use the same update function,
 // just passing an actual milestone number or null
 // for merged or closed respectively
 const changeMilestone = async (context) => {
-  const { pull_number, ...params } = context.pullRequest()
-
-  let milestoneNumber = null
+  let milestoneId = null
 
   if (context.payload.pull_request.merged) {
-    const milestones = await context.octokit.issues.listMilestones(params)
-    config = await context.config(fileName, defaultConfig)
-    const milestone = milestones.data.find((milestone) => milestone.title === config.mergedMilestone)
-    milestoneNumber = milestone.number
+    const config = await context.config(fileName, defaultConfig)
+    milestoneId = await getMilestoneId({ title: config.mergedMilestone })(context)
   }
 
-  return context.octokit.issues.update({
-    ...params,
-    issue_number: pull_number,
-    milestone: milestoneNumber
+  return context.octokit.graphql(updatePRMilestoneMutation, {
+    pullRequestId: context.payload.pull_request.node_id,
+    milestoneId,
   })
 }
 
-// definitely feels like there's a better way to do this.
-// namely, content_type--it's pretty annoying
-const addToProjectColumn = async (context) => {
-  config = await context.config(fileName, defaultConfig)
+// ------------------------ 
 
-  const column_id = await getProjectColumnId({ 
+const addProjectCardMutation = `
+  mutation ($projectColumnId: ID!, $contentId: ID!) {
+    addProjectCard(input: {
+      projectColumnId: $projectColumnId, 
+      contentId: $contentId
+    }) {
+      clientMutationId
+    }
+  }
+`
+
+const addToProjectColumn = async (context) => {
+  const config = await context.config(fileName, defaultConfig)
+
+  const projectColumnId = await getProjectColumnId({ 
     projectName: config.projectName, 
     columnName: config.newIssuesColumn
   })(context)
 
-  // an example of content type
-  // https://github.com/probot/probot/issues/931#issuecomment-489813390
-
-  switch (context.name) {
-    case 'issues':
-      return context.octokit.projects.createCard({
-        column_id,
-        content_type: 'Issue',
-        content_id: context.payload.issue.id,
-      })
-
-    case 'pull_request':
-      return context.octokit.projects.createCard({
-        column_id,
-        content_type: 'PullRequest',
-        content_id: context.payload.pull_request.id,
-      })
-  }
+  return context.octokit.graphql(addProjectCardMutation, {
+    projectColumnId,
+    contentId: context.payload[context.name === 'pull_request' ? 'pull_request': 'issue'].node_id
+  })
 }
+
+// ------------------------ 
+
+const moveProjectCardMutation = `
+  mutation ($cardId: ID!, $columnId: ID!) {
+    moveProjectCard(input: {
+      cardId: $cardId, 
+      columnId: $columnId
+    }) {
+      clientMutationId
+    }
+  }
+`
 
 const addToProjectMilestoneColumn = async (context) => {
   const milestone = context.payload.issue.milestone.title
   const config = await context.config(fileName, defaultConfig)
 
   if (milestone in config.milestoneToColumn) {
-    const card_id = await getProjectCardDatabaseId(context)
+    // it's a milestone we can handle
+    // - get the card id
+    // - get the column id
 
-    const column_id = await getProjectColumnId({ 
+    const cardId = await getProjectCardId({ id: context.payload.issue.node_id  })(context)
+
+    const columnId = await getProjectColumnId({ 
       projectName: config.projectName, 
       columnName: config.milestoneToColumn[milestone] 
     })(context)
 
-    // if it's on the board -> move it
-    if (card_id) {
-      return context.octokit.projects.moveCard({
-        card_id, 
-        column_id,
-        position: 'bottom'
-      })
+    // - if it's on the board -> move it
+    // - if it's not on the board -> put it on the board
+
+    if (cardId) {
+      return context.octokit.graphql(moveProjectCardMutation, { cardId, columnId })
     } 
 
-    // if it's not on the board -> put it on the board
-    return context.octokit.projects.createCard({
-      column_id,
-      content_type: 'Issue',
-      content_id: context.payload.issue.id,
+    return context.octokit.graphql(addProjectCardMutation, {
+      projectColumnId: columnId,
+      contentId: context.payload.issue.node_id,
     })
   }
 }
+
+// ------------------------ 
+
+const removeProjectCardMutation = `
+  mutation ($cardId: ID!) {
+    deleteProjectCard(input: { 
+      cardId: $cardId 
+    }) {
+      clientMutationId
+    }
+  }
+`
 
 const removeFromProject = async (context) => {
   // this check's here b/c, if we change the milestone, 
@@ -125,56 +145,9 @@ const removeFromProject = async (context) => {
   // github still sends a "demilestoned" event, even though we only changed the milestone.
   // if the milestone truly was removed, this property === null
   if (!context.payload.issue.milestone) {
-    const card_id = await getProjectCardDatabaseId(context)
-    if (card_id) {
-      return context.octokit.projects.deleteCard({ card_id })
+    const cardId = await getProjectCardId({ id: context.payload.issue.node_id })(context)
+    if (cardId) {
+      return context.octokit.graphql(removeProjectCardMutation, { cardId })
     }
   }
-}
-
-// ------------------------ 
-
-const getProjectColumnId = ({ projectName, columnName }) => async (context) => {
-  const params = context.repo()
-
-  const projects = await context.octokit.projects.listForRepo(params)
-  const project = projects.data.find((project) => project.name === projectName)
-
-  const columns = await context.octokit.projects.listColumns({
-    ...params,
-    project_id: project.id
-  })
-  const column = columns.data.find((column) => column.name === columnName)
-
-  return column.id
-}
-
-const getProjectCardDatabaseId = async (context) => {
-  const data = await context.octokit.graphql(
-    `
-      query ($id: ID!) {
-        node(id: $id) {
-          ... on Issue {
-            projectCards(first: 100) {
-              nodes {
-                databaseId
-              }
-            }
-          }
-          ... on PullRequest {
-            projectCards(first: 100) {
-              nodes {
-                databaseId
-              }
-            }
-          }
-        }
-      }
-    `,
-    {
-      id: context.payload.issue.node_id
-    }
-    )
-
-  return data.node.projectCards.nodes[0]?.databaseId
 }
