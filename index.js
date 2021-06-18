@@ -57,6 +57,7 @@ const changeMilestone = async (context) => {
   })
 }
 
+// add to project column 
 // ------------------------ 
 
 const addProjectCardMutation = `
@@ -84,6 +85,7 @@ const addToProjectColumn = async (context) => {
   })
 }
 
+// add to project milestone column 
 // ------------------------ 
 
 const moveProjectCardMutation = `
@@ -127,6 +129,7 @@ const addToProjectMilestoneColumn = async (context) => {
   }
 }
 
+// remove from project 
 // ------------------------ 
 
 const removeProjectCardMutation = `
