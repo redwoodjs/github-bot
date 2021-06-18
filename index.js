@@ -47,6 +47,11 @@ const changeMilestone = async (context) => {
   let milestoneId = null
 
   if (context.payload.pull_request.merged) {
+    // if it has a milestone that starts with a 'v', e.g., 'v0.34.0' -> leave it be
+    if (context.payload.pull_request.milestone.title.startsWith('v')) {
+      return
+    }
+
     const config = await context.config(fileName, defaultConfig)
     milestoneId = await getMilestoneId({ title: config.mergedMilestone })(context)
   }
