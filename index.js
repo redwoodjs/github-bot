@@ -48,7 +48,11 @@ const changeMilestone = async (context) => {
 
   if (context.payload.pull_request.merged) {
     // if it has a milestone that starts with a 'v', e.g., 'v0.34.0' -> leave it be
-    if (context.payload.pull_request.milestone.title.startsWith('v')) {
+    const hasVersionMilestone = (
+      context.payload.pull_request.milestone && context.payload.pull_request.milestone.title.startsWith('v')
+    )
+
+    if (hasVersionMilestone) {
       return
     }
 
