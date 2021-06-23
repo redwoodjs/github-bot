@@ -1,5 +1,6 @@
 const { getMilestoneId, getProjectColumnId, getProjectCardId } = require('./lib/octokit')
 const { fileName, defaultConfig } = require('./lib/config')
+const { postSlackMessage } = require('./lib/slack')
 
 /**
  * This is the main entrypoint
@@ -9,21 +10,21 @@ module.exports = (app) => {
   // on pr closed
   // -> merged? -> add "next-release" milestone
   // -> closed? -> remove milestone
-  app.on("pull_request.closed", changeMilestone)
+  app.on("pull_request.closed", withPostSlackMessage(changeMilestone))
 
   // on issue|pr opened
   // -> add to Current-Release-Sprint, New issues 
-  app.on(["issues.opened", "pull_request.opened"], addToProjectColumn)
+  app.on(["issues.opened", "pull_request.opened"], withPostSlackMessage(addToProjectColumn))
 
   // on future-release
   // -> On deck
   // on next-release-priority
   // -> In progress
-  app.on("issues.milestoned", addToProjectMilestoneColumn)
+  app.on("issues.milestoned", withPostSlackMessage(addToProjectMilestoneColumn))
 
   // on demilestoned
   // -> if it's on the board, take it off
-  app.on('issues.demilestoned', removeFromProject)
+  app.on('issues.demilestoned', withPostSlackMessage(removeFromProject))
 }
 
 // change milestone
@@ -163,3 +164,36 @@ const removeFromProject = async (context) => {
     }
   }
 }
+
+// some middleware for posting to slack
+// ------------------------ 
+
+const postSlackMessage_ = (text) => postSlackMessage({ 
+  blocks: [
+    {
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text,
+        }
+      }
+    ]
+  })
+
+const withPostSlackMessage = (fn) => async (context) => {
+  const res = context.payload[context.name === 'pull_request' ? 'pull_request': 'issue']
+
+  try {
+    await fn(context)
+  } catch(e) {
+    await postSlackMessage_(
+      `:x: ${fn.name} <${res.html_url}|#${res.number}>\`\`\`${e}\`\`\``
+    )
+  }
+
+  await postSlackMessage_(
+    `:white_check_mark: ${fn.name} <${res.html_url}|#${res.number}>`
+    )
+}
+
+        
