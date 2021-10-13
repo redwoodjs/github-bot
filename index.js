@@ -104,13 +104,19 @@ const addToProjectNext = async (context) => {
 
   const itemId = await context.octokit.graphql(addProjectNextItemMutation, {
     projectId,
-    contentId: context.payload[context.name === 'pull_request' ? 'pull_request': 'issue'].node_id
+    contentId: context.payload[context.name === 'pull_request' ? 'pull_request': 'issue'].node_id,
+    headers: {
+      'GraphQL-Features': 'projects_next_graphql'
+    }
   })
 
   return context.octokit.graphql(setProjectNextFieldMutation, { 
     projectId, 
     itemId, 
     fieldId,
+    headers: {
+      'GraphQL-Features': 'projects_next_graphql'
+    }
   })
 }
 
