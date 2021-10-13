@@ -1,4 +1,4 @@
-const { getMilestoneId, getProjectColumnId, getProjectCardId } = require('./lib/octokit')
+const { getMilestoneId, getProjectColumnId, getProjectCardId, getProjectNextId, getProjectNextFieldId } = require('./lib/octokit')
 const { fileName, defaultConfig } = require('./lib/config')
 const { postSlackMessage } = require('./lib/slack')
 
@@ -15,6 +15,7 @@ module.exports = (app) => {
   // on issue|pr opened
   // -> add to Current-Release-Sprint, New issues 
   app.on(["issues.opened", "pull_request.opened"], withPostSlackMessage(addToProjectColumn))
+  app.on(["pull_request.opened"], withPostSlackMessage(addToProjectNext))
 
   // on future-release
   // -> On deck
@@ -94,6 +95,44 @@ const addToProjectColumn = async (context) => {
     contentId: context.payload[context.name === 'pull_request' ? 'pull_request': 'issue'].node_id
   })
 }
+
+// ---
+
+const addToProjectNext = async (context) => {
+  const projectId = await getProjectNextId(context)
+  const fieldId = await getProjectNextFieldId({ projectId })(context)
+
+  const itemId = await context.octokit.graphql(addProjectNextItemMutation, {
+    projectId,
+    contentId: context.payload[context.name === 'pull_request' ? 'pull_request': 'issue'].node_id
+  })
+
+  return context.octokit.graphql(setProjectNextFieldMutation, { 
+    projectId, 
+    itemId, 
+    fieldId,
+  })
+}
+
+const addProjectNextItemMutation = `
+  mutation ($projectId: ID!, $contentId: ID!) {
+    addProjectNextItem(input: {projectId: $projectId, contentId: $contentId}) {
+      projectNextItem {
+        id
+      }
+    }
+  }
+`
+
+const setProjectNextFieldMutation = `
+  mutation ($projectId: ID!, $itemId: ID!, $fieldId: ID!) {
+    updateProjectNextItemField(input: {projectId: $projectId, itemId: $itemId, fieldId: $fieldId, value: "New issues"}) {
+      projectNextItem {
+        id
+      }
+    }
+  }
+`
 
 // add to project milestone column 
 // ------------------------ 
