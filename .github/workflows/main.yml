@@ -34,12 +34,15 @@ jobs:
           echo 'PROJECT_ID='$(jq '.data.organization.projectNext.id' project_data.json) >> $GITHUB_ENV
           echo 'STATUS_FIELD_ID='$(jq '.data.organization.projectNext.fields.nodes[] | select(.name=="Status") | .id' project_data.json) >> $GITHUB_ENV
 
+      - name: console log
+        run: echo ${{ github.event_name }}
+
       - name: Set env var for issue
         if: github.event_name == 'issue'
         run: echo 'CONTENT_ID='${{ github.event.issue.node_id }} >> $GITHUB_ENV
 
       - name: Set env var for pull request
-        if: github.event_name == 'pull_request_target:'
+        if: github.event_name == 'pull_request_target'
         run: echo 'CONTENT_ID='${{ github.event.pull_request.node_id }} >> $GITHUB_ENV
 
       - name: Add to project
