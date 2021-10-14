@@ -31,6 +31,8 @@ jobs:
               }
             }
           }' > project_data.json
+          
+          cat project_data.json
 
           echo 'PROJECT_ID='$(jq '.data.organization.projectNext.id' project_data.json) >> $GITHUB_ENV
           echo 'STATUS_FIELD_ID='$(jq '.data.organization.projectNext.fields.nodes[] | select(.name=="Status") | .id' project_data.json) >> $GITHUB_ENV
@@ -64,17 +66,17 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.PROJECTS_BETA_AUTOMATION }}
         run: |
           gh api graphql --header 'GraphQL-Features: projects_next_graphql' -f query='
-            mutation ($projectId: ID!, $itemId: ID!, $statusFieldId: ID!) {
+            mutation ($projectId: ID!, $itemId: ID!, $statusFieldId: ID!, $newIssuesOptionId: String!) {
               updateProjectNextItemField(
                 input: {
                   projectId: $projectId
                   itemId: $itemId
                   fieldId: $statusFieldId
-                  value: "New issues"
+                  value: $newIssuesOptionId
                 }
               ) {
                 projectNextItem {
                   id
                 }
               }
-            }' -f projectId=$PROJECT_ID -f itemId=$ITEM_ID -f statusFieldId=$STATUS_FIELD_ID
+            }' -f projectId=$PROJECT_ID -f itemId=$ITEM_ID -f statusFieldId=$STATUS_FIELD_ID -f newIssuesOptionId=${{ env.NEW_ISSUES_OPTION_ID }}
