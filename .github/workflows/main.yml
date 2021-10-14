@@ -49,13 +49,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.PROJECTS_BETA_AUTOMATION }}
         run: |
           item_id="$(gh api graphql --header 'GraphQL-Features: projects_next_graphql' -f query='
-            mutation {
-              addProjectNextItem(input: { projectId: ${{ env.PROJECT_ID }}, contentId: ${{ env.CONTENT_ID }} }) {
+            mutation($projectId: ID!, $contentId: ID!) {
+              addProjectNextItem(input: { projectId: $projectId, contentId: $contentId }) {
                 projectNextItem {
                   id
                 }
               }
-            }' --jq '.data.addProjectNextItem.projectNextItem.id')"
+            }' -f projectId=$PROJECT_ID -f contentId=$CONTENT_ID --jq '.data.addProjectNextItem.projectNextItem.id')"
           
           echo 'ITEM_ID='$item_id >> $GITHUB_ENV
           
@@ -64,17 +64,17 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.PROJECTS_BETA_AUTOMATION }}
         run: |
           gh api graphql --header 'GraphQL-Features: projects_next_graphql' -f query='
-            mutation ($projectId: ID!, $itemId: ID!, $statusFieldId: ID!, $newIssuesOptionId: String!) {
+            mutation ($projectId: ID!, $itemId: ID!, $statusFieldId: ID!) {
               updateProjectNextItemField(
                 input: {
                   projectId: $projectId
                   itemId: $itemId
                   fieldId: $statusFieldId
-                  value: $newIssuesOptionId
+                  value: "New issues"
                 }
               ) {
                 projectNextItem {
                   id
                 }
               }
-            }' -f projectId=$PROJECT_ID -f itemId=$ITEM_ID -f statusFieldId=$STATUS_FIELD_ID -f newIssuesOptionId=$NEW_ISSUES_OPTION_ID
+            }' -f projectId=$PROJECT_ID -f itemId=$ITEM_ID -f statusFieldId=$STATUS_FIELD_ID
