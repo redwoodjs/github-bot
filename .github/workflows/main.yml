@@ -1,4 +1,4 @@
-name: Projects Beta Automation
+name: Projects Beta Automation Fork Test
 
 on:
   issues:
