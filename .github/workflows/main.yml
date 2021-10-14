@@ -37,10 +37,10 @@ jobs:
           echo 'NEW_ISSUES_OPTION_ID='$(jq '.data.organization.projectNext.fields.nodes[] | select(.name=="Status") | .settings | fromjson.options[] | select(.name=="New issues") | .id' project_data.json) >> $GITHUB_ENV
 
       - name: console log
-        run: echo ${{ toJSON(github) }}
+        run: echo "${{ toJSON(github) }}"
       
       - name: console log
-        run: echo ${{ toJSON(github.event) }}
+        run: echo "${{ toJSON(github.event) }}"
 
       - name: Set env var for issue
         if: github.event_name == 'issues'
