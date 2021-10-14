@@ -77,4 +77,4 @@ jobs:
                   id
                 }
               }
-            }' -f projectId=$PROJECT_ID -f itemId=$ITEM_ID -f statusFieldId=$STATUS_FIELD_ID -f newIssuesOptionId=$NEW_ISSUES_OPTION_ID
+            }' -f projectId=$PROJECT_ID -f itemId=$ITEM_ID -f statusFieldId=$STATUS_FIELD_ID -f newIssuesOptionId=${{ env.NEW_ISSUES_OPTION_ID }}
