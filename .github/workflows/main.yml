@@ -1,4 +1,4 @@
-name: Projects Beta Automation
+name: Projects Beta Automation Test
 
 on:
   issues:
