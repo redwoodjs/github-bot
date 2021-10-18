@@ -15,6 +15,8 @@ module.exports = (app) => {
   // on issue|pr opened
   // -> add to Current-Release-Sprint, New issues 
   app.on(["issues.opened", "pull_request.opened"], withPostSlackMessage(addToProjectColumn))
+  app.on(["issues.opened", "pull_request.opened"], withPostSlackMessage(assignTheDavidPrice))
+  app.on(["issues.opened", "pull_request.opened"], withPostSlackMessage(addTriageProcessingLabel))
 
   // on future-release
   // -> On deck
@@ -92,6 +94,72 @@ const addToProjectColumn = async (context) => {
   return context.octokit.graphql(addProjectCardMutation, {
     projectColumnId,
     contentId: context.payload[context.name === 'pull_request' ? 'pull_request': 'issue'].node_id
+  })
+}
+
+// --- add assignee
+
+const addAssigneeMutation = `
+  mutation ($assigneeIds: ID!, $assignableId: ID!) {
+    addAssigneesToAssignable(input: {
+      assigneeIds: $assigneeIds, 
+      assignableId: $assignableId
+    }) {
+      clientMutationId
+    }
+  }
+`
+
+const assignTheDavidPrice = async (context) => {
+  const { 
+    user: { id }
+  } = context.octokit.graphql(`
+    {
+      user(login: "thedavidprice") {
+        id
+      }
+    }
+  `)
+
+  return context.octokit.graphql(addAssigneeMutation, {
+    assigneeIds: [id],
+    assignableId: context.payload[context.name === 'pull_request' ? 'pull_request': 'issue'].node_id
+  })
+}
+
+// --- add labels
+
+const addLabelMutation = `
+  mutation ($labelIds: ID!, $labelableId: ID!) {
+    addLabelsToLabelable (input: {
+      labelIds: $labelIds, 
+      labelableId: $labelableId
+    }) {
+      clientMutationId
+    }
+  }
+`
+
+const addTriageProcessingLabel = async (context) => {
+  const { 
+    repository: { labels } 
+  } = context.octokit.graphql(`
+    {
+      repository(name: "redwood", owner: "redwoodjs") {
+        labels(query: "triage/processing", first: 1) {
+          nodes {
+            id
+          }
+        }
+      }
+    }
+  `)
+
+  const labelId = labels.nodes[0].id
+
+  return context.octokit.graphql(addLabelMutation, {
+    labelIds: [labelId],
+    labelableId: context.payload[context.name === 'pull_request' ? 'pull_request': 'issue'].node_id
   })
 }
 
