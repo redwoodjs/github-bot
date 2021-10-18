@@ -113,7 +113,7 @@ const addAssigneeMutation = `
 const assignTheDavidPrice = async (context) => {
   const { 
     user: { id }
-  } = context.octokit.graphql(`
+  } = await context.octokit.graphql(`
     {
       user(login: "thedavidprice") {
         id
@@ -143,7 +143,7 @@ const addLabelMutation = `
 const addTriageProcessingLabel = async (context) => {
   const { 
     repository: { labels } 
-  } = context.octokit.graphql(`
+  } = await context.octokit.graphql(`
     {
       repository(name: "redwood", owner: "redwoodjs") {
         labels(query: "triage/processing", first: 1) {
