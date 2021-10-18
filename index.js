@@ -100,7 +100,7 @@ const addToProjectColumn = async (context) => {
 // --- add assignee
 
 const addAssigneeMutation = `
-  mutation ($assigneeIds: ID!, $assignableId: ID!) {
+  mutation ($assigneeIds: [ID!]!, $assignableId: ID!) {
     addAssigneesToAssignable(input: {
       assigneeIds: $assigneeIds, 
       assignableId: $assignableId
@@ -130,7 +130,7 @@ const assignTheDavidPrice = async (context) => {
 // --- add labels
 
 const addLabelMutation = `
-  mutation ($labelIds: ID!, $labelableId: ID!) {
+  mutation ($labelIds: [ID!]!, $labelableId: ID!) {
     addLabelsToLabelable (input: {
       labelIds: $labelIds, 
       labelableId: $labelableId
