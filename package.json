@@ -1,24 +1,24 @@
 {
-  "name": "redwoodjs-bot",
-  "version": "0.1.0",
   "private": true,
-  "scripts": {
-    "start": "probot run ./index.js",
-    "test": "jest"
-  },
-  "dependencies": {
-    "node-fetch": "^2.6.1",
-    "probot": "^11.0.1"
+  "workspaces": {
+    "packages": [
+      "api",
+      "web",
+      "packages/*"
+    ]
   },
   "devDependencies": {
-    "jest": "^26.6.3",
-    "nock": "^13.0.5",
-    "smee-client": "^1.2.2"
+    "@redwoodjs/core": "0.41.0"
+  },
+  "eslintConfig": {
+    "extends": "@redwoodjs/eslint-config",
+    "root": true
   },
   "engines": {
-    "node": ">= 10.13.0"
+    "node": ">=14.17 <=16.x",
+    "yarn": ">=1.15 <2"
   },
-  "jest": {
-    "testEnvironment": "node"
+  "prisma": {
+    "seed": "yarn rw exec seed"
   }
 }
