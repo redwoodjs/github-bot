@@ -80,10 +80,12 @@ describe('createLabel', () => {
 
   it('calls octokit.graphql with the correct query and variables', async () => {
     await createLabel(variables)
-    expect(octokit.graphql).toHaveBeenCalledWith(
-      CREATE_LABEL_MUTATION,
-      variables
-    )
+    expect(octokit.graphql).toHaveBeenCalledWith(CREATE_LABEL_MUTATION, {
+      ...variables,
+      headers: {
+        accept: 'application/vnd.github.bane-preview+json',
+      },
+    })
   })
 })
 
