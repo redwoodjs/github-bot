@@ -11,19 +11,18 @@ export function removeLabels({
     removeLabelsFromLabelable: {
       clientMutationId: string
     }
-  }>(
-    `
-      mutation RemoveLabelsFromLabelable($labelableId: ID!, $labelIds: [ID!]!) {
-        removeLabelsFromLabelable(
-          input: { labelableId: $labelableId, labelIds: $labelIds }
-        ) {
-          clientMutationId
-        }
-      }
-    `,
-    {
-      labelableId,
-      labelIds,
-    }
-  )
+  }>(MUTATION, {
+    labelableId,
+    labelIds,
+  })
 }
+
+export const MUTATION = `
+  mutation RemoveLabelsFromLabelable($labelableId: ID!, $labelIds: [ID!]!) {
+    removeLabelsFromLabelable(
+      input: { labelableId: $labelableId, labelIds: $labelIds }
+    ) {
+      clientMutationId
+    }
+  }
+`

@@ -11,19 +11,18 @@ export function addAssigneesToAssignable({
     addAssigneesToAssignable: {
       clientMutationId: string
     }
-  }>(
-    `
-      mutation AddAssigneesToAssignable($assignableId: ID!, $assigneeIds: [ID!]!) {
-        addAssigneesToAssignable(
-          input: { assignableId: $assignableId, assigneeIds: $assigneeIds }
-        ) {
-          clientMutationId
-        }
-      }
-    `,
-    {
-      assignableId,
-      assigneeIds,
-    }
-  )
+  }>(MUTATION, {
+    assignableId,
+    assigneeIds,
+  })
 }
+
+export const MUTATION = `
+  mutation AddAssigneesToAssignable($assignableId: ID!, $assigneeIds: [ID!]!) {
+    addAssigneesToAssignable(
+      input: { assignableId: $assignableId, assigneeIds: $assigneeIds }
+    ) {
+      clientMutationId
+    }
+  }
+`

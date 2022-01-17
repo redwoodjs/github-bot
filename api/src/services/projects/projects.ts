@@ -13,19 +13,18 @@ export function addToProject({
         id: string
       }
     }
-  }>(
-    `
-      mutation AddProjectNextItem($projectId: ID!, $contentId: ID!) {
-        addProjectNextItem(input: { projectId: $projectId, contentId: $contentId }) {
-          projectNextItem {
-            id
-          }
-        }
-      }
-    `,
-    { projectId, contentId }
-  )
+  }>(ADD_TO_PROJECT_MUTATION, { projectId, contentId })
 }
+
+export const ADD_TO_PROJECT_MUTATION = `
+  mutation AddProjectNextItem($projectId: ID!, $contentId: ID!) {
+    addProjectNextItem(input: { projectId: $projectId, contentId: $contentId }) {
+      projectNextItem {
+        id
+      }
+    }
+  }
+`
 
 export function deleteFromProject({
   projectId,
@@ -38,17 +37,16 @@ export function deleteFromProject({
     deleteProjectNextItem: {
       deletedItemId: string
     }
-  }>(
-    `
-      mutation DeleteProjectNextItem($projectId: ID!, $itemId: ID!) {
-        deleteProjectNextItem(input: { projectId: $projectId, itemId: $itemId }) {
-          deletedItemId
-        }
-      }
-    `,
-    { projectId, itemId }
-  )
+  }>(DELETE_FROM_PROJECT_MUTATION, { projectId, itemId })
 }
+
+export const DELETE_FROM_PROJECT_MUTATION = `
+  mutation DeleteProjectNextItem($projectId: ID!, $itemId: ID!) {
+    deleteProjectNextItem(input: { projectId: $projectId, itemId: $itemId }) {
+      deletedItemId
+    }
+  }
+`
 
 export function updateProjectItemField({
   projectId,
@@ -67,33 +65,32 @@ export function updateProjectItemField({
         id: string
       }
     }
-  }>(
-    `
-      mutation UpdateProjectNextItemField(
-        $projectId: ID!
-        $itemId: ID!
-        $fieldId: ID!
-        $value: String!
-      ) {
-        updateProjectNextItemField(
-          input: {
-            projectId: $projectId
-            itemId: $itemId
-            fieldId: $fieldId
-            value: $value
-          }
-        ) {
-          projectNextItem {
-            id
-          }
-        }
-      }
-    `,
-    {
-      projectId,
-      itemId,
-      fieldId,
-      value,
-    }
-  )
+  }>(UPDATE_PROJECT_ITEM_FIELD_MUTATION, {
+    projectId,
+    itemId,
+    fieldId,
+    value,
+  })
 }
+
+export const UPDATE_PROJECT_ITEM_FIELD_MUTATION = `
+  mutation UpdateProjectNextItemField(
+    $projectId: ID!
+    $itemId: ID!
+    $fieldId: ID!
+    $value: String!
+  ) {
+    updateProjectNextItemField(
+      input: {
+        projectId: $projectId
+        itemId: $itemId
+        fieldId: $fieldId
+        value: $value
+      }
+    ) {
+      projectNextItem {
+        id
+      }
+    }
+  }
+`

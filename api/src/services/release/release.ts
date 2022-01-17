@@ -5,7 +5,7 @@ import {
 } from 'src/services/projects'
 import { removeLabels } from 'src/services/labels'
 
-const RW_RELEASE_PROJECT_ID = 'PN_kwDOAq9qTM4AARb-'
+export const RW_RELEASE_PROJECT_ID = 'PN_kwDOAq9qTM4AARb-'
 
 export function addToReleaseProject({ contentId }: { contentId: string }) {
   const projectId =
@@ -28,7 +28,7 @@ export function deleteFromReleaseProject({ itemId }: { itemId: string }) {
 /**
  * Give PRs opened by core team maintainers the "In progress" status.
  */
-function updateReleaseField({
+export function updateReleaseField({
   itemId,
   fieldId,
   value,
@@ -45,7 +45,7 @@ function updateReleaseField({
   return updateProjectItemField({ projectId, itemId, fieldId, value })
 }
 
-const RW_RELEASE_STATUS_FIELD_ID = 'MDE2OlByb2plY3ROZXh0RmllbGQ1NDExMjE='
+export const RW_RELEASE_STATUS_FIELD_ID = 'MDE2OlByb2plY3ROZXh0RmllbGQ1NDExMjE='
 
 function updateReleaseStatusField({
   itemId,
@@ -62,7 +62,7 @@ function updateReleaseStatusField({
   return updateReleaseField({ itemId, fieldId, value })
 }
 
-const RW_IN_PROGRESS_STATUS_FIELD_ID = '98236657'
+export const RW_IN_PROGRESS_STATUS_FIELD_ID = '98236657'
 
 export function updateReleaseStatusFieldToInProgress({
   itemId,
@@ -77,7 +77,7 @@ export function updateReleaseStatusFieldToInProgress({
   return updateReleaseStatusField({ itemId, value })
 }
 
-const RW_NEW_PRS_STATUS_FIELD_ID = '62e9c111'
+export const RW_NEW_PRS_STATUS_FIELD_ID = '62e9c111'
 
 export function updateReleaseStatusFieldToNewPRs({
   itemId,
@@ -92,7 +92,7 @@ export function updateReleaseStatusFieldToNewPRs({
   return updateReleaseStatusField({ itemId, value })
 }
 
-const RW_ADD_TO_RELEASE_LABEL_ID = 'LA_kwDOC2M2f87erIv2'
+export const RW_ADD_TO_RELEASE_LABEL_ID = 'LA_kwDOC2M2f87erIv2'
 
 export function removeAddToReleaseLabel({
   labelableId,
