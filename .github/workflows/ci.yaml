@@ -25,4 +25,4 @@ jobs:
         run: yarn rw build
 
       - name: Test
-        run: yarn rw test api --no-db-push --no-watch
+        run: yarn rw test api --db-push=false --no-watch
