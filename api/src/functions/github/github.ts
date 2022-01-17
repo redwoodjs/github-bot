@@ -18,6 +18,7 @@ import {
   getIssueItemIdOnTriageProject,
   deleteFromTriageProject,
   removeAddToCTMDiscussionQueueLabel,
+  assignCoreTeamTriage,
 } from 'src/services/triage'
 import { addAssigneesToAssignable } from 'src/services/assign'
 import { verifyEvent, WebhookVerificationError } from '@redwoodjs/api/webhooks'
@@ -122,8 +123,12 @@ function handleIssuesOpened(payload: IssuesOpenedEvent) {
     return
   }
 
-  logger.info("author isn't a core team maintainer; adding to triage project")
-  return addToTriageProject({ contentId: (payload.issue as Issue).node_id })
+  logger.info("author isn't a core team maintainer ")
+  logger.info('adding to triage project and assigning to core team triage')
+  return Promise.allSettled([
+    addToTriageProject({ contentId: (payload.issue as Issue).node_id }),
+    assignCoreTeamTriage({ assignableId: (payload.issue as Issue).node_id }),
+  ])
 }
 
 /**
