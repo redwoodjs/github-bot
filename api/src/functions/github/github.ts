@@ -29,6 +29,7 @@ import type {
   IssuesOpenedEvent,
   PullRequest,
   PullRequestEvent,
+  PullRequestLabeledEvent,
   PullRequestOpenedEvent,
 } from '@octokit/webhooks-types'
 
@@ -71,6 +72,7 @@ export const handler = async (event: Event, _context: Context) => {
       'issues.opened': handleIssuesOpened,
       'issues.labeled': handleIssuesLabeled,
       'pull_request.opened': handlePullRequestOpened,
+      'pull_request.labeled': handlePullRequestLabeled,
     })
 
     await sifter(event, payload)
@@ -143,13 +145,13 @@ function handleIssuesLabeled(payload: IssuesLabeledEvent) {
       logger.info(
         'issue labeled "action/add-to-release". adding to the release project'
       )
-      return handleAddToReleaseLabel(payload)
+      return handleAddToReleaseLabel(payload.issue.node_id)
 
     case 'action/add-to-ctm-discussion-queue':
       logger.info(
         `issue labeled "action/add-to-ctm-discussion-queue". adding to the ctm discussion queue`
       )
-      return handleAddToCTMDiscussionQueueLabel(payload)
+      return handleAddToCTMDiscussionQueueLabel(payload.issue.node_id)
   }
 }
 
@@ -158,14 +160,10 @@ function handleIssuesLabeled(payload: IssuesLabeledEvent) {
  * - if it's on the triage project, delete it from there
  * - finally, add it to the release project
  */
-async function handleAddToReleaseLabel(payload: IssuesLabeledEvent) {
-  await removeAddToReleaseLabel({
-    labelableId: payload.issue.node_id,
-  })
+async function handleAddToReleaseLabel(node_id: string) {
+  await removeAddToReleaseLabel({ labelableId: node_id })
 
-  const itemId = await getIssueItemIdOnTriageProject({
-    issueId: payload.issue.node_id,
-  })
+  const itemId = await getIssueItemIdOnTriageProject({ issueId: node_id })
 
   if (itemId) {
     await deleteFromTriageProject({
@@ -174,7 +172,7 @@ async function handleAddToReleaseLabel(payload: IssuesLabeledEvent) {
   }
 
   const { addProjectNextItem } = await addToReleaseProject({
-    contentId: payload.issue.node_id,
+    contentId: node_id,
   })
 
   await updateReleaseStatusFieldToInProgress({
@@ -187,12 +185,12 @@ async function handleAddToReleaseLabel(payload: IssuesLabeledEvent) {
  * - add it to the ctm discussion queue
  *   - this involves 1) adding it to the triage project and 2) giving it a priority of "TP1"
  */
-async function handleAddToCTMDiscussionQueueLabel(payload: IssuesLabeledEvent) {
+async function handleAddToCTMDiscussionQueueLabel(node_id: string) {
   await removeAddToCTMDiscussionQueueLabel({
-    labelableId: payload.issue.node_id,
+    labelableId: node_id,
   })
   await addToCTMDiscussionQueue({
-    contentId: payload.issue.node_id,
+    contentId: node_id,
   })
 }
 
@@ -243,6 +241,16 @@ async function handlePullRequestOpened(payload: PullRequestOpenedEvent) {
       assignableId: (payload.pull_request as PullRequest).node_id,
       assigneeIds: [coreTeamMaintainers[payload.sender.login].id],
     })
+  }
+}
+
+function handlePullRequestLabeled(payload: PullRequestLabeledEvent) {
+  switch (payload.label.name) {
+    case 'action/add-to-ctm-discussion-queue':
+      logger.info(
+        `pull request labeled "action/add-to-ctm-discussion-queue". adding to the ctm discussion queue`
+      )
+      return handleAddToCTMDiscussionQueueLabel(payload.pull_request.node_id)
   }
 }
 
