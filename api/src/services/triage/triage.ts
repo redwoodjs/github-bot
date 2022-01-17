@@ -9,21 +9,16 @@ import { removeLabels } from 'src/services/labels'
 
 const RW_TRIAGE_PROJECT_ID = 'PN_kwDOAq9qTM0dIA'
 
-export function addToTriageProject({ contentId }: { contentId: string }) {
-  const projectId =
-    process.env.NODE_ENV === 'development'
-      ? process.env.DEV_TRIAGE_PROJECT_ID
-      : RW_TRIAGE_PROJECT_ID
+const projectId =
+  process.env.NODE_ENV === 'development'
+    ? process.env.DEV_TRIAGE_PROJECT_ID
+    : RW_TRIAGE_PROJECT_ID
 
+export function addToTriageProject({ contentId }: { contentId: string }) {
   return addToProject({ projectId, contentId })
 }
 
 export function deleteFromTriageProject({ itemId }: { itemId: string }) {
-  const projectId =
-    process.env.NODE_ENV === 'development'
-      ? process.env.DEV_TRIAGE_PROJECT_ID
-      : RW_TRIAGE_PROJECT_ID
-
   return deleteFromProject({ projectId, itemId })
 }
 
@@ -36,11 +31,6 @@ export function updateTriageField({
   itemId: string
   value: string
 }) {
-  const projectId =
-    process.env.NODE_ENV === 'development'
-      ? process.env.DEV_TRIAGE_PROJECT_ID
-      : RW_TRIAGE_PROJECT_ID
-
   return updateProjectItemField({
     projectId,
     itemId,
@@ -130,11 +120,6 @@ export async function getIssueItemIdOnTriageProject({
   issueId: string
   after?: string
 }): Promise<string | null> {
-  const projectId =
-    process.env.NODE_ENV === 'development'
-      ? process.env.DEV_TRIAGE_PROJECT_ID
-      : RW_TRIAGE_PROJECT_ID
-
   const { node } = await octokit.graphql<{
     node: {
       items: {

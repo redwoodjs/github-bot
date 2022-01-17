@@ -60,10 +60,21 @@ export const startSmeeClient = () => {
   })
 }
 
-export const coreTeamMaintainers = {
+export const coreTeamTriage = {
   callingmedic911: {
     id: 'MDQ6VXNlcjI2Mjk5MDI',
   },
+  jtoar: {
+    id: 'MDQ6VXNlcjMyOTkyMzM1',
+  },
+  simoncrypta: {
+    id: 'MDQ6VXNlcjE4MDEzNTMy',
+  },
+}
+
+export const coreTeamTriageLogins = Object.keys(coreTeamTriage)
+
+export const coreTeamMaintainers = {
   cannikin: {
     id: 'MDQ6VXNlcjMwMA==',
   },
@@ -73,17 +84,11 @@ export const coreTeamMaintainers = {
   dthyresson: {
     id: 'MDQ6VXNlcjEwNTE2MzM=',
   },
-  jtoar: {
-    id: 'MDQ6VXNlcjMyOTkyMzM1',
-  },
   mojombo: {
     id: 'MDQ6VXNlcjE=',
   },
   peterp: {
     id: 'MDQ6VXNlcjQ0ODQ5',
-  },
-  simoncrypta: {
-    id: 'MDQ6VXNlcjE4MDEzNTMy',
   },
   thedavidprice: {
     id: 'MDQ6VXNlcjI5NTE=',
@@ -91,6 +96,7 @@ export const coreTeamMaintainers = {
   Tobbe: {
     id: 'MDQ6VXNlcjMwNzkz',
   },
+  ...coreTeamTriage,
 }
 
 export const coreTeamMaintainerLogins = Object.keys(coreTeamMaintainers)
