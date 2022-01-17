@@ -5,23 +5,13 @@ import {
 } from 'src/services/projects'
 import { removeLabels } from 'src/services/labels'
 
-export const RW_RELEASE_PROJECT_ID = 'PN_kwDOAq9qTM4AARb-'
+const projectId = process.env.RELEASE_PROJECT_ID
 
 export function addToReleaseProject({ contentId }: { contentId: string }) {
-  const projectId =
-    process.env.NODE_ENV === 'development'
-      ? process.env.DEV_RELEASE_PROJECT_ID
-      : RW_RELEASE_PROJECT_ID
-
   return addToProject({ projectId, contentId })
 }
 
 export function deleteFromReleaseProject({ itemId }: { itemId: string }) {
-  const projectId =
-    process.env.NODE_ENV === 'development'
-      ? process.env.DEV_RELEASE_PROJECT_ID
-      : RW_RELEASE_PROJECT_ID
-
   return deleteFromProject({ projectId, itemId })
 }
 
@@ -37,15 +27,8 @@ export function updateReleaseField({
   fieldId: string
   value: string
 }) {
-  const projectId =
-    process.env.NODE_ENV === 'development'
-      ? process.env.DEV_RELEASE_PROJECT_ID
-      : RW_RELEASE_PROJECT_ID
-
   return updateProjectItemField({ projectId, itemId, fieldId, value })
 }
-
-export const RW_RELEASE_STATUS_FIELD_ID = 'MDE2OlByb2plY3ROZXh0RmllbGQ1NDExMjE='
 
 function updateReleaseStatusField({
   itemId,
@@ -54,42 +37,33 @@ function updateReleaseStatusField({
   itemId: string
   value: string
 }) {
-  const fieldId =
-    process.env.NODE_ENV === 'development'
-      ? process.env.DEV_RELEASE_STATUS_FIELD_ID
-      : RW_RELEASE_STATUS_FIELD_ID
-
-  return updateReleaseField({ itemId, fieldId, value })
+  return updateReleaseField({
+    itemId,
+    fieldId: process.env.RELEASE_STATUS_FIELD_ID,
+    value,
+  })
 }
-
-export const RW_IN_PROGRESS_STATUS_FIELD_ID = '98236657'
 
 export function updateReleaseStatusFieldToInProgress({
   itemId,
 }: {
   itemId: string
 }) {
-  const value =
-    process.env.NODE_ENV === 'development'
-      ? process.env.DEV_IN_PROGRESS_STATUS_FIELD_ID
-      : RW_IN_PROGRESS_STATUS_FIELD_ID
-
-  return updateReleaseStatusField({ itemId, value })
+  return updateReleaseStatusField({
+    itemId,
+    value: process.env.IN_PROGRESS_STATUS_FIELD_ID,
+  })
 }
-
-export const RW_NEW_PRS_STATUS_FIELD_ID = '62e9c111'
 
 export function updateReleaseStatusFieldToNewPRs({
   itemId,
 }: {
   itemId: string
 }) {
-  const value =
-    process.env.NODE_ENV === 'development'
-      ? process.env.DEV_NEW_PRS_STATUS_FIELD_ID
-      : RW_NEW_PRS_STATUS_FIELD_ID
-
-  return updateReleaseStatusField({ itemId, value })
+  return updateReleaseStatusField({
+    itemId,
+    value: process.env.NEW_PRS_STATUS_FIELD_ID,
+  })
 }
 
 export const RW_ADD_TO_RELEASE_LABEL_ID = 'LA_kwDOC2M2f87erIv2'
@@ -99,10 +73,8 @@ export function removeAddToReleaseLabel({
 }: {
   labelableId: string
 }) {
-  const labelId =
-    process.env.NODE_ENV === 'development'
-      ? process.env.DEV_ADD_TO_RELEASE_LABEL_ID
-      : RW_ADD_TO_RELEASE_LABEL_ID
-
-  return removeLabels({ labelableId, labelIds: [labelId] })
+  return removeLabels({
+    labelableId,
+    labelIds: [process.env.ADD_TO_RELEASE_LABEL_ID],
+  })
 }

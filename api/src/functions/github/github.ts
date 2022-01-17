@@ -2,6 +2,7 @@ import type { APIGatewayEvent, Context } from 'aws-lambda'
 import { logger } from 'src/lib/logger'
 import {
   startSmeeClient,
+  addIdsToProcessEnv,
   coreTeamMaintainerLogins,
   coreTeamMaintainers,
 } from 'src/lib/github'
@@ -50,6 +51,8 @@ type Payload = IssuesEvent | PullRequestEvent
 
 export const handler = async (event: Event, _context: Context) => {
   logger.info('invoked github function')
+
+  await addIdsToProcessEnv()
 
   try {
     verifyEvent('sha256Verifier', {
