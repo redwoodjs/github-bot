@@ -107,8 +107,6 @@ export async function getIds({ owner, name }: { owner: string; name: string }) {
     }
   )
 
-  console.log({ organization })
-
   const [RELEASE_PROJECT_ID, TRIAGE_PROJECT_ID] = ['Release', 'Triage'].map(
     (title) => {
       const { id } = organization.projectsNext.nodes.find(
@@ -119,7 +117,7 @@ export async function getIds({ owner, name }: { owner: string; name: string }) {
   )
 
   /**
-   * field and value ids
+   * release field and value ids
    */
   const { node: releaseNode } = await getProjectNextFields(RELEASE_PROJECT_ID)
 
@@ -134,18 +132,19 @@ export async function getIds({ owner, name }: { owner: string; name: string }) {
     }
   )
 
-  const { id: IN_PROGRESS_STATUS_FIELD_ID } = JSON.parse(
-    releaseSettings
-  ).options.find(
-    (option: { id: string; name: string }) => option.name === 'In progress'
-  )
+  const [IN_PROGRESS_STATUS_FIELD_ID, NEW_PRS_STATUS_FIELD_ID] = [
+    'In progress',
+    'New PRs',
+  ].map((name) => {
+    const { id } = JSON.parse(releaseSettings).options.find(
+      (option: { id: string; name: string }) => option.name === name
+    )
+    return id
+  })
 
-  const { id: NEW_PRS_STATUS_FIELD_ID } = JSON.parse(
-    releaseSettings
-  ).options.find(
-    (option: { id: string; name: string }) => option.name === 'New PRs'
-  )
-
+  /**
+   * triage field and value ids
+   */
   const { node: triageNode } = await getProjectNextFields(TRIAGE_PROJECT_ID)
 
   let triageSettings
@@ -159,17 +158,15 @@ export async function getIds({ owner, name }: { owner: string; name: string }) {
     }
   )
 
-  const { id: NEEDS_TRIAGE_STATUS_FIELD_ID } = JSON.parse(
-    triageSettings
-  ).options.find(
-    (option: { id: string; name: string }) => option.name === 'Needs triage'
-  )
-
-  const { id: NEEDS_DISCUSSION_STATUS_FIELD_ID } = JSON.parse(
-    triageSettings
-  ).options.find(
-    (option: { id: string; name: string }) => option.name === 'Needs discussion'
-  )
+  const [NEEDS_TRIAGE_STATUS_FIELD_ID, NEEDS_DISCUSSION_STATUS_FIELD_ID] = [
+    'Needs triage',
+    'Needs discussion',
+  ].map((name) => {
+    const { id } = JSON.parse(triageSettings).options.find(
+      (option: { id: string; name: string }) => option.name === name
+    )
+    return id
+  })
 
   const { id: TRIAGE_PRIORITY_FIELD_ID } = triageNode.fields.nodes.find(
     (field) => {
@@ -192,14 +189,13 @@ export async function getIds({ owner, name }: { owner: string; name: string }) {
     name,
   })
 
-  const { id: ADD_TO_RELEASE_LABEL_ID } = repository.labels.nodes.find(
-    (label) => label.name === 'action/add-to-release'
-  )
-
-  const { id: ADD_TO_CTM_DISCUSSION_QUEUE_LABEL_ID } =
-    repository.labels.nodes.find(
-      (label) => label.name === 'action/add-to-ctm-discussion-queue'
-    )
+  const [ADD_TO_RELEASE_LABEL_ID, ADD_TO_CTM_DISCUSSION_QUEUE_LABEL_ID] = [
+    'action/add-to-release',
+    'action/add-to-ctm-discussion-queue',
+  ].map((name) => {
+    const { id } = repository.labels.nodes.find((label) => label.name === name)
+    return id
+  })
 
   return {
     // projects
