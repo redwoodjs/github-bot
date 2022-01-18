@@ -2,10 +2,10 @@ import type { APIGatewayEvent, Context } from 'aws-lambda'
 import { logger } from 'src/lib/logger'
 import {
   startSmeeClient,
-  addIdsToProcessEnv,
   coreTeamMaintainerLogins,
   coreTeamMaintainers,
 } from 'src/lib/github'
+import { addIdsToProcessEnv } from 'src/services/github'
 import {
   addToReleaseProject,
   updateReleaseStatusFieldToNewPRs,
@@ -236,7 +236,7 @@ async function handlePullRequestOpened(payload: PullRequestOpenedEvent) {
    */
   if (
     !(payload.pull_request as PullRequest).assignees.length ||
-    (payload.pull_request as PullRequest).assignees
+    !(payload.pull_request as PullRequest).assignees
       .map((assignee) => assignee.login)
       .some((login) => coreTeamMaintainerLogins.includes(login))
   ) {

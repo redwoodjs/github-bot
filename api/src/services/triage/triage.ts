@@ -8,14 +8,12 @@ import {
 import { removeLabels } from 'src/services/labels'
 import { addAssigneesToAssignable } from 'src/services/assign'
 
-const projectId = process.env.TRIAGE_PROJECT_ID
-
 export function addToTriageProject({ contentId }: { contentId: string }) {
-  return addToProject({ projectId, contentId })
+  return addToProject({ projectId: process.env.TRIAGE_PROJECT_ID, contentId })
 }
 
 export function deleteFromTriageProject({ itemId }: { itemId: string }) {
-  return deleteFromProject({ projectId, itemId })
+  return deleteFromProject({ projectId: process.env.TRIAGE_PROJECT_ID, itemId })
 }
 
 export function updateTriageField({
@@ -28,7 +26,7 @@ export function updateTriageField({
   value: string
 }) {
   return updateProjectItemField({
-    projectId,
+    projectId: process.env.TRIAGE_PROJECT_ID,
     itemId,
     fieldId,
     value,
@@ -104,14 +102,12 @@ export async function getIssueItemIdOnTriageProject({
           hasNextPage: boolean
           endCursor: string
         }
-        nodes: [
-          {
+        nodes: Array<{
+          id: string
+          content: {
             id: string
-            content: {
-              id: string
-            }
           }
-        ]
+        }>
       }
     }
   }>(
@@ -138,7 +134,7 @@ export async function getIssueItemIdOnTriageProject({
       }
     `,
     {
-      projectId,
+      projectId: process.env.TRIAGE_PROJECT_ID,
       after,
     }
   )
@@ -247,7 +243,7 @@ export async function getTriageProjectItems(
       }
     `,
     {
-      projectId,
+      projectId: process.env.TRIAGE_PROJECT_ID,
       after,
     }
   )

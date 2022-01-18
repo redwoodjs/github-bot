@@ -5,14 +5,15 @@ import {
 } from 'src/services/projects'
 import { removeLabels } from 'src/services/labels'
 
-const projectId = process.env.RELEASE_PROJECT_ID
-
 export function addToReleaseProject({ contentId }: { contentId: string }) {
-  return addToProject({ projectId, contentId })
+  return addToProject({ projectId: process.env.RELEASE_PROJECT_ID, contentId })
 }
 
 export function deleteFromReleaseProject({ itemId }: { itemId: string }) {
-  return deleteFromProject({ projectId, itemId })
+  return deleteFromProject({
+    projectId: process.env.RELEASE_PROJECT_ID,
+    itemId,
+  })
 }
 
 /**
@@ -27,7 +28,12 @@ export function updateReleaseField({
   fieldId: string
   value: string
 }) {
-  return updateProjectItemField({ projectId, itemId, fieldId, value })
+  return updateProjectItemField({
+    projectId: process.env.RELEASE_PROJECT_ID,
+    itemId,
+    fieldId,
+    value,
+  })
 }
 
 function updateReleaseStatusField({
