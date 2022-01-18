@@ -52,8 +52,6 @@ type Payload = IssuesEvent | PullRequestEvent
 export const handler = async (event: Event, _context: Context) => {
   logger.info('invoked github function')
 
-  await addIdsToProcessEnv()
-
   try {
     verifyEvent('sha256Verifier', {
       event,
@@ -66,6 +64,11 @@ export const handler = async (event: Event, _context: Context) => {
     logger.info('webhook verified')
 
     const payload: Payload = JSON.parse(event.body)
+
+    await addIdsToProcessEnv({
+      owner: payload.organization.login,
+      name: payload.repository.name,
+    })
 
     logger.info(
       `delivery, event, action: ${event.headers['x-github-delivery']}, ${event.headers['x-github-event']}, ${payload.action}`

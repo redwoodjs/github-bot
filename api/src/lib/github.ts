@@ -101,10 +101,7 @@ export const coreTeamMaintainers = {
 
 export const coreTeamMaintainerLogins = Object.keys(coreTeamMaintainers)
 
-export async function getIds() {
-  const login =
-    process.env.NODE_ENV === 'development' ? process.env.DEV_LOGIN : 'redwoodjs'
-
+export async function getIds({ owner, name }: { owner: string; name: string }) {
   /**
    * RELEASE_PROJECT_ID
    * TRIAGE_PROJECT_ID
@@ -125,7 +122,7 @@ export async function getIds() {
       }
     `,
     {
-      login,
+      login: owner,
     }
   )
 
@@ -261,15 +258,12 @@ export async function getIds() {
   /**
    * ADD_TO_RELEASE_LABEL_ID
    */
-  const repo =
-    process.env.NODE_ENV === 'development' ? process.env.DEV_REPO : 'redwood'
-
   const { repository } = await octokit.graphql<{
     repository: { labels: { nodes: [{ name: string; id: string }] } }
   }>(
     `
-      query getLabelIds($login: String!, $repo: String!) {
-        repository(owner: $login, name: $repo) {
+      query getLabelIds($login: String!, $name: String!) {
+        repository(owner: $login, name: $name) {
           labels(first: 100) {
             nodes {
               name
@@ -280,8 +274,8 @@ export async function getIds() {
       }
     `,
     {
-      login,
-      repo,
+      login: owner,
+      name,
     }
   )
 
@@ -314,7 +308,13 @@ export async function getIds() {
   }
 }
 
-export async function addIdsToProcessEnv() {
-  const ids = await getIds()
+export async function addIdsToProcessEnv({
+  owner,
+  name,
+}: {
+  owner: string
+  name: string
+}) {
+  const ids = await getIds({ owner, name })
   Object.entries(ids).forEach(([key, value]) => (process.env[key] = value))
 }
