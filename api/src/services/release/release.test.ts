@@ -1,9 +1,4 @@
 import {
-  RW_RELEASE_PROJECT_ID,
-  RW_RELEASE_STATUS_FIELD_ID,
-  RW_IN_PROGRESS_STATUS_FIELD_ID,
-  RW_NEW_PRS_STATUS_FIELD_ID,
-  RW_ADD_TO_RELEASE_LABEL_ID,
   addToReleaseProject,
   deleteFromReleaseProject,
   updateReleaseField,
@@ -17,20 +12,6 @@ jest.mock('src/lib/github', () => {
       graphql: jest.fn(),
     },
   }
-})
-
-describe('constants', () => {
-  it("haven't changed", () => {
-    expect(RW_RELEASE_PROJECT_ID).toMatchInlineSnapshot(`"PN_kwDOAq9qTM4AARb-"`)
-    expect(RW_RELEASE_STATUS_FIELD_ID).toMatchInlineSnapshot(
-      `"MDE2OlByb2plY3ROZXh0RmllbGQ1NDExMjE="`
-    )
-    expect(RW_IN_PROGRESS_STATUS_FIELD_ID).toMatchInlineSnapshot(`"98236657"`)
-    expect(RW_NEW_PRS_STATUS_FIELD_ID).toMatchInlineSnapshot(`"62e9c111"`)
-    expect(RW_ADD_TO_RELEASE_LABEL_ID).toMatchInlineSnapshot(
-      `"LA_kwDOC2M2f87erIv2"`
-    )
-  })
 })
 
 describe('addToReleaseProject', () => {
