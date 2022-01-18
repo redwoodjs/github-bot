@@ -5,6 +5,7 @@ import {
   coreTeamMaintainerLogins,
   coreTeamMaintainers,
 } from 'src/lib/github'
+import { addIdsToProcessEnv } from 'src/services/github'
 import {
   addToReleaseProject,
   updateReleaseStatusFieldToNewPRs,
@@ -63,6 +64,11 @@ export const handler = async (event: Event, _context: Context) => {
     logger.info('webhook verified')
 
     const payload: Payload = JSON.parse(event.body)
+
+    await addIdsToProcessEnv({
+      owner: payload.organization.login,
+      name: payload.repository.name,
+    })
 
     logger.info(
       `delivery, event, action: ${event.headers['x-github-delivery']}, ${event.headers['x-github-event']}, ${payload.action}`
@@ -230,7 +236,7 @@ async function handlePullRequestOpened(payload: PullRequestOpenedEvent) {
    */
   if (
     !(payload.pull_request as PullRequest).assignees.length ||
-    (payload.pull_request as PullRequest).assignees
+    !(payload.pull_request as PullRequest).assignees
       .map((assignee) => assignee.login)
       .some((login) => coreTeamMaintainerLogins.includes(login))
   ) {

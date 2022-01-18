@@ -8,19 +8,12 @@ import {
 import { removeLabels } from 'src/services/labels'
 import { addAssigneesToAssignable } from 'src/services/assign'
 
-const RW_TRIAGE_PROJECT_ID = 'PN_kwDOAq9qTM0dIA'
-
-const projectId =
-  process.env.NODE_ENV === 'development'
-    ? process.env.DEV_TRIAGE_PROJECT_ID
-    : RW_TRIAGE_PROJECT_ID
-
 export function addToTriageProject({ contentId }: { contentId: string }) {
-  return addToProject({ projectId, contentId })
+  return addToProject({ projectId: process.env.TRIAGE_PROJECT_ID, contentId })
 }
 
 export function deleteFromTriageProject({ itemId }: { itemId: string }) {
-  return deleteFromProject({ projectId, itemId })
+  return deleteFromProject({ projectId: process.env.TRIAGE_PROJECT_ID, itemId })
 }
 
 export function updateTriageField({
@@ -33,14 +26,12 @@ export function updateTriageField({
   value: string
 }) {
   return updateProjectItemField({
-    projectId,
+    projectId: process.env.TRIAGE_PROJECT_ID,
     itemId,
     fieldId,
     value,
   })
 }
-
-const RW_TRIAGE_STATUS_FIELD_ID = 'MDE2OlByb2plY3ROZXh0RmllbGQ1NzA0OA=='
 
 export function updateTriageStatusField({
   itemId,
@@ -49,15 +40,12 @@ export function updateTriageStatusField({
   itemId: string
   value: string
 }) {
-  const fieldId =
-    process.env.NODE_ENV === 'development'
-      ? process.env.DEV_TRIAGE_STATUS_FIELD_ID
-      : RW_TRIAGE_STATUS_FIELD_ID
-
-  return updateTriageField({ itemId, fieldId, value })
+  return updateTriageField({
+    itemId,
+    fieldId: process.env.TRIAGE_STATUS_FIELD_ID,
+    value,
+  })
 }
-
-const RW_TRIAGE_PRIORITY_FIELD_ID = 'MDE2OlByb2plY3ROZXh0RmllbGQ2NTI1NDg='
 
 export function updateTriagePriorityField({
   itemId,
@@ -66,16 +54,12 @@ export function updateTriagePriorityField({
   itemId: string
   value: string
 }) {
-  const fieldId =
-    process.env.NODE_ENV === 'development'
-      ? process.env.DEV_TRIAGE_PRIORITY_FIELD_ID
-      : RW_TRIAGE_PRIORITY_FIELD_ID
-
-  return updateTriageField({ itemId, fieldId, value })
+  return updateTriageField({
+    itemId,
+    fieldId: process.env.TRIAGE_PRIORITY_FIELD_ID,
+    value,
+  })
 }
-
-const RW_NEEDS_DISCUSSION_STATUS_FIELD_ID = 'a59d5422'
-const RW_TP1_PRIORITY_FIELD_ID = '1196d6e9'
 
 export async function addToCTMDiscussionQueue({
   contentId,
@@ -84,24 +68,14 @@ export async function addToCTMDiscussionQueue({
 }) {
   const { addProjectNextItem } = await addToTriageProject({ contentId })
 
-  const statusFieldValue =
-    process.env.NODE_ENV === 'development'
-      ? process.env.DEV_NEEDS_DISCUSSION_STATUS_FIELD_ID
-      : RW_NEEDS_DISCUSSION_STATUS_FIELD_ID
-
-  const priorityFieldValue =
-    process.env.NODE_ENV === 'development'
-      ? process.env.DEV_TP1_PRIORITY_FIELD_ID
-      : RW_TP1_PRIORITY_FIELD_ID
-
   return Promise.allSettled([
     updateTriageStatusField({
       itemId: addProjectNextItem.projectNextItem.id,
-      value: statusFieldValue,
+      value: process.env.NEEDS_DISCUSSION_STATUS_FIELD_ID,
     }),
     updateTriagePriorityField({
       itemId: addProjectNextItem.projectNextItem.id,
-      value: priorityFieldValue,
+      value: process.env.TP1_PRIORITY_FIELD_ID,
     }),
   ])
 }
@@ -128,14 +102,12 @@ export async function getIssueItemIdOnTriageProject({
           hasNextPage: boolean
           endCursor: string
         }
-        nodes: [
-          {
+        nodes: Array<{
+          id: string
+          content: {
             id: string
-            content: {
-              id: string
-            }
           }
-        ]
+        }>
       }
     }
   }>(
@@ -162,7 +134,7 @@ export async function getIssueItemIdOnTriageProject({
       }
     `,
     {
-      projectId,
+      projectId: process.env.TRIAGE_PROJECT_ID,
       after,
     }
   )
@@ -185,19 +157,15 @@ export async function getIssueItemIdOnTriageProject({
   return null
 }
 
-const RW_ADD_TO_CTM_DISCUSSION_QUEUE_LABEL_ID = 'LA_kwDOC2M2f87erIoO'
-
 export function removeAddToCTMDiscussionQueueLabel({
   labelableId,
 }: {
   labelableId: string
 }) {
-  const labelId =
-    process.env.NODE_ENV === 'development'
-      ? process.env.DEV_ADD_TO_CTM_DISCUSSION_QUEUE_LABEL_ID
-      : RW_ADD_TO_CTM_DISCUSSION_QUEUE_LABEL_ID
-
-  return removeLabels({ labelableId, labelIds: [labelId] })
+  return removeLabels({
+    labelableId,
+    labelIds: [process.env.ADD_TO_CTM_DISCUSSION_QUEUE_LABEL_ID],
+  })
 }
 
 /**
@@ -275,7 +243,7 @@ export async function getTriageProjectItems(
       }
     `,
     {
-      projectId,
+      projectId: process.env.TRIAGE_PROJECT_ID,
       after,
     }
   )
@@ -291,21 +259,14 @@ export async function getTriageProjectItems(
   return [...node.items.nodes, ...nodes]
 }
 
-const RW_NEEDS_TRIAGE_STATUS_FIELD_ID = '4f1b8c90'
-
 export async function getNextCoreTeamTriageAssigneeId() {
   const triageProjectItems = await getTriageProjectItems()
-
-  const needsTriageStatusFieldId =
-    process.env.NODE_ENV === 'development'
-      ? process.env.DEV_NEEDS_TRIAGE_STATUS_FIELD_ID
-      : RW_NEEDS_TRIAGE_STATUS_FIELD_ID
 
   const needsTriageItems = triageProjectItems.filter(
     (triageProjectItem: ProjectNextItem) => {
       return triageProjectItem.fieldValues.nodes.some((fieldValue) => {
         if (fieldValue.projectField.name === 'Status') {
-          return fieldValue.value === needsTriageStatusFieldId
+          return fieldValue.value === process.env.NEEDS_TRIAGE_STATUS_FIELD_ID
         }
       })
     }
