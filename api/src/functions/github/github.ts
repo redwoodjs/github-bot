@@ -80,6 +80,10 @@ export const handler = async (event: Event, _context: Context) => {
         query: {
           repo: `${payload.organization.login}/${payload.repository.name}`,
           eventAction: `${event.headers['x-github-event']}.${payload.action}`,
+          user: payload.sender.login,
+          ...(payload.action === 'labeled' && {
+            label: payload.label.name,
+          }),
         },
       },
       payload.issue?.html_url ?? payload.pull_request.html_url
