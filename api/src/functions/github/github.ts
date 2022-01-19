@@ -52,8 +52,10 @@ type Payload = IssuesEvent | PullRequestEvent
 function getLoggerQuery(event: Event, payload?: Payload) {
   return {
     delivery: event.headers['x-github-delivery'],
-    event: event.headers['x-github-event'],
-    ...(payload && { action: payload.action }),
+    ...(payload && {
+      repo: `${payload.organization.login}.${payload.repository.name}`,
+      eventAction: `${event.headers['x-github-event']}.${payload.action}`,
+    }),
   }
 }
 
