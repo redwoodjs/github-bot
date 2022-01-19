@@ -233,27 +233,19 @@ async function handleAddToCTMDiscussionQueueLabel(node_id: string) {
 /**
  *
  * issue closed...
- * - if it's on the triage board, take it off
  * - if it's on the release board, move it to Done
  */
 async function handleIssuesClosed(event: Event, payload: IssuesEvent) {
-  const triageItemId = await getContentItemIdOnTriageProject(
-    payload.issue.node_id
-  )
-
-  if (triageItemId) {
-    logger.info("issue's on the triage board; taking it off")
-    await deleteFromTriageProject(triageItemId)
-  }
-
   const releaseItemId = await getContentItemIdOnReleaseProject(
     payload.issue.node_id
   )
 
-  if (releaseItemId) {
-    logger.info("issue's on the release board; moving it to Done")
-    return updateReleaseStatusFieldToDone(releaseItemId)
+  if (!releaseItemId) {
+    return
   }
+
+  logger.info("issue's on the release board; moving it to Done")
+  return updateReleaseStatusFieldToDone(releaseItemId)
 }
 
 /**
