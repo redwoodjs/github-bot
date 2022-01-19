@@ -10,7 +10,7 @@ services:
   env: node
   region: oregon
   buildCommand: yarn && yarn rw build api
-  startCommand: yarn rw deploy render api --prisma=false --data-migrate=false
+  startCommand: yarn rw deploy render api --prisma=false --data-migrate=false | yarn rw-log-formatter
   envVars:
   - key: NODE_VERSION
     value: 14

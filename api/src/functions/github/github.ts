@@ -49,8 +49,22 @@ type Event = APIGatewayEvent & {
  */
 type Payload = IssuesEvent | PullRequestEvent
 
+function getLoggerQuery(event: Event, payload?: Payload) {
+  return {
+    delivery: event.headers['x-github-delivery'],
+    event: event.headers['x-github-event'],
+    ...(payload && { action: payload.action }),
+  }
+}
+
 export const handler = async (event: Event, _context: Context) => {
-  logger.info('invoked github function')
+  console.log()
+  console.log('-'.repeat(80))
+  console.log()
+
+  const query = getLoggerQuery(event)
+
+  logger.info({ query }, 'invoked github function')
 
   try {
     verifyEvent('sha256Verifier', {
@@ -61,7 +75,7 @@ export const handler = async (event: Event, _context: Context) => {
       },
     })
 
-    logger.info('webhook verified')
+    logger.info({ query }, 'webhook verified')
 
     const payload: Payload = JSON.parse(event.body)
 
@@ -70,10 +84,6 @@ export const handler = async (event: Event, _context: Context) => {
       name: payload.repository.name,
     })
 
-    logger.info(
-      `delivery, event, action: ${event.headers['x-github-delivery']}, ${event.headers['x-github-event']}, ${payload.action}`
-    )
-
     const sifter = sift({
       'issues.opened': handleIssuesOpened,
       'issues.labeled': handleIssuesLabeled,
@@ -81,7 +91,9 @@ export const handler = async (event: Event, _context: Context) => {
       'pull_request.labeled': handlePullRequestLabeled,
     })
 
-    await sifter(event, payload)
+    await sifter(event, payload, {
+      logger: logger.child({ query: getLoggerQuery(event, payload) }),
+    })
 
     /**
      * What to return?
@@ -125,14 +137,18 @@ export const handler = async (event: Event, _context: Context) => {
  * If an issue's opened by a core team maintainer,
  * they should triage it.
  */
-function handleIssuesOpened(payload: IssuesOpenedEvent) {
+function handleIssuesOpened(
+  event: Event,
+  payload: IssuesOpenedEvent,
+  ctx: Record<string, any>
+) {
   if (coreTeamMaintainerLogins.includes(payload.sender.login)) {
-    logger.info("author's a core team maintainer; returning")
+    ctx.logger.info("author's a core team maintainer; returning")
     return
   }
 
-  logger.info("author isn't a core team maintainer ")
-  logger.info('adding to triage project and assigning to core team triage')
+  ctx.logger.info("author isn't a core team maintainer ")
+  ctx.logger.info('adding to triage project and assigning to core team triage')
   return Promise.allSettled([
     addToTriageProject({ contentId: (payload.issue as Issue).node_id }),
     assignCoreTeamTriage({ assignableId: (payload.issue as Issue).node_id }),
@@ -145,16 +161,20 @@ function handleIssuesOpened(payload: IssuesOpenedEvent) {
  * - action/add-to-release
  * - action/add-to-ctm-discussion-queue
  */
-function handleIssuesLabeled(payload: IssuesLabeledEvent) {
+function handleIssuesLabeled(
+  event: Event,
+  payload: IssuesLabeledEvent,
+  ctx: Record<string, any>
+) {
   switch (payload.label.name) {
     case 'action/add-to-release':
-      logger.info(
+      ctx.logger.info(
         'issue labeled "action/add-to-release". adding to the release project'
       )
       return handleAddToReleaseLabel(payload.issue.node_id)
 
     case 'action/add-to-ctm-discussion-queue':
-      logger.info(
+      ctx.logger.info(
         `issue labeled "action/add-to-ctm-discussion-queue". adding to the ctm discussion queue`
       )
       return handleAddToCTMDiscussionQueueLabel(payload.issue.node_id)
@@ -209,8 +229,12 @@ async function handleAddToCTMDiscussionQueueLabel(node_id: string) {
  * make sure they're assigned to it and give it the "In progress" status.
  * Otherwise, give it the "New PRs" status.
  */
-async function handlePullRequestOpened(payload: PullRequestOpenedEvent) {
-  logger.info('adding pull request to the release project')
+async function handlePullRequestOpened(
+  event: Event,
+  payload: PullRequestOpenedEvent,
+  ctx: Record<string, any>
+) {
+  ctx.logger.info('adding pull request to the release project')
   const { addProjectNextItem } = await addToReleaseProject({
     contentId: (payload.pull_request as PullRequest).node_id,
   })
@@ -223,7 +247,7 @@ async function handlePullRequestOpened(payload: PullRequestOpenedEvent) {
     return
   }
 
-  logger.info(
+  ctx.logger.info(
     `author's a core team maintainer; updating the status field to "In progress" `
   )
 
@@ -240,7 +264,7 @@ async function handlePullRequestOpened(payload: PullRequestOpenedEvent) {
       .map((assignee) => assignee.login)
       .some((login) => coreTeamMaintainerLogins.includes(login))
   ) {
-    logger.info(
+    ctx.logger.info(
       "the core team maintainer didn't assign themselves; assigning them"
     )
     return addAssigneesToAssignable({
@@ -250,10 +274,14 @@ async function handlePullRequestOpened(payload: PullRequestOpenedEvent) {
   }
 }
 
-function handlePullRequestLabeled(payload: PullRequestLabeledEvent) {
+function handlePullRequestLabeled(
+  event: Event,
+  payload: PullRequestLabeledEvent,
+  ctx: Record<string, any>
+) {
   switch (payload.label.name) {
     case 'action/add-to-ctm-discussion-queue':
-      logger.info(
+      ctx.logger.info(
         `pull request labeled "action/add-to-ctm-discussion-queue". adding to the ctm discussion queue`
       )
       return handleAddToCTMDiscussionQueueLabel(payload.pull_request.node_id)
@@ -269,11 +297,15 @@ type EventActions = `${Events}.${Actions}`
 
 type EventActionHandlers = Record<
   EventActions,
-  (payload: Payload) => Promise<unknown>
+  (event: Event, payload: Payload, ctx: Record<string, any>) => Promise<unknown>
 >
 
 function sift(eventActionHandlers: EventActionHandlers) {
-  async function sifter(event: Event, payload: Payload) {
+  async function sifter(
+    event: Event,
+    payload: Payload,
+    ctx: Record<string, any>
+  ) {
     const eventAction =
       `${event.headers['x-github-event']}.${payload.action}` as EventActions
 
@@ -282,16 +314,19 @@ function sift(eventActionHandlers: EventActionHandlers) {
       .map(([, fn]) => fn)
 
     if (!handlers.length) {
-      logger.info(`no event-action handlers found for ${eventAction}`)
+      ctx.logger.info(`no event-action handlers found for ${eventAction}`)
       return
     }
 
-    logger.info(
+    ctx.logger.info(
       `found ${handlers.length} event-action handler to run: ${handlers
         .map((handler) => handler.name)
         .join(', ')}`
     )
-    await Promise.allSettled(handlers.map((handler) => handler(payload)))
+
+    await Promise.allSettled(
+      handlers.map((handler) => handler(event, payload, ctx))
+    )
   }
 
   return sifter
