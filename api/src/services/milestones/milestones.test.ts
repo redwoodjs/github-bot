@@ -1,4 +1,4 @@
-import { milestonePullRequest, MUTATION } from './milestones'
+import { addMilestoneToPullRequest, MUTATION } from './milestones'
 
 import { octokit } from 'src/lib/github'
 
@@ -31,7 +31,7 @@ describe('milestonePullRequest', () => {
   })
 
   it('calls octokit.graphql with the correct query and variables', async () => {
-    await milestonePullRequest(variables)
+    await addMilestoneToPullRequest(variables)
     expect(octokit.graphql).toHaveBeenCalledWith(MUTATION, variables)
   })
 })
