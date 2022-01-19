@@ -42,17 +42,3 @@ export function addChoreMilestoneToPullRequest(pullRequestId: string) {
     milestoneId: process.env.CHORE_MILESTONE_ID,
   })
 }
-
-export function createMilestone() {}
-
-export function createNextReleaseMilestoneToPullRequest(repositoryId: string)
-export function createChoreMilestoneToPullRequest(repositoryId: string)
-
-export function createMilestones(repositoryId: string) {
-  return Promise.allSettled(
-    [
-      createNextReleaseMilestoneToPullRequest,
-      createChoreMilestoneToPullRequest,
-    ].map((fn) => fn(repositoryId))
-  )
-}
