@@ -96,6 +96,23 @@ export type GetLabelIdsRes = {
   repository: { labels: { nodes: Array<{ name: string; id: string }> } }
 }
 
+export const GET_MILESTONE_IDS = `
+  query getMilestoneIds($login: String!, $name: String!) {
+    repository(owner: $login, name: $name) {
+      milestones(first: 100) {
+        nodes {
+          title
+          id
+        }
+      }
+    }
+  }
+`
+
+export type GetMilestoneIdsRes = {
+  repository: { milestones: { nodes: Array<{ title: string; id: string }> } }
+}
+
 export async function getIds({ owner, name }: { owner: string; name: string }) {
   /**
    * project ids
@@ -184,7 +201,9 @@ export async function getIds({ owner, name }: { owner: string; name: string }) {
   /**
    * label ids
    */
-  const { repository } = await octokit.graphql<GetLabelIdsRes>(GET_LABEL_IDS, {
+  const {
+    repository: { labels },
+  } = await octokit.graphql<GetLabelIdsRes>(GET_LABEL_IDS, {
     login: owner,
     name,
   })
@@ -193,7 +212,27 @@ export async function getIds({ owner, name }: { owner: string; name: string }) {
     'action/add-to-release',
     'action/add-to-ctm-discussion-queue',
   ].map((name) => {
-    const { id } = repository.labels.nodes.find((label) => label.name === name)
+    const { id } = labels.nodes.find((label) => label.name === name)
+    return id
+  })
+
+  /**
+   * milestone id
+   */
+  const {
+    repository: { milestones },
+  } = await octokit.graphql<GetMilestoneIdsRes>(GET_MILESTONE_IDS, {
+    login: owner,
+    name,
+  })
+
+  const [NEXT_RELEASE_MILESTONE_ID, CHORE_MILESTONE_ID] = [
+    'next-release',
+    'chore',
+  ].map((title) => {
+    const { id } = milestones.nodes.find(
+      (milestone) => milestone.title === title
+    )
     return id
   })
 
@@ -214,6 +253,9 @@ export async function getIds({ owner, name }: { owner: string; name: string }) {
     // labels
     ADD_TO_RELEASE_LABEL_ID,
     ADD_TO_CTM_DISCUSSION_QUEUE_LABEL_ID,
+    // milestones
+    NEXT_RELEASE_MILESTONE_ID,
+    CHORE_MILESTONE_ID,
   }
 }
 

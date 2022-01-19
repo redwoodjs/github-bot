@@ -6,6 +6,7 @@ import {
   GET_PROJECT_NEXT_TITLES_AND_IDS,
   GET_PROJECT_NEXT_FIELDS,
   GET_LABEL_IDS,
+  GET_MILESTONE_IDS,
 } from './github'
 import type {
   GetProjectNextTitlesAndIdsRes,
@@ -14,6 +15,7 @@ import type {
 } from './github'
 
 import { octokit } from 'src/lib/github'
+import { GetMilestoneIdsRes } from '.'
 
 jest.mock('src/lib/github', () => {
   return {
@@ -48,14 +50,14 @@ describe('getting repository ids', () => {
   describe('getRepositoryId', () => {
     it('uses the correct query', () => {
       expect(QUERY).toMatchInlineSnapshot(`
-      "
-        query GetRepositoryId($owner: String!, $name: String!) {
-          repository(owner: $owner, name: $name) {
-            id
-          }
-        }
-      "
-    `)
+              "
+                query GetRepositoryId($owner: String!, $name: String!) {
+                  repository(owner: $owner, name: $name) {
+                    id
+                  }
+                }
+              "
+          `)
     })
 
     it('calls octokit.graphql with the correct query and variables', async () => {
@@ -132,11 +134,23 @@ const getLabelIdsRes: GetLabelIdsRes = {
   },
 }
 
+const getMilestoneIds: GetMilestoneIdsRes = {
+  repository: {
+    milestones: {
+      nodes: [
+        { title: 'next-release', id: '123-chore' },
+        { title: 'chore', id: '123-chore' },
+      ],
+    },
+  },
+}
+
 const resolvedValues = [
   getProjectNextTitlesAndIdsRes,
   getReleaseFieldsRes,
   getTriageFieldsRes,
   getLabelIdsRes,
+  getMilestoneIds,
 ]
 
 describe('addIdsToProcessEnv', () => {
@@ -204,6 +218,21 @@ describe('addIdsToProcessEnv', () => {
     `)
   })
 
+  expect(GET_MILESTONE_IDS).toMatchInlineSnapshot(`
+    "
+      query getMilestoneIds($login: String!, $name: String!) {
+        repository(owner: $login, name: $name) {
+          milestones(first: 100) {
+            nodes {
+              title
+              id
+            }
+          }
+        }
+      }
+    "
+  `)
+
   it('is called with the correct mutations and queries ', async () => {
     await addIdsToProcessEnv({ owner: 'redwoodjs', name: 'redwood' })
 
@@ -212,6 +241,7 @@ describe('addIdsToProcessEnv', () => {
       GET_PROJECT_NEXT_FIELDS,
       GET_PROJECT_NEXT_FIELDS,
       GET_LABEL_IDS,
+      GET_MILESTONE_IDS,
     ]).toEqual(
       expect.arrayContaining(octokit.graphql.mock.calls.map(([query]) => query))
     )
