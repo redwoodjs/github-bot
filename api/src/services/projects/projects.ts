@@ -94,3 +94,86 @@ export const UPDATE_PROJECT_ITEM_FIELD_MUTATION = `
     }
   }
 `
+
+/**
+ * Check if an issue's on a project.
+ *
+ * @remarks
+ *
+ * Right now we literally have to go through every issue on the project.
+ * Feels like there should be a better way...
+ */
+export async function getContentItemIdOnProject({
+  projectId,
+  contentId,
+  after,
+}: {
+  projectId: string
+  contentId: string
+  after?: string
+}): Promise<string | null> {
+  const { node } = await octokit.graphql<{
+    node: {
+      items: {
+        pageInfo: {
+          hasNextPage: boolean
+          endCursor: string
+        }
+        nodes: Array<{
+          id: string
+          content: {
+            id: string
+          }
+        }>
+      }
+    }
+  }>(
+    `
+      query isOnTriageProject($projectId: ID!, $after: String) {
+        node(id: $projectId) {
+          ... on ProjectNext {
+            items(first: 100, after: $after) {
+              pageInfo {
+                hasNextPage
+                endCursor
+              }
+              nodes {
+                id
+                content {
+                  ... on Issue {
+                    id
+                  }
+                  ... on PullRequest {
+                    id
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    `,
+    {
+      projectId,
+      after,
+    }
+  )
+
+  const item = node.items.nodes.find((item) => {
+    return item.content.id === contentId
+  })
+
+  if (item) {
+    return item.id
+  }
+
+  if (node.items.pageInfo.hasNextPage) {
+    return getContentItemIdOnProject({
+      projectId,
+      contentId,
+      after: node.items.pageInfo.endCursor,
+    })
+  }
+
+  return null
+}

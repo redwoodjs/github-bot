@@ -2,14 +2,15 @@ import {
   addToProject,
   deleteFromProject,
   updateProjectItemField,
+  getContentItemIdOnProject,
 } from 'src/services/projects'
 import { removeLabels } from 'src/services/labels'
 
-export function addToReleaseProject({ contentId }: { contentId: string }) {
+export function addToReleaseProject(contentId: string) {
   return addToProject({ projectId: process.env.RELEASE_PROJECT_ID, contentId })
 }
 
-export function deleteFromReleaseProject({ itemId }: { itemId: string }) {
+export function deleteFromReleaseProject(itemId: string) {
   return deleteFromProject({
     projectId: process.env.RELEASE_PROJECT_ID,
     itemId,
@@ -50,37 +51,39 @@ function updateReleaseStatusField({
   })
 }
 
-export function updateReleaseStatusFieldToInProgress({
-  itemId,
-}: {
-  itemId: string
-}) {
+export function updateReleaseStatusFieldToInProgress(itemId: string) {
   return updateReleaseStatusField({
     itemId,
     value: process.env.IN_PROGRESS_STATUS_FIELD_ID,
   })
 }
 
-export function updateReleaseStatusFieldToNewPRs({
-  itemId,
-}: {
-  itemId: string
-}) {
+export function updateReleaseStatusFieldToNewPRs(itemId: string) {
   return updateReleaseStatusField({
     itemId,
     value: process.env.NEW_PRS_STATUS_FIELD_ID,
   })
 }
 
-export const RW_ADD_TO_RELEASE_LABEL_ID = 'LA_kwDOC2M2f87erIv2'
+export function updateReleaseStatusFieldToDone(itemId: string) {
+  return updateReleaseStatusField({
+    itemId,
+    value: process.env.DONE_STATUS_FIELD_ID,
+  })
+}
 
-export function removeAddToReleaseLabel({
-  labelableId,
-}: {
-  labelableId: string
-}) {
+export function removeAddToReleaseLabel(labelableId: string) {
   return removeLabels({
     labelableId,
     labelIds: [process.env.ADD_TO_RELEASE_LABEL_ID],
+  })
+}
+
+export function getContentItemIdOnReleaseProject(
+  contentId: string
+): Promise<string | null> {
+  return getContentItemIdOnProject({
+    projectId: process.env.RELEASE_PROJECT_ID,
+    contentId,
   })
 }

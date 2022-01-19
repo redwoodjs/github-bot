@@ -4,15 +4,16 @@ import {
   addToProject,
   deleteFromProject,
   updateProjectItemField,
+  getContentItemIdOnProject,
 } from 'src/services/projects'
 import { removeLabels } from 'src/services/labels'
 import { addAssigneesToAssignable } from 'src/services/assign'
 
-export function addToTriageProject({ contentId }: { contentId: string }) {
+export function addToTriageProject(contentId: string) {
   return addToProject({ projectId: process.env.TRIAGE_PROJECT_ID, contentId })
 }
 
-export function deleteFromTriageProject({ itemId }: { itemId: string }) {
+export function deleteFromTriageProject(itemId: string) {
   return deleteFromProject({ projectId: process.env.TRIAGE_PROJECT_ID, itemId })
 }
 
@@ -61,12 +62,8 @@ export function updateTriagePriorityField({
   })
 }
 
-export async function addToCTMDiscussionQueue({
-  contentId,
-}: {
-  contentId: string
-}) {
-  const { addProjectNextItem } = await addToTriageProject({ contentId })
+export async function addToCTMDiscussionQueue(contentId: string) {
+  const { addProjectNextItem } = await addToTriageProject(contentId)
 
   return Promise.allSettled([
     updateTriageStatusField({
@@ -80,94 +77,19 @@ export async function addToCTMDiscussionQueue({
   ])
 }
 
-/**
- * Check if an issue's on the triage project.
- *
- * @remarks
- *
- * Right now we literally have to go through every issue on the triage project.
- * Feels like there should be a better...
- */
-export async function getContentItemIdOnTriageProject({
-  contentId,
-  after,
-}: {
-  contentId: string
-  after?: string
-}): Promise<string | null> {
-  const { node } = await octokit.graphql<{
-    node: {
-      items: {
-        pageInfo: {
-          hasNextPage: boolean
-          endCursor: string
-        }
-        nodes: Array<{
-          id: string
-          content: {
-            id: string
-          }
-        }>
-      }
-    }
-  }>(
-    `
-      query isOnTriageProject($projectId: ID!, $after: String) {
-        node(id: $projectId) {
-          ... on ProjectNext {
-            items(first: 100, after: $after) {
-              pageInfo {
-                hasNextPage
-                endCursor
-              }
-              nodes {
-                id
-                content {
-                  ... on Issue {
-                    id
-                  }
-                  ... on PullRequest {
-                    id
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    `,
-    {
-      projectId: process.env.TRIAGE_PROJECT_ID,
-      after,
-    }
-  )
-
-  const item = node.items.nodes.find((item) => {
-    return item.content.id === contentId
-  })
-
-  if (item) {
-    return item.id
-  }
-
-  if (node.items.pageInfo.hasNextPage) {
-    return getContentItemIdOnTriageProject({
-      contentId,
-      after: node.items.pageInfo.endCursor,
-    })
-  }
-
-  return null
-}
-
-export function removeAddToCTMDiscussionQueueLabel({
-  labelableId,
-}: {
-  labelableId: string
-}) {
+export function removeAddToCTMDiscussionQueueLabel(labelableId: string) {
   return removeLabels({
     labelableId,
     labelIds: [process.env.ADD_TO_CTM_DISCUSSION_QUEUE_LABEL_ID],
+  })
+}
+
+export function getContentItemIdOnTriageProject(
+  contentId: string
+): Promise<string | null> {
+  return getContentItemIdOnProject({
+    projectId: process.env.TRIAGE_PROJECT_ID,
+    contentId,
   })
 }
 
@@ -208,9 +130,7 @@ type ProjectNextItem = {
   }
 }
 
-export async function getTriageProjectItems(
-  { after }: { after?: string } = { after: null }
-) {
+export async function getTriageProjectItems(after?: string) {
   const { node } = await octokit.graphql<ProjectNextItems>(
     `
       query projectNextItems($projectId: ID!, $after: String) {
@@ -255,9 +175,7 @@ export async function getTriageProjectItems(
     return node.items.nodes
   }
 
-  const nodes = await getTriageProjectItems({
-    after: node.items.pageInfo.endCursor,
-  })
+  const nodes = await getTriageProjectItems(node.items.pageInfo.endCursor)
 
   return [...node.items.nodes, ...nodes]
 }

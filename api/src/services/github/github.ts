@@ -30,7 +30,7 @@ export function getRedwoodJSRepositoryId(name: string) {
 }
 
 /**
- * get vars
+ * Get IDs.
  */
 export const GET_PROJECT_NEXT_TITLES_AND_IDS = `
   query getProjectsNextTitlesAndIds($login: String!) {
@@ -149,10 +149,11 @@ export async function getIds({ owner, name }: { owner: string; name: string }) {
     }
   )
 
-  const [IN_PROGRESS_STATUS_FIELD_ID, NEW_PRS_STATUS_FIELD_ID] = [
-    'In progress',
-    'New PRs',
-  ].map((name) => {
+  const [
+    IN_PROGRESS_STATUS_FIELD_ID,
+    NEW_PRS_STATUS_FIELD_ID,
+    DONE_STATUS_FIELD_ID,
+  ] = ['In progress', 'New PRs', 'Done'].map((name) => {
     const { id } = JSON.parse(releaseSettings).options.find(
       (option: { id: string; name: string }) => option.name === name
     )
@@ -244,6 +245,7 @@ export async function getIds({ owner, name }: { owner: string; name: string }) {
     RELEASE_STATUS_FIELD_ID,
     IN_PROGRESS_STATUS_FIELD_ID,
     NEW_PRS_STATUS_FIELD_ID,
+    DONE_STATUS_FIELD_ID,
     // triage
     TRIAGE_STATUS_FIELD_ID,
     NEEDS_TRIAGE_STATUS_FIELD_ID,
