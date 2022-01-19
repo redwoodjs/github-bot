@@ -11,6 +11,8 @@ import {
   updateReleaseStatusFieldToNewPRs,
   updateReleaseStatusFieldToInProgress,
   removeAddToReleaseLabel,
+  getContentItemIdOnReleaseProject,
+  updateReleaseStatusFieldToDone,
 } from 'src/services/release'
 
 import {
@@ -36,8 +38,8 @@ import type {
 import {
   addChoreMilestoneToPullRequest,
   addNextReleaseMilestoneToPullRequest,
-} from 'src/services/milestones/milestones'
-import type { AddMilestoneToPullRequestRes } from 'src/services/milestones/milestones'
+} from 'src/services/milestones'
+import type { AddMilestoneToPullRequestRes } from 'src/services/milestones'
 
 if (process.env.NODE_ENV === 'development') {
   startSmeeClient()
@@ -102,6 +104,7 @@ export const handler = async (event: Event, _context: Context) => {
     const sifter = sift({
       'issues.opened': handleIssuesOpened,
       'issues.labeled': handleContentLabeled,
+      'issues.closed': handleIssuesClosed,
       'pull_request.opened': handlePullRequestOpened,
       'pull_request.labeled': handleContentLabeled,
       'pull_request.closed': handlePullRequestClosed,
@@ -164,7 +167,7 @@ function handleIssuesOpened(event: Event, payload: IssuesOpenedEvent) {
   logger.info("author isn't a core team maintainer ")
   logger.info('adding to triage project and assigning to core team triage')
   return Promise.allSettled([
-    addToTriageProject({ contentId: (payload.issue as Issue).node_id }),
+    addToTriageProject((payload.issue as Issue).node_id),
     assignCoreTeamTriage({ assignableId: (payload.issue as Issue).node_id }),
   ])
 }
@@ -202,23 +205,19 @@ function handleContentLabeled(
  * - finally, add it to the release project
  */
 async function handleAddToReleaseLabel(node_id: string) {
-  await removeAddToReleaseLabel({ labelableId: node_id })
+  await removeAddToReleaseLabel(node_id)
 
-  const itemId = await getContentItemIdOnTriageProject({ contentId: node_id })
+  const itemId = await getContentItemIdOnTriageProject(node_id)
 
   if (itemId) {
-    await deleteFromTriageProject({
-      itemId,
-    })
+    await deleteFromTriageProject(itemId)
   }
 
-  const { addProjectNextItem } = await addToReleaseProject({
-    contentId: node_id,
-  })
+  const { addProjectNextItem } = await addToReleaseProject(node_id)
 
-  await updateReleaseStatusFieldToInProgress({
-    itemId: addProjectNextItem.projectNextItem.id,
-  })
+  await updateReleaseStatusFieldToInProgress(
+    addProjectNextItem.projectNextItem.id
+  )
 }
 
 /**
@@ -227,12 +226,34 @@ async function handleAddToReleaseLabel(node_id: string) {
  *   - this involves 1) adding it to the triage project and 2) giving it a priority of "TP1"
  */
 async function handleAddToCTMDiscussionQueueLabel(node_id: string) {
-  await removeAddToCTMDiscussionQueueLabel({
-    labelableId: node_id,
-  })
-  await addToCTMDiscussionQueue({
-    contentId: node_id,
-  })
+  await removeAddToCTMDiscussionQueueLabel(node_id)
+  await addToCTMDiscussionQueue(node_id)
+}
+
+/**
+ *
+ * issue closed...
+ * - if it's on the triage board, take it off
+ * - if it's on the release board, move it to Done
+ */
+async function handleIssuesClosed(event: Event, payload: IssuesEvent) {
+  const triageItemId = await getContentItemIdOnTriageProject(
+    payload.issue.node_id
+  )
+
+  if (triageItemId) {
+    logger.info("issue's on the triage board; taking it off")
+    await deleteFromTriageProject(triageItemId)
+  }
+
+  const releaseItemId = await getContentItemIdOnReleaseProject(
+    payload.issue.node_id
+  )
+
+  if (releaseItemId) {
+    logger.info("issue's on the release board; moving it to Done")
+    await updateReleaseStatusFieldToDone(releaseItemId)
+  }
 }
 
 /**
@@ -254,13 +275,11 @@ async function handlePullRequestOpened(
   }
 
   logger.info('adding pull request to the release project')
-  const { addProjectNextItem } = await addToReleaseProject({
-    contentId: (payload.pull_request as PullRequest).node_id,
-  })
+  const { addProjectNextItem } = await addToReleaseProject(
+    (payload.pull_request as PullRequest).node_id
+  )
 
-  await updateReleaseStatusFieldToNewPRs({
-    itemId: addProjectNextItem.projectNextItem.id,
-  })
+  await updateReleaseStatusFieldToNewPRs(addProjectNextItem.projectNextItem.id)
 
   if (!coreTeamMaintainerLogins.includes(payload.sender.login)) {
     return
@@ -270,9 +289,9 @@ async function handlePullRequestOpened(
     `author's a core team maintainer; updating the status field to "In progress" `
   )
 
-  await updateReleaseStatusFieldToInProgress({
-    itemId: addProjectNextItem.projectNextItem.id,
-  })
+  await updateReleaseStatusFieldToInProgress(
+    addProjectNextItem.projectNextItem.id
+  )
 
   /**
    * Make sure the core team maintainer who opened the PR or another core team maintainer is assigned.

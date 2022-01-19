@@ -93,7 +93,7 @@ const getReleaseFieldsRes: GetProjectNextFieldsRes = {
           name: 'Status',
           id: 'status',
           settings:
-            '{"options":[{"id":"123-New PRs","name":"New PRs"},{"id":"123-In progress","name":"In progress"}]}',
+            '{"options":[{"id":"123-New PRs","name":"New PRs"},{"id":"123-In progress","name":"In progress"},{"id":"123-Done","name":"Done"}]}',
         },
       ],
     },
