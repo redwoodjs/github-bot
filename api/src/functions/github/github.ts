@@ -227,6 +227,11 @@ async function handlePullRequestOpened(
   event: Event,
   payload: PullRequestOpenedEvent
 ) {
+  if (payload.sender.login === 'renovate[bot]') {
+    logger.info('pull request opened by renovate bot; returning')
+    return
+  }
+
   logger.info('adding pull request to the release project')
   const { addProjectNextItem } = await addToReleaseProject({
     contentId: (payload.pull_request as PullRequest).node_id,
