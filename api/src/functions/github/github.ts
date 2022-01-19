@@ -71,16 +71,18 @@ export const handler = async (event: Event, _context: Context) => {
       },
     })
 
+    logger.info('webhook verified')
+
     const payload: Payload = JSON.parse(event.body)
 
     logger.info(
       {
         query: {
-          repo: `${payload.organization.login}.${payload.repository.name}`,
+          repo: `${payload.organization.login}/${payload.repository.name}`,
           eventAction: `${event.headers['x-github-event']}.${payload.action}`,
         },
       },
-      'webhook verified'
+      payload.issue?.html_url ?? payload.pull_request.html_url
     )
 
     await addIdsToProcessEnv({
@@ -128,6 +130,10 @@ export const handler = async (event: Event, _context: Context) => {
         }),
       }
     }
+  } finally {
+    console.log()
+    console.log('-'.repeat(80))
+    console.log()
   }
 }
 
