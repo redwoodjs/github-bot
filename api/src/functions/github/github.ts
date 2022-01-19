@@ -252,7 +252,7 @@ async function handleIssuesClosed(event: Event, payload: IssuesEvent) {
 
   if (releaseItemId) {
     logger.info("issue's on the release board; moving it to Done")
-    await updateReleaseStatusFieldToDone(releaseItemId)
+    return updateReleaseStatusFieldToDone(releaseItemId)
   }
 }
 

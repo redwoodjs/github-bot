@@ -129,7 +129,7 @@ export async function getContentItemIdOnProject({
     }
   }>(
     `
-      query isOnTriageProject($projectId: ID!, $after: String) {
+      query isOnProject($projectId: ID!, $after: String) {
         node(id: $projectId) {
           ... on ProjectNext {
             items(first: 100, after: $after) {
