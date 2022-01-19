@@ -33,6 +33,11 @@ import type {
   PullRequestLabeledEvent,
   PullRequestOpenedEvent,
 } from '@octokit/webhooks-types'
+import {
+  addChoreMilestoneToPullRequest,
+  addNextReleaseMilestoneToPullRequest,
+} from 'src/services/milestones/milestones'
+import type { AddMilestoneToPullRequestRes } from 'src/services/milestones/milestones'
 
 if (process.env.NODE_ENV === 'development') {
   startSmeeClient()
@@ -99,6 +104,7 @@ export const handler = async (event: Event, _context: Context) => {
       'issues.labeled': handleContentLabeled,
       'pull_request.opened': handlePullRequestOpened,
       'pull_request.labeled': handleContentLabeled,
+      'pull_request.closed': handlePullRequestClosed,
     })
 
     await sifter(event, payload)
@@ -288,10 +294,45 @@ async function handlePullRequestOpened(
 }
 
 /**
+ * - make sure it was merged, not closed
+ * - if it was merged to main and doesn't have the next-release-patch milestone, add the next-release milestone
+ * - if it was merged to a branch other than main, add the chore milestone
+ */
+function handlePullRequestClosed(
+  event: Event,
+  payload: PullRequestEvent
+): void | Promise<AddMilestoneToPullRequestRes> {
+  if (!payload.pull_request.merged) {
+    logger.info('the pull_request was closed; returning')
+    return
+  }
+
+  if (payload.pull_request.base.ref === 'main') {
+    logger.info('the pull request was merged to main')
+
+    if (payload.pull_request.milestone?.title === 'next-release-patch') {
+      logger.info(
+        'the pull_request already has the next-release-patch milestone; returning'
+      )
+      return
+    }
+
+    logger.info('adding the next-release milestone')
+    return addNextReleaseMilestoneToPullRequest(payload.pull_request.node_id)
+  } else {
+    logger.info(
+      `the pull request was merged into ${payload.pull_request.base.ref}`
+    )
+    logger.info('adding the chore milestone')
+    return addChoreMilestoneToPullRequest(payload.pull_request.node_id)
+  }
+}
+
+/**
  * Utility for routing eventActions to handlers.
  */
 type Events = 'issues' | 'pull_request'
-type Actions = 'opened' | 'labeled'
+type Actions = 'opened' | 'labeled' | 'closed'
 type EventActions = `${Events}.${Actions}`
 
 type EventActionHandlers = Record<
