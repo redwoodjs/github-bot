@@ -63,10 +63,7 @@ export const handler = async (event: Event, _context: Context) => {
   console.log()
   console.log('-'.repeat(80))
   console.log()
-
-  const query = getLoggerQuery(event)
-
-  logger.info({ query }, 'invoked github function')
+  logger.info({ query: getLoggerQuery(event) }, 'invoked github function')
 
   try {
     verifyEvent('sha256Verifier', {
@@ -77,9 +74,11 @@ export const handler = async (event: Event, _context: Context) => {
       },
     })
 
-    logger.info({ query }, 'webhook verified')
-
     const payload: Payload = JSON.parse(event.body)
+
+    const query = getLoggerQuery(event, payload)
+
+    logger.info({ query }, 'webhook verified')
 
     await addIdsToProcessEnv({
       owner: payload.organization.login,
@@ -94,7 +93,7 @@ export const handler = async (event: Event, _context: Context) => {
     })
 
     await sifter(event, payload, {
-      logger: logger.child({ query: getLoggerQuery(event, payload) }),
+      logger: logger.child({ query }),
     })
 
     /**
