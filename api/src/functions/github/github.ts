@@ -96,9 +96,9 @@ export const handler = async (event: Event, _context: Context) => {
 
     const sifter = sift({
       'issues.opened': handleIssuesOpened,
-      'issues.labeled': handleIssuesLabeled,
+      'issues.labeled': handleContentLabeled,
       'pull_request.opened': handlePullRequestOpened,
-      'pull_request.labeled': handlePullRequestLabeled,
+      'pull_request.labeled': handleContentLabeled,
     })
 
     await sifter(event, payload)
@@ -169,19 +169,24 @@ function handleIssuesOpened(event: Event, payload: IssuesOpenedEvent) {
  * - action/add-to-release
  * - action/add-to-ctm-discussion-queue
  */
-function handleIssuesLabeled(event: Event, payload: IssuesLabeledEvent) {
+function handleContentLabeled(
+  event: Event,
+  payload: IssuesLabeledEvent | PullRequestLabeledEvent
+) {
+  const node_id = payload.issue?.node_id ?? payload.pull_request.node_id
+
   switch (payload.label.name) {
     case 'action/add-to-release':
       logger.info(
-        'issue labeled "action/add-to-release". adding to the release project'
+        'content labeled "action/add-to-release". adding to the release project'
       )
-      return handleAddToReleaseLabel(payload.issue.node_id)
+      return handleAddToReleaseLabel(node_id)
 
     case 'action/add-to-ctm-discussion-queue':
       logger.info(
-        `issue labeled "action/add-to-ctm-discussion-queue". adding to the ctm discussion queue`
+        'content labeled "action/add-to-ctm-discussion-queue". adding to the ctm discussion queue'
       )
-      return handleAddToCTMDiscussionQueueLabel(payload.issue.node_id)
+      return handleAddToCTMDiscussionQueueLabel(node_id)
   }
 }
 
@@ -279,19 +284,6 @@ async function handlePullRequestOpened(
       assignableId: (payload.pull_request as PullRequest).node_id,
       assigneeIds: [coreTeamMaintainers[payload.sender.login].id],
     })
-  }
-}
-
-function handlePullRequestLabeled(
-  event: Event,
-  payload: PullRequestLabeledEvent
-) {
-  switch (payload.label.name) {
-    case 'action/add-to-ctm-discussion-queue':
-      logger.info(
-        `pull request labeled "action/add-to-ctm-discussion-queue". adding to the ctm discussion queue`
-      )
-      return handleAddToCTMDiscussionQueueLabel(payload.pull_request.node_id)
   }
 }
 
