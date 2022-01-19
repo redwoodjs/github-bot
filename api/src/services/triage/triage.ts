@@ -88,11 +88,11 @@ export async function addToCTMDiscussionQueue({
  * Right now we literally have to go through every issue on the triage project.
  * Feels like there should be a better...
  */
-export async function getIssueItemIdOnTriageProject({
-  issueId,
+export async function getContentItemIdOnTriageProject({
+  contentId,
   after,
 }: {
-  issueId: string
+  contentId: string
   after?: string
 }): Promise<string | null> {
   const { node } = await octokit.graphql<{
@@ -126,6 +126,9 @@ export async function getIssueItemIdOnTriageProject({
                   ... on Issue {
                     id
                   }
+                  ... on PullRequest {
+                    id
+                  }
                 }
               }
             }
@@ -140,7 +143,7 @@ export async function getIssueItemIdOnTriageProject({
   )
 
   const item = node.items.nodes.find((item) => {
-    return item.content.id === issueId
+    return item.content.id === contentId
   })
 
   if (item) {
@@ -148,8 +151,8 @@ export async function getIssueItemIdOnTriageProject({
   }
 
   if (node.items.pageInfo.hasNextPage) {
-    return getIssueItemIdOnTriageProject({
-      issueId,
+    return getContentItemIdOnTriageProject({
+      contentId,
       after: node.items.pageInfo.endCursor,
     })
   }

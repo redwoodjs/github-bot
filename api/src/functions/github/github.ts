@@ -16,7 +16,7 @@ import {
 import {
   addToTriageProject,
   addToCTMDiscussionQueue,
-  getIssueItemIdOnTriageProject,
+  getContentItemIdOnTriageProject,
   deleteFromTriageProject,
   removeAddToCTMDiscussionQueueLabel,
   assignCoreTeamTriage,
@@ -198,7 +198,7 @@ function handleContentLabeled(
 async function handleAddToReleaseLabel(node_id: string) {
   await removeAddToReleaseLabel({ labelableId: node_id })
 
-  const itemId = await getIssueItemIdOnTriageProject({ issueId: node_id })
+  const itemId = await getContentItemIdOnTriageProject({ contentId: node_id })
 
   if (itemId) {
     await deleteFromTriageProject({
