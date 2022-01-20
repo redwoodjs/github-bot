@@ -176,10 +176,11 @@ export async function getIds({ owner, name }: { owner: string; name: string }) {
     }
   )
 
-  const [NEEDS_TRIAGE_STATUS_FIELD_ID, NEEDS_DISCUSSION_STATUS_FIELD_ID] = [
-    'Needs triage',
-    'Needs discussion',
-  ].map((name) => {
+  const [
+    NEEDS_TRIAGE_STATUS_FIELD_ID,
+    NEEDS_DISCUSSION_STATUS_FIELD_ID,
+    TODO_STATUS_FIELD_ID,
+  ] = ['Needs triage', 'Needs discussion', 'Todo'].map((name) => {
     const { id } = JSON.parse(triageSettings).options.find(
       (option: { id: string; name: string }) => option.name === name
     )
@@ -209,9 +210,14 @@ export async function getIds({ owner, name }: { owner: string; name: string }) {
     name,
   })
 
-  const [ADD_TO_RELEASE_LABEL_ID, ADD_TO_CTM_DISCUSSION_QUEUE_LABEL_ID] = [
+  const [
+    ADD_TO_RELEASE_LABEL_ID,
+    ADD_TO_CTM_DISCUSSION_QUEUE_LABEL_ID,
+    ADD_TO_V1_TODO_QUEUE_LABEL_ID,
+  ] = [
     'action/add-to-release',
     'action/add-to-ctm-discussion-queue',
+    'action/add-to-v1-todo-queue',
   ].map((name) => {
     const { id } = labels.nodes.find((label) => label.name === name)
     return id
@@ -250,11 +256,13 @@ export async function getIds({ owner, name }: { owner: string; name: string }) {
     TRIAGE_STATUS_FIELD_ID,
     NEEDS_TRIAGE_STATUS_FIELD_ID,
     NEEDS_DISCUSSION_STATUS_FIELD_ID,
+    TODO_STATUS_FIELD_ID,
     TRIAGE_PRIORITY_FIELD_ID,
     TP1_PRIORITY_FIELD_ID,
     // labels
     ADD_TO_RELEASE_LABEL_ID,
     ADD_TO_CTM_DISCUSSION_QUEUE_LABEL_ID,
+    ADD_TO_V1_TODO_QUEUE_LABEL_ID,
     // milestones
     NEXT_RELEASE_MILESTONE_ID,
     CHORE_MILESTONE_ID,

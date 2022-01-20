@@ -86,6 +86,11 @@ export const actionLabels = [
     description:
       'Use this label to add an issue or PR to the core team meeting discussion queue',
   },
+  {
+    name: 'action/add-to-v1-todo-queue',
+    color: actionLabelsColor,
+    description: 'Use this label to add an issue or PR to the v1 todo queue',
+  },
 ]
 
 export function createActionLabelsInRedwoodJSRepository(repositoryId) {

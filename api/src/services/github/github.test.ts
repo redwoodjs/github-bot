@@ -108,7 +108,7 @@ const getTriageFieldsRes: GetProjectNextFieldsRes = {
           name: 'Status',
           id: 'status',
           settings:
-            '{"options":[{"id":"123-Needs triage","name":"Needs triage"},{"id":"123-Needs discussion","name":"Needs discussion"}]}',
+            '{"options":[{"id":"123-Needs triage","name":"Needs triage"},{"id":"123-Needs discussion","name":"Needs discussion"},{"id":"123-Todo","name":"Todo"}]}',
         },
         {
           name: 'Priority',
@@ -128,6 +128,10 @@ const getLabelIdsRes: GetLabelIdsRes = {
         {
           name: 'action/add-to-ctm-discussion-queue',
           id: '123-action/add-to-ctm-discussion-queue',
+        },
+        {
+          name: 'action/add-to-v1-todo-queue',
+          id: '123-action/add-to-v1-todo-queue',
         },
       ],
     },

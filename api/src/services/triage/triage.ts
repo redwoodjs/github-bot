@@ -84,6 +84,28 @@ export function removeAddToCTMDiscussionQueueLabel(labelableId: string) {
   })
 }
 
+export async function addToV1TodoQueue(contentId: string) {
+  const { addProjectNextItem } = await addToTriageProject(contentId)
+
+  return Promise.allSettled([
+    updateTriageStatusField({
+      itemId: addProjectNextItem.projectNextItem.id,
+      value: process.env.TODO_STATUS_FIELD_ID,
+    }),
+    updateTriagePriorityField({
+      itemId: addProjectNextItem.projectNextItem.id,
+      value: process.env.TP1_PRIORITY_FIELD_ID,
+    }),
+  ])
+}
+
+export function removeAddToV1TodoQueueLabel(labelableId: string) {
+  return removeLabels({
+    labelableId,
+    labelIds: [process.env.ADD_TO_V1_TODO_QUEUE_LABEL_ID],
+  })
+}
+
 export function getContentItemIdOnTriageProject(
   contentId: string
 ): Promise<string | null> {

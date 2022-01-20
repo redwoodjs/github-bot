@@ -103,6 +103,11 @@ describe('action labels', () => {
           "description": "Use this label to add an issue or PR to the core team meeting discussion queue",
           "name": "action/add-to-ctm-discussion-queue",
         },
+        Object {
+          "color": "c2e0c6",
+          "description": "Use this label to add an issue or PR to the v1 todo queue",
+          "name": "action/add-to-v1-todo-queue",
+        },
       ]
     `)
   })
