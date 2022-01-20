@@ -93,7 +93,7 @@ export const actionLabels = [
   },
 ]
 
-export function createActionLabelsInRedwoodJSRepository(repositoryId) {
+export function createActionLabelsInRepository(repositoryId) {
   return Promise.allSettled(
     actionLabels.map((actionLabel) =>
       createLabel({
