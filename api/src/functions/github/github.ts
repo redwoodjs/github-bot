@@ -22,6 +22,8 @@ import {
   deleteFromTriageProject,
   removeAddToCTMDiscussionQueueLabel,
   assignCoreTeamTriage,
+  removeAddToV1TodoQueueLabel,
+  addToV1TodoQueue,
 } from 'src/services/triage'
 import { addAssigneesToAssignable } from 'src/services/assign'
 import { verifyEvent, WebhookVerificationError } from '@redwoodjs/api/webhooks'
@@ -187,15 +189,21 @@ function handleContentLabeled(
   switch (payload.label.name) {
     case 'action/add-to-release':
       logger.info(
-        'content labeled "action/add-to-release". adding to the release project'
+        `content labeled ${payload.label.name}; adding to the release project`
       )
       return handleAddToReleaseLabel(node_id)
 
     case 'action/add-to-ctm-discussion-queue':
       logger.info(
-        'content labeled "action/add-to-ctm-discussion-queue". adding to the ctm discussion queue'
+        `content labeled ${payload.label.name}; adding to the ctm discussion queue`
       )
       return handleAddToCTMDiscussionQueueLabel(node_id)
+
+    case 'action/add-to-v1-todo-queue':
+      logger.info(
+        `content labeled ${payload.label.name}; adding to the v1 todo queue`
+      )
+      return handleAddToV1TodoQueueLabel(node_id)
   }
 }
 
@@ -228,6 +236,16 @@ async function handleAddToReleaseLabel(node_id: string) {
 async function handleAddToCTMDiscussionQueueLabel(node_id: string) {
   await removeAddToCTMDiscussionQueueLabel(node_id)
   await addToCTMDiscussionQueue(node_id)
+}
+
+/**
+ * - remove the label
+ * - add it to the v1 todo queue
+ *   - this involves 1) adding it to the triage project and 2) giving it a priority of "TP1"
+ */
+async function handleAddToV1TodoQueueLabel(node_id: string) {
+  await removeAddToV1TodoQueueLabel(node_id)
+  await addToV1TodoQueue(node_id)
 }
 
 /**

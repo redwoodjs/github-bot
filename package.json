@@ -20,5 +20,8 @@
   },
   "prisma": {
     "seed": "yarn rw exec seed"
+  },
+  "scripts": {
+    "clean": "git clean -fdx -e .env -e *.pem"
   }
 }
