@@ -10,6 +10,6 @@
     "smee-client": "1.2.2"
   },
   "devDependencies": {
-    "@octokit/webhooks-types": "5.5.0"
+    "@octokit/webhooks-types": "5.5.1"
   }
 }
