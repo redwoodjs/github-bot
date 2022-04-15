@@ -1,30 +1,16 @@
-name: ci
+name: CI
 
 on:
+  push:
+    branches: [main]
   pull_request:
-    types: [opened, synchronize, reopened]
+
+  workflow_dispatch:
 
 jobs:
-  lint-build-test:
+  redwood-project-ci:
+    name: 🌲 Redwood Project CI
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Setup node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16
-
-      - name: Install
-        run: yarn
-
-      - name: Lint
-        run: yarn rw lint
-
-      - name: Build
-        run: yarn rw build
-
-      - name: Test
-        run: yarn rw test api --no-watch
+      - name: Run Redwood Project CI
+        uses: redwoodjs/project-ci-action@v0.1.1
