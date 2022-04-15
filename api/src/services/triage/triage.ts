@@ -1,13 +1,12 @@
 import { octokit, coreTeamTriage, coreTeamTriageLogins } from 'src/lib/github'
-
+import { addAssigneesToAssignable } from 'src/services/assign'
+import { removeLabels } from 'src/services/labels'
 import {
   addToProject,
   deleteFromProject,
   updateProjectItemField,
   getContentItemIdOnProject,
 } from 'src/services/projects'
-import { removeLabels } from 'src/services/labels'
-import { addAssigneesToAssignable } from 'src/services/assign'
 
 export function addToTriageProject(contentId: string) {
   return addToProject({ projectId: process.env.TRIAGE_PROJECT_ID, contentId })

@@ -1,6 +1,6 @@
-import { addAssigneesToAssignable, MUTATION } from './assign'
-
 import { octokit } from 'src/lib/github'
+
+import { addAssigneesToAssignable, MUTATION } from './assign'
 
 jest.mock('src/lib/github', () => {
   return {

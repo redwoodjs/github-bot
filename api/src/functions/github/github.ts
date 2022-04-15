@@ -1,32 +1,3 @@
-import type { APIGatewayEvent, Context } from 'aws-lambda'
-import { logger } from 'src/lib/logger'
-import {
-  startSmeeClient,
-  coreTeamMaintainerLogins,
-  coreTeamMaintainers,
-} from 'src/lib/github'
-import { addIdsToProcessEnv } from 'src/services/github'
-import {
-  addToReleaseProject,
-  updateReleaseStatusFieldToNewPRs,
-  updateReleaseStatusFieldToInProgress,
-  removeAddToReleaseLabel,
-  getContentItemIdOnReleaseProject,
-  updateReleaseStatusFieldToDone,
-} from 'src/services/release'
-
-import {
-  addToTriageProject,
-  addToCTMDiscussionQueue,
-  getContentItemIdOnTriageProject,
-  deleteFromTriageProject,
-  removeAddToCTMDiscussionQueueLabel,
-  assignCoreTeamTriage,
-  removeAddToV1TodoQueueLabel,
-  addToV1TodoQueue,
-} from 'src/services/triage'
-import { addAssigneesToAssignable } from 'src/services/assign'
-import { verifyEvent, WebhookVerificationError } from '@redwoodjs/api/webhooks'
 import type {
   Issue,
   IssuesEvent,
@@ -37,11 +8,41 @@ import type {
   PullRequestLabeledEvent,
   PullRequestOpenedEvent,
 } from '@octokit/webhooks-types'
+import type { APIGatewayEvent, Context } from 'aws-lambda'
+
+import { verifyEvent, WebhookVerificationError } from '@redwoodjs/api/webhooks'
+
+import {
+  startSmeeClient,
+  coreTeamMaintainerLogins,
+  coreTeamMaintainers,
+} from 'src/lib/github'
+import { logger } from 'src/lib/logger'
+import { addAssigneesToAssignable } from 'src/services/assign'
+import { addIdsToProcessEnv } from 'src/services/github'
 import {
   addChoreMilestoneToPullRequest,
   addNextReleaseMilestoneToPullRequest,
 } from 'src/services/milestones'
 import type { AddMilestoneToPullRequestRes } from 'src/services/milestones'
+import {
+  addToReleaseProject,
+  updateReleaseStatusFieldToNewPRs,
+  updateReleaseStatusFieldToInProgress,
+  removeAddToReleaseLabel,
+  getContentItemIdOnReleaseProject,
+  updateReleaseStatusFieldToDone,
+} from 'src/services/release'
+import {
+  addToTriageProject,
+  addToCTMDiscussionQueue,
+  getContentItemIdOnTriageProject,
+  deleteFromTriageProject,
+  removeAddToCTMDiscussionQueueLabel,
+  assignCoreTeamTriage,
+  removeAddToV1TodoQueueLabel,
+  addToV1TodoQueue,
+} from 'src/services/triage'
 
 if (process.env.NODE_ENV === 'development') {
   startSmeeClient()
@@ -53,6 +54,7 @@ if (process.env.NODE_ENV === 'development') {
 type Event = APIGatewayEvent & {
   headers: { 'x-github-event': 'issues' | 'pull_request' }
 }
+
 /**
  * The app's only subscribed to issues and pull requests .
  */
@@ -116,7 +118,6 @@ export const handler = async (event: Event, _context: Context) => {
 
     /**
      * What to return?
-     *
      * @see {@link https://docs.github.com/en/rest/guides/best-practices-for-integrators#provide-as-much-information-as-possible-to-the-user }
      */
     return {

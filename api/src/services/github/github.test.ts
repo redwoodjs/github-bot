@@ -1,3 +1,5 @@
+import { octokit } from 'src/lib/github'
+
 import {
   getRedwoodJSRepositoryId,
   getRepositoryId,
@@ -14,7 +16,6 @@ import type {
   GetLabelIdsRes,
 } from './github'
 
-import { octokit } from 'src/lib/github'
 import { GetMilestoneIdsRes } from '.'
 
 jest.mock('src/lib/github', () => {

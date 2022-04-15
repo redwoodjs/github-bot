@@ -1,3 +1,5 @@
+import { octokit } from 'src/lib/github'
+
 import {
   addToProject,
   ADD_TO_PROJECT_MUTATION,
@@ -6,8 +8,6 @@ import {
   updateProjectItemField,
   UPDATE_PROJECT_ITEM_FIELD_MUTATION,
 } from './projects'
-
-import { octokit } from 'src/lib/github'
 
 jest.mock('src/lib/github', () => {
   return {

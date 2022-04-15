@@ -1,10 +1,10 @@
+import { removeLabels } from 'src/services/labels'
 import {
   addToProject,
   deleteFromProject,
   updateProjectItemField,
   getContentItemIdOnProject,
 } from 'src/services/projects'
-import { removeLabels } from 'src/services/labels'
 
 export function addToReleaseProject(contentId: string) {
   return addToProject({ projectId: process.env.RELEASE_PROJECT_ID, contentId })

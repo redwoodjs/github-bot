@@ -1,3 +1,5 @@
+import { octokit } from 'src/lib/github'
+
 import {
   removeLabels,
   REMOVE_LABELS_MUTATION,
@@ -5,8 +7,6 @@ import {
   CREATE_LABEL_MUTATION,
   actionLabels,
 } from './labels'
-
-import { octokit } from 'src/lib/github'
 
 jest.mock('src/lib/github', () => {
   return {

@@ -1,6 +1,6 @@
-import { addMilestoneToPullRequest, MUTATION } from './milestones'
-
 import { octokit } from 'src/lib/github'
+
+import { addMilestoneToPullRequest, MUTATION } from './milestones'
 
 jest.mock('src/lib/github', () => {
   return {
