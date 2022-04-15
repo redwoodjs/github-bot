@@ -23,5 +23,6 @@
   },
   "scripts": {
     "clean": "git clean -fdx -e .env -e *.pem"
-  }
+  },
+  "packageManager": "yarn@3.2.0"
 }
