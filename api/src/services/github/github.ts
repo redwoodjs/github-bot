@@ -153,7 +153,8 @@ export async function getIds({ owner, name }: { owner: string; name: string }) {
     IN_PROGRESS_STATUS_FIELD_ID,
     NEW_PRS_STATUS_FIELD_ID,
     DONE_STATUS_FIELD_ID,
-  ] = ['In progress', 'New PRs', 'Done'].map((name) => {
+    ARCHIVED_STATUS_FIELD_ID,
+  ] = ['In progress', 'New PRs', 'Done', 'Archived'].map((name) => {
     const { id } = JSON.parse(releaseSettings).options.find(
       (option: { id: string; name: string }) => option.name === name
     )
@@ -252,6 +253,7 @@ export async function getIds({ owner, name }: { owner: string; name: string }) {
     IN_PROGRESS_STATUS_FIELD_ID,
     NEW_PRS_STATUS_FIELD_ID,
     DONE_STATUS_FIELD_ID,
+    ARCHIVED_STATUS_FIELD_ID,
     // triage
     TRIAGE_STATUS_FIELD_ID,
     NEEDS_TRIAGE_STATUS_FIELD_ID,

@@ -1,3 +1,4 @@
+import { octokit } from 'src/lib/github'
 import { removeLabels } from 'src/services/labels'
 import {
   addToProject,
@@ -37,7 +38,7 @@ export function updateReleaseField({
   })
 }
 
-function updateReleaseStatusField({
+export function updateReleaseStatusField({
   itemId,
   value,
 }: {
@@ -86,4 +87,48 @@ export function getContentItemIdOnReleaseProject(
     projectId: process.env.RELEASE_PROJECT_ID,
     contentId,
   })
+}
+
+export async function getReleaseProjectItems(after?: string) {
+  const { node } = await octokit.graphql(
+    `
+      query projectNextItems($projectId: ID!, $after: String) {
+        node(id: $projectId) {
+          ... on ProjectNext {
+            items(first: 100, after: $after) {
+              pageInfo {
+                hasNextPage
+                endCursor
+              }
+              nodes {
+                id
+                title
+                isArchived
+                fieldValues(first: 100) {
+                  nodes {
+                    projectField {
+                      name
+                    }
+                    value
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    `,
+    {
+      projectId: process.env.RELEASE_PROJECT_ID,
+      after,
+    }
+  )
+
+  if (!node.items.pageInfo.hasNextPage) {
+    return node.items.nodes
+  }
+
+  const nodes = await getReleaseProjectItems(node.items.pageInfo.endCursor)
+
+  return [...node.items.nodes, ...nodes]
 }
