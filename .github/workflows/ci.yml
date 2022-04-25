@@ -1,4 +1,4 @@
-name: CI
+name: ⚙️ CI
 
 on:
   push:
@@ -9,8 +9,8 @@ on:
 
 jobs:
   redwood-project-ci:
-    name: 🌲 Redwood Project CI
+    name: 🌲 Redwood CI
     runs-on: ubuntu-latest
     steps:
-      - name: Run Redwood Project CI
+      - name: 🌲 Redwood CI
         uses: redwoodjs/project-ci-action@v0.1.1
