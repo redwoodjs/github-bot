@@ -32,6 +32,7 @@ import {
   removeAddToReleaseLabel,
   getContentItemIdOnReleaseProject,
   updateReleaseStatusFieldToDone,
+  updateReleaseCycleFieldToCurrent,
 } from 'src/services/release'
 import {
   addToTriageProject,
@@ -227,6 +228,8 @@ async function handleAddToReleaseLabel(node_id: string) {
   await updateReleaseStatusFieldToInProgress(
     addProjectNextItem.projectNextItem.id
   )
+
+  await updateReleaseCycleFieldToCurrent(addProjectNextItem.projectNextItem.id)
 }
 
 /**
@@ -303,6 +306,8 @@ async function handlePullRequestOpened(
   await updateReleaseStatusFieldToInProgress(
     addProjectNextItem.projectNextItem.id
   )
+
+  await updateReleaseCycleFieldToCurrent(addProjectNextItem.projectNextItem.id)
 
   /**
    * Make sure the core team maintainer who opened the PR or another core team maintainer is assigned.

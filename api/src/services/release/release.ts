@@ -38,6 +38,8 @@ export function updateReleaseField({
   })
 }
 
+// Status
+
 export function updateReleaseStatusField({
   itemId,
   value,
@@ -72,6 +74,31 @@ export function updateReleaseStatusFieldToDone(itemId: string) {
     value: process.env.DONE_STATUS_FIELD_ID,
   })
 }
+
+// Cycle
+
+export function updateReleaseCycleField({
+  itemId,
+  value,
+}: {
+  itemId: string
+  value: string
+}) {
+  return updateReleaseField({
+    itemId,
+    fieldId: process.env.RELEASE_CYCLE_FIELD_ID,
+    value,
+  })
+}
+
+export function updateReleaseCycleFieldToCurrent(itemId: string) {
+  return updateReleaseCycleField({
+    itemId,
+    value: process.env.CURRENT_CYCLE_FIELD_ID,
+  })
+}
+
+// ------------------------
 
 export function removeAddToReleaseLabel(labelableId: string) {
   return removeLabels({

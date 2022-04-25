@@ -161,6 +161,20 @@ export async function getIds({ owner, name }: { owner: string; name: string }) {
     return id
   })
 
+  let cycleSettings
+
+  const { id: RELEASE_CYCLE_FIELD_ID } = releaseNode.fields.nodes.find(
+    (field) => {
+      if (field.name === 'Cycle') {
+        cycleSettings = field.settings
+        return true
+      }
+    }
+  )
+
+  const [{ id: CURRENT_CYCLE_FIELD_ID }] =
+    JSON.parse(cycleSettings).configuration.iterations
+
   /**
    * triage field and value ids
    */
@@ -249,11 +263,15 @@ export async function getIds({ owner, name }: { owner: string; name: string }) {
     RELEASE_PROJECT_ID,
     TRIAGE_PROJECT_ID,
     // release
+    //   status
     RELEASE_STATUS_FIELD_ID,
     IN_PROGRESS_STATUS_FIELD_ID,
     NEW_PRS_STATUS_FIELD_ID,
     DONE_STATUS_FIELD_ID,
     ARCHIVED_STATUS_FIELD_ID,
+    //   cycle
+    RELEASE_CYCLE_FIELD_ID,
+    CURRENT_CYCLE_FIELD_ID,
     // triage
     TRIAGE_STATUS_FIELD_ID,
     NEEDS_TRIAGE_STATUS_FIELD_ID,
