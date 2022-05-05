@@ -20,30 +20,21 @@ import {
 import { logger } from 'src/lib/logger'
 import { addAssigneesToAssignable } from 'src/services/assign'
 import { addIdsToProcessEnv } from 'src/services/github'
+import { removeLabels } from 'src/services/labels'
 import {
   addChoreMilestoneToPullRequest,
   addNextReleaseMilestoneToPullRequest,
 } from 'src/services/milestones'
 import type { AddMilestoneToPullRequestRes } from 'src/services/milestones'
 import {
-  addToReleaseProject,
-  updateReleaseStatusFieldToNewPRs,
-  updateReleaseStatusFieldToInProgress,
-  removeAddToReleaseLabel,
-  getContentItemIdOnReleaseProject,
-  updateReleaseStatusFieldToDone,
-  updateReleaseCycleFieldToCurrent,
-} from 'src/services/release'
-import {
-  addToTriageProject,
-  addToCTMDiscussionQueue,
-  getContentItemIdOnTriageProject,
-  deleteFromTriageProject,
-  removeAddToCTMDiscussionQueueLabel,
-  assignCoreTeamTriage,
-  removeAddToV1TodoQueueLabel,
-  addToV1TodoQueue,
-} from 'src/services/triage'
+  addToMainProject,
+  updateMainProjectItemStatusFieldToInProgress,
+  getContentItemIdOnMainProject,
+  updateMainProjectItemStatusFieldToDone,
+  updateMainProjectItemCycleFieldToCurrent,
+  updateMainProjectItemStatusFieldToTriage,
+  updateMainProjectItemStatusFieldToBacklog,
+} from 'src/services/projects'
 
 if (process.env.NODE_ENV === 'development') {
   startSmeeClient()
@@ -162,26 +153,27 @@ export const handler = async (event: Event, _context: Context) => {
  * If an issue's opened by a core team maintainer,
  * they should triage it.
  */
-function handleIssuesOpened(event: Event, payload: IssuesOpenedEvent) {
+async function handleIssuesOpened(event: Event, payload: IssuesOpenedEvent) {
   if (coreTeamMaintainerLogins.includes(payload.sender.login)) {
-    logger.info("author's a core team maintainer; returning")
+    logger.info("Author's a core team maintainer; returning")
     return
   }
 
-  logger.info("author isn't a core team maintainer ")
-  logger.info('adding to triage project and assigning to core team triage')
-  return Promise.allSettled([
-    addToTriageProject((payload.issue as Issue).node_id),
-    assignCoreTeamTriage({ assignableId: (payload.issue as Issue).node_id }),
-  ])
+  logger.info("Author isn't a core team maintainer ")
+  logger.info('Adding to project and assigning')
+
+  const { addProjectNextItem } = await addToMainProject(
+    (payload.issue as Issue).node_id
+  )
+
+  await updateMainProjectItemStatusFieldToTriage(
+    addProjectNextItem.projectNextItem.id
+  )
+
+  // TODO
+  // await assignCoreTeamTriage({ assignableId: (payload.issue as Issue).node_id })
 }
 
-/**
- * We handle two labels:
- *
- * - action/add-to-release
- * - action/add-to-ctm-discussion-queue
- */
 function handleContentLabeled(
   event: Event,
   payload: IssuesLabeledEvent | PullRequestLabeledEvent
@@ -189,125 +181,101 @@ function handleContentLabeled(
   const node_id = payload.issue?.node_id ?? payload.pull_request.node_id
 
   switch (payload.label.name) {
-    case 'action/add-to-release':
+    case 'action/add-to-cycle':
       logger.info(
-        `content labeled ${payload.label.name}; adding to the release project`
+        `content labeled ${payload.label.name}; adding to the current cycle`
       )
-      return handleAddToReleaseLabel(node_id)
+      return handleAddToCycleLabel(node_id)
 
-    case 'action/add-to-ctm-discussion-queue':
+    case 'action/add-to-backlog':
       logger.info(
-        `content labeled ${payload.label.name}; adding to the ctm discussion queue`
+        `content labeled ${payload.label.name}; adding to the backlog`
       )
-      return handleAddToCTMDiscussionQueueLabel(node_id)
-
-    case 'action/add-to-v1-todo-queue':
-      logger.info(
-        `content labeled ${payload.label.name}; adding to the v1 todo queue`
-      )
-      return handleAddToV1TodoQueueLabel(node_id)
+      return handleAddToBacklog(node_id)
   }
 }
 
-/**
- * - remove the label
- * - if it's on the triage project, delete it from there
- * - finally, add it to the release project
- */
-async function handleAddToReleaseLabel(node_id: string) {
-  await removeAddToReleaseLabel(node_id)
+async function handleAddToCycleLabel(node_id: string) {
+  await removeLabels({
+    labelableId: node_id,
+    labelIds: [process.env.ADD_TO_CYCLE_LABEL_ID],
+  })
 
-  const itemId = await getContentItemIdOnTriageProject(node_id)
+  const { addProjectNextItem } = await addToMainProject(node_id)
 
-  if (itemId) {
-    await deleteFromTriageProject(itemId)
-  }
-
-  const { addProjectNextItem } = await addToReleaseProject(node_id)
-
-  await updateReleaseStatusFieldToInProgress(
+  await updateMainProjectItemStatusFieldToInProgress(
     addProjectNextItem.projectNextItem.id
   )
 
-  await updateReleaseCycleFieldToCurrent(addProjectNextItem.projectNextItem.id)
+  return updateMainProjectItemCycleFieldToCurrent(
+    addProjectNextItem.projectNextItem.id
+  )
 }
 
-/**
- * - remove the label
- * - add it to the ctm discussion queue
- *   - this involves 1) adding it to the triage project and 2) giving it a priority of "TP1"
- */
-async function handleAddToCTMDiscussionQueueLabel(node_id: string) {
-  await removeAddToCTMDiscussionQueueLabel(node_id)
-  await addToCTMDiscussionQueue(node_id)
+async function handleAddToBacklog(node_id: string) {
+  await removeLabels({
+    labelableId: node_id,
+    labelIds: [process.env.ADD_TO_BACKLOG_LABEL_ID],
+  })
+
+  const { addProjectNextItem } = await addToMainProject(node_id)
+
+  return updateMainProjectItemStatusFieldToBacklog(
+    addProjectNextItem.projectNextItem.id
+  )
+
+  // TODO
+  // assign priority (1?)
 }
 
-/**
- * - remove the label
- * - add it to the v1 todo queue
- *   - this involves 1) adding it to the triage project and 2) giving it a priority of "TP1"
- */
-async function handleAddToV1TodoQueueLabel(node_id: string) {
-  await removeAddToV1TodoQueueLabel(node_id)
-  await addToV1TodoQueue(node_id)
-}
-
-/**
- *
- * issue closed...
- * - if it's on the release board, move it to Done
- */
 async function handleIssuesClosed(event: Event, payload: IssuesEvent) {
-  const releaseItemId = await getContentItemIdOnReleaseProject(
+  const projectItemId = await getContentItemIdOnMainProject(
     payload.issue.node_id
   )
 
-  if (!releaseItemId) {
+  if (!projectItemId) {
+    logger.info("Issue isn't on the board; returning")
     return
   }
 
-  logger.info("issue's on the release board; moving it to Done")
-  return updateReleaseStatusFieldToDone(releaseItemId)
+  logger.info('Issue is on the board; moving to done')
+  return updateMainProjectItemStatusFieldToDone(projectItemId)
 }
 
-/**
- * When a pull request's opened, add it to the release project.
- *
- * @remarks
- *
- * If it was opened by a core team maintainer,
- * make sure they're assigned to it and give it the "In progress" status.
- * Otherwise, give it the "New PRs" status.
- */
 async function handlePullRequestOpened(
   event: Event,
   payload: PullRequestOpenedEvent
 ) {
   if (payload.sender.login === 'renovate[bot]') {
-    logger.info('pull request opened by renovate bot; returning')
+    logger.info('Pull request opened by renovate bot; returning')
     return
   }
 
-  logger.info('adding pull request to the release project')
-  const { addProjectNextItem } = await addToReleaseProject(
+  logger.info('Adding pull request to the project')
+
+  const { addProjectNextItem } = await addToMainProject(
     (payload.pull_request as PullRequest).node_id
   )
 
-  await updateReleaseStatusFieldToNewPRs(addProjectNextItem.projectNextItem.id)
+  await updateMainProjectItemStatusFieldToTriage(
+    addProjectNextItem.projectNextItem.id
+  )
 
   if (!coreTeamMaintainerLogins.includes(payload.sender.login)) {
     return
   }
 
   logger.info(
-    `author's a core team maintainer; updating the status field to "In progress" `
+    'Author is a core team maintainer; updating the status field to in progress and adding to the current cycle'
   )
 
-  await updateReleaseStatusFieldToInProgress(
+  await updateMainProjectItemStatusFieldToInProgress(
     addProjectNextItem.projectNextItem.id
   )
 
-  await updateReleaseCycleFieldToCurrent(addProjectNextItem.projectNextItem.id)
+  await updateMainProjectItemCycleFieldToCurrent(
+    addProjectNextItem.projectNextItem.id
+  )
 
   /**
    * Make sure the core team maintainer who opened the PR or another core team maintainer is assigned.
@@ -319,8 +287,9 @@ async function handlePullRequestOpened(
       .some((login) => coreTeamMaintainerLogins.includes(login))
   ) {
     logger.info(
-      "the core team maintainer didn't assign themselves; assigning them"
+      "The core team maintainer didn't assign themselves; assigning them"
     )
+
     return addAssigneesToAssignable({
       assignableId: (payload.pull_request as PullRequest).node_id,
       assigneeIds: [coreTeamMaintainers[payload.sender.login].id],
@@ -328,37 +297,32 @@ async function handlePullRequestOpened(
   }
 }
 
-/**
- * - make sure it was merged, not closed
- * - if it was merged to main and doesn't have the next-release-patch milestone, add the next-release milestone
- * - if it was merged to a branch other than main, add the chore milestone
- */
 function handlePullRequestClosed(
   event: Event,
   payload: PullRequestEvent
 ): void | Promise<AddMilestoneToPullRequestRes> {
   if (!payload.pull_request.merged) {
-    logger.info('the pull_request was closed; returning')
+    logger.info('The pull request was closed; returning')
     return
   }
 
   if (payload.pull_request.base.ref === 'main') {
-    logger.info('the pull request was merged to main')
+    logger.info('The pull request was merged to main')
 
     if (payload.pull_request.milestone?.title === 'next-release-patch') {
       logger.info(
-        'the pull_request already has the next-release-patch milestone; returning'
+        'The pull request already has the next-release-patch milestone; returning'
       )
       return
     }
 
-    logger.info('adding the next-release milestone')
+    logger.info('Adding the next-release milestone')
     return addNextReleaseMilestoneToPullRequest(payload.pull_request.node_id)
   } else {
     logger.info(
-      `the pull request was merged into ${payload.pull_request.base.ref}`
+      `The pull request was merged into ${payload.pull_request.base.ref}`
     )
-    logger.info('adding the chore milestone')
+    logger.info('Adding the chore milestone')
     return addChoreMilestoneToPullRequest(payload.pull_request.node_id)
   }
 }

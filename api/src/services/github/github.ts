@@ -1,37 +1,116 @@
 import { octokit } from 'src/lib/github'
 
-export async function getRepositoryId({
+export async function addIdsToProcessEnv({
   owner,
   name,
 }: {
   owner: string
   name: string
 }) {
-  const {
-    repository: { id },
-  } = await octokit.graphql<{ repository: { id: string } }>(QUERY, {
-    owner,
-    name,
+  const ids = await getIds({ owner, name })
+  Object.entries(ids).forEach(([key, value]) => (process.env[key] = value))
+}
+
+export async function getIds({ owner, name }: { owner: string; name: string }) {
+  const [PROJECT_ID] = await getProjectIds(owner, ['Merge (WIP)'])
+
+  const { node } = await getProjectNextFields(PROJECT_ID)
+
+  let statusSettings
+
+  const { id: STATUS_FIELD_ID } = node.fields.nodes.find((field) => {
+    if (field.name === 'Status') {
+      statusSettings = field.settings
+      return true
+    }
   })
 
-  return id
-}
-
-export const QUERY = `
-  query GetRepositoryId($owner: String!, $name: String!) {
-    repository(owner: $owner, name: $name) {
-      id
+  const [
+    TRIAGE_STATUS_FIELD_ID,
+    BACKLOG_STATUS_FIELD_ID,
+    TODO_STATUS_FIELD_ID,
+    IN_PROGRESS_STATUS_FIELD_ID,
+    DONE_STATUS_FIELD_ID,
+    ARCHIVED_STATUS_FIELD_ID,
+  ] = ['Triage', 'Backlog', 'Todo', 'In Progress', 'Done', 'Archived'].map(
+    (name) => {
+      const { id } = JSON.parse(statusSettings).options.find(
+        (option: { id: string; name: string }) => option.name === name
+      )
+      return id
     }
-  }
-`
+  )
 
-export function getRedwoodJSRepositoryId(name: string) {
-  return getRepositoryId({ owner: 'redwoodjs', name })
+  let cycleSettings
+
+  const { id: CYCLE_FIELD_ID } = node.fields.nodes.find((field) => {
+    if (field.name === 'Cycle') {
+      cycleSettings = field.settings
+      return true
+    }
+  })
+
+  const [{ id: CURRENT_CYCLE_FIELD_ID }] =
+    JSON.parse(cycleSettings).configuration.iterations
+
+  const [
+    ADD_TO_CYCLE_LABEL_ID,
+    ADD_TO_CTM_DISCUSSION_QUEUE_LABEL_ID,
+    ADD_TO_BACKLOG_LABEL_ID,
+  ] = await getLabelIds(owner, name, [
+    'action/add-to-cycle',
+    'action/add-to-ctm-discussion-queue',
+    'action/add-to-backlog',
+  ])
+
+  const [NEXT_RELEASE_MILESTONE_ID, CHORE_MILESTONE_ID] = await getMilestoneIds(
+    owner,
+    name,
+    ['next-release', 'chore']
+  )
+
+  return {
+    // projects
+    PROJECT_ID,
+    // status
+    STATUS_FIELD_ID,
+    TRIAGE_STATUS_FIELD_ID,
+    BACKLOG_STATUS_FIELD_ID,
+    TODO_STATUS_FIELD_ID,
+    IN_PROGRESS_STATUS_FIELD_ID,
+    DONE_STATUS_FIELD_ID,
+    ARCHIVED_STATUS_FIELD_ID,
+    // cycle
+    CYCLE_FIELD_ID,
+    CURRENT_CYCLE_FIELD_ID,
+    // labels
+    ADD_TO_CYCLE_LABEL_ID,
+    ADD_TO_CTM_DISCUSSION_QUEUE_LABEL_ID,
+    ADD_TO_BACKLOG_LABEL_ID,
+    // milestones
+    NEXT_RELEASE_MILESTONE_ID,
+    CHORE_MILESTONE_ID,
+  }
 }
 
-/**
- * Get IDs.
- */
+// ------------------------
+
+async function getProjectIds(owner: string, projectTitles: string[]) {
+  const { organization } = await octokit.graphql<GetProjectNextTitlesAndIdsRes>(
+    GET_PROJECT_NEXT_TITLES_AND_IDS,
+    {
+      login: owner,
+    }
+  )
+
+  return projectTitles.map((title) => {
+    const { id } = organization.projectsNext.nodes.find(
+      (projectNext) => projectNext.title === title
+    )
+    return id
+  })
+}
+
 export const GET_PROJECT_NEXT_TITLES_AND_IDS = `
   query getProjectsNextTitlesAndIds($login: String!) {
     organization(login: $login) {
@@ -50,6 +129,8 @@ export type GetProjectNextTitlesAndIdsRes = {
     projectsNext: { nodes: Array<{ title: string; id: string }> }
   }
 }
+
+// ------------------------
 
 export const GET_PROJECT_NEXT_FIELDS = `
   query getProjectNextFields($projectId: ID!) {
@@ -79,6 +160,22 @@ function getProjectNextFields(projectId: string) {
   })
 }
 
+// ------------------------
+
+async function getLabelIds(owner: string, name: string, labelTitles: string[]) {
+  const {
+    repository: { labels },
+  } = await octokit.graphql<GetLabelIdsRes>(GET_LABEL_IDS, {
+    login: owner,
+    name,
+  })
+
+  return labelTitles.map((name) => {
+    const { id } = labels.nodes.find((label) => label.name === name)
+    return id
+  })
+}
+
 export const GET_LABEL_IDS = `
   query getLabelIds($login: String!, $name: String!) {
     repository(owner: $login, name: $name) {
@@ -94,6 +191,28 @@ export const GET_LABEL_IDS = `
 
 export type GetLabelIdsRes = {
   repository: { labels: { nodes: Array<{ name: string; id: string }> } }
+}
+
+// ------------------------
+
+async function getMilestoneIds(
+  owner: string,
+  name: string,
+  milestoneTitles: string[]
+) {
+  const {
+    repository: { milestones },
+  } = await octokit.graphql<GetMilestoneIdsRes>(GET_MILESTONE_IDS, {
+    login: owner,
+    name,
+  })
+
+  return milestoneTitles.map((title) => {
+    const { id } = milestones.nodes.find(
+      (milestone) => milestone.title === title
+    )
+    return id
+  })
 }
 
 export const GET_MILESTONE_IDS = `
@@ -113,189 +232,33 @@ export type GetMilestoneIdsRes = {
   repository: { milestones: { nodes: Array<{ title: string; id: string }> } }
 }
 
-export async function getIds({ owner, name }: { owner: string; name: string }) {
-  /**
-   * project ids
-   */
-  const { organization } = await octokit.graphql<GetProjectNextTitlesAndIdsRes>(
-    GET_PROJECT_NEXT_TITLES_AND_IDS,
-    {
-      login: owner,
-    }
-  )
+// ------------------------
 
-  const [RELEASE_PROJECT_ID, TRIAGE_PROJECT_ID] = ['Release', 'Triage'].map(
-    (title) => {
-      const { id } = organization.projectsNext.nodes.find(
-        (projectNext) => projectNext.title === title
-      )
-      return id
-    }
-  )
-
-  /**
-   * release field and value ids
-   */
-  const { node: releaseNode } = await getProjectNextFields(RELEASE_PROJECT_ID)
-
-  let releaseSettings
-
-  const { id: RELEASE_STATUS_FIELD_ID } = releaseNode.fields.nodes.find(
-    (field) => {
-      if (field.name === 'Status') {
-        releaseSettings = field.settings
-        return true
-      }
-    }
-  )
-
-  const [
-    IN_PROGRESS_STATUS_FIELD_ID,
-    NEW_PRS_STATUS_FIELD_ID,
-    DONE_STATUS_FIELD_ID,
-    ARCHIVED_STATUS_FIELD_ID,
-  ] = ['In progress', 'New PRs', 'Done', 'Archived'].map((name) => {
-    const { id } = JSON.parse(releaseSettings).options.find(
-      (option: { id: string; name: string }) => option.name === name
-    )
-    return id
-  })
-
-  let cycleSettings
-
-  const { id: RELEASE_CYCLE_FIELD_ID } = releaseNode.fields.nodes.find(
-    (field) => {
-      if (field.name === 'Cycle') {
-        cycleSettings = field.settings
-        return true
-      }
-    }
-  )
-
-  const [{ id: CURRENT_CYCLE_FIELD_ID }] =
-    JSON.parse(cycleSettings).configuration.iterations
-
-  /**
-   * triage field and value ids
-   */
-  const { node: triageNode } = await getProjectNextFields(TRIAGE_PROJECT_ID)
-
-  let triageSettings
-
-  const { id: TRIAGE_STATUS_FIELD_ID } = triageNode.fields.nodes.find(
-    (field) => {
-      if (field.name === 'Status') {
-        triageSettings = field.settings
-        return true
-      }
-    }
-  )
-
-  const [
-    NEEDS_TRIAGE_STATUS_FIELD_ID,
-    NEEDS_DISCUSSION_STATUS_FIELD_ID,
-    TODO_STATUS_FIELD_ID,
-  ] = ['Needs triage', 'Needs discussion', 'Todo'].map((name) => {
-    const { id } = JSON.parse(triageSettings).options.find(
-      (option: { id: string; name: string }) => option.name === name
-    )
-    return id
-  })
-
-  const { id: TRIAGE_PRIORITY_FIELD_ID } = triageNode.fields.nodes.find(
-    (field) => {
-      if (field.name === 'Priority') {
-        triageSettings = field.settings
-        return true
-      }
-    }
-  )
-
-  const { id: TP1_PRIORITY_FIELD_ID } = JSON.parse(triageSettings).options.find(
-    (option: { id: string; name: string }) => option.name === 'TP1'
-  )
-
-  /**
-   * label ids
-   */
-  const {
-    repository: { labels },
-  } = await octokit.graphql<GetLabelIdsRes>(GET_LABEL_IDS, {
-    login: owner,
-    name,
-  })
-
-  const [
-    ADD_TO_RELEASE_LABEL_ID,
-    ADD_TO_CTM_DISCUSSION_QUEUE_LABEL_ID,
-    ADD_TO_V1_TODO_QUEUE_LABEL_ID,
-  ] = [
-    'action/add-to-release',
-    'action/add-to-ctm-discussion-queue',
-    'action/add-to-v1-todo-queue',
-  ].map((name) => {
-    const { id } = labels.nodes.find((label) => label.name === name)
-    return id
-  })
-
-  /**
-   * milestone id
-   */
-  const {
-    repository: { milestones },
-  } = await octokit.graphql<GetMilestoneIdsRes>(GET_MILESTONE_IDS, {
-    login: owner,
-    name,
-  })
-
-  const [NEXT_RELEASE_MILESTONE_ID, CHORE_MILESTONE_ID] = [
-    'next-release',
-    'chore',
-  ].map((title) => {
-    const { id } = milestones.nodes.find(
-      (milestone) => milestone.title === title
-    )
-    return id
-  })
-
-  return {
-    // projects
-    RELEASE_PROJECT_ID,
-    TRIAGE_PROJECT_ID,
-    // release
-    //   status
-    RELEASE_STATUS_FIELD_ID,
-    IN_PROGRESS_STATUS_FIELD_ID,
-    NEW_PRS_STATUS_FIELD_ID,
-    DONE_STATUS_FIELD_ID,
-    ARCHIVED_STATUS_FIELD_ID,
-    //   cycle
-    RELEASE_CYCLE_FIELD_ID,
-    CURRENT_CYCLE_FIELD_ID,
-    // triage
-    TRIAGE_STATUS_FIELD_ID,
-    NEEDS_TRIAGE_STATUS_FIELD_ID,
-    NEEDS_DISCUSSION_STATUS_FIELD_ID,
-    TODO_STATUS_FIELD_ID,
-    TRIAGE_PRIORITY_FIELD_ID,
-    TP1_PRIORITY_FIELD_ID,
-    // labels
-    ADD_TO_RELEASE_LABEL_ID,
-    ADD_TO_CTM_DISCUSSION_QUEUE_LABEL_ID,
-    ADD_TO_V1_TODO_QUEUE_LABEL_ID,
-    // milestones
-    NEXT_RELEASE_MILESTONE_ID,
-    CHORE_MILESTONE_ID,
-  }
-}
-
-export async function addIdsToProcessEnv({
+export async function getRepositoryId({
   owner,
   name,
 }: {
   owner: string
   name: string
 }) {
-  const ids = await getIds({ owner, name })
-  Object.entries(ids).forEach(([key, value]) => (process.env[key] = value))
+  const {
+    repository: { id },
+  } = await octokit.graphql<{ repository: { id: string } }>(GET_REPOSITORY_ID, {
+    owner,
+    name,
+  })
+
+  return id
+}
+
+export const GET_REPOSITORY_ID = `
+  query GetRepositoryId($owner: String!, $name: String!) {
+    repository(owner: $owner, name: $name) {
+      id
+    }
+  }
+`
+
+export function getRedwoodJSRepositoryId(name: string) {
+  return getRepositoryId({ owner: 'redwoodjs', name })
 }

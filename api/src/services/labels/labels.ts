@@ -27,6 +27,40 @@ export const REMOVE_LABELS_MUTATION = `
   }
 `
 
+// ------------------------
+
+export function createActionLabelsInRepository(repositoryId) {
+  return Promise.allSettled(
+    actionLabels.map((actionLabel) =>
+      createLabel({
+        repositoryId,
+        ...actionLabel,
+      })
+    )
+  )
+}
+
+const ACTION_LABEL_COLOR = 'c2e0c6'
+
+export const actionLabels = [
+  {
+    name: 'action/add-to-cycle',
+    color: ACTION_LABEL_COLOR,
+    description: 'Use this label to add an issue or PR to the current cycle',
+  },
+  {
+    name: 'action/add-to-ctm-discussion-queue',
+    color: ACTION_LABEL_COLOR,
+    description:
+      'Use this label to add an issue or PR to the core team meeting discussion queue',
+  },
+  {
+    name: 'action/add-to-backlog',
+    color: ACTION_LABEL_COLOR,
+    description: 'Use this label to add an issue or PR to the backlog',
+  },
+]
+
 export function createLabel({
   repositoryId,
   name,
@@ -71,35 +105,3 @@ export const CREATE_LABEL_MUTATION = `
     }
   }
 `
-
-const actionLabelsColor = 'c2e0c6'
-
-export const actionLabels = [
-  {
-    name: 'action/add-to-release',
-    color: actionLabelsColor,
-    description: 'Use this label to add an issue or PR to the release project',
-  },
-  {
-    name: 'action/add-to-ctm-discussion-queue',
-    color: actionLabelsColor,
-    description:
-      'Use this label to add an issue or PR to the core team meeting discussion queue',
-  },
-  {
-    name: 'action/add-to-v1-todo-queue',
-    color: actionLabelsColor,
-    description: 'Use this label to add an issue or PR to the v1 todo queue',
-  },
-]
-
-export function createActionLabelsInRepository(repositoryId) {
-  return Promise.allSettled(
-    actionLabels.map((actionLabel) =>
-      createLabel({
-        repositoryId,
-        ...actionLabel,
-      })
-    )
-  )
-}

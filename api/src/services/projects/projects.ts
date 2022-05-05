@@ -1,5 +1,9 @@
 import { octokit } from 'src/lib/github'
 
+export function addToMainProject(contentId: string) {
+  return addToProject({ projectId: process.env.PROJECT_ID, contentId })
+}
+
 export function addToProject({
   projectId,
   contentId,
@@ -26,6 +30,15 @@ export const ADD_TO_PROJECT_MUTATION = `
   }
 `
 
+// ------------------------
+
+export function deleteFromMainProject(itemId: string) {
+  return deleteFromProject({
+    projectId: process.env.PROJECT_ID,
+    itemId,
+  })
+}
+
 export function deleteFromProject({
   projectId,
   itemId,
@@ -47,6 +60,104 @@ export const DELETE_FROM_PROJECT_MUTATION = `
     }
   }
 `
+
+// ------------------------
+
+export function updateMainProjectItemCycleFieldToCurrent(itemId: string) {
+  return updateMainProjectItemCycleField({
+    itemId,
+    value: process.env.CURRENT_CYCLE_FIELD_ID,
+  })
+}
+
+export function updateMainProjectItemCycleField({
+  itemId,
+  value,
+}: {
+  itemId: string
+  value: string
+}) {
+  return updateMainProjectItemField({
+    itemId,
+    fieldId: process.env.CYCLE_FIELD_ID,
+    value,
+  })
+}
+
+// ------------------------
+
+export function updateMainProjectItemStatusFieldToTriage(itemId: string) {
+  return updateMainProjectItemStatusField({
+    itemId,
+    value: process.env.TRIAGE_STATUS_FIELD_ID,
+  })
+}
+
+export function updateMainProjectItemStatusFieldToBacklog(itemId: string) {
+  return updateMainProjectItemStatusField({
+    itemId,
+    value: process.env.BACKLOG_STATUS_FIELD_ID,
+  })
+}
+
+export function updateMainProjectItemStatusFieldToTodo(itemId: string) {
+  return updateMainProjectItemStatusField({
+    itemId,
+    value: process.env.TODO_STATUS_FIELD_ID,
+  })
+}
+
+export function updateMainProjectItemStatusFieldToInProgress(itemId: string) {
+  return updateMainProjectItemStatusField({
+    itemId,
+    value: process.env.IN_PROGRESS_STATUS_FIELD_ID,
+  })
+}
+
+export function updateMainProjectItemStatusFieldToDone(itemId: string) {
+  return updateMainProjectItemStatusField({
+    itemId,
+    value: process.env.DONE_STATUS_FIELD_ID,
+  })
+}
+
+export function updateMainProjectItemStatusFieldToArchived(itemId: string) {
+  return updateMainProjectItemStatusField({
+    itemId,
+    value: process.env.ARCHIVED_STATUS_FIELD_ID,
+  })
+}
+
+export function updateMainProjectItemStatusField({
+  itemId,
+  value,
+}: {
+  itemId: string
+  value: string
+}) {
+  return updateMainProjectItemField({
+    itemId,
+    fieldId: process.env.STATUS_FIELD_ID,
+    value,
+  })
+}
+
+export function updateMainProjectItemField({
+  itemId,
+  fieldId,
+  value,
+}: {
+  itemId: string
+  fieldId: string
+  value: string
+}) {
+  return updateProjectItemField({
+    projectId: process.env.PROJECT_ID,
+    itemId,
+    fieldId,
+    value,
+  })
+}
 
 export function updateProjectItemField({
   projectId,
@@ -95,14 +206,17 @@ export const UPDATE_PROJECT_ITEM_FIELD_MUTATION = `
   }
 `
 
-/**
- * Check if an issue's on a project.
- *
- * @remarks
- *
- * Right now we literally have to go through every issue on the project.
- * Feels like there should be a better way...
- */
+// ------------------------
+
+export function getContentItemIdOnMainProject(
+  contentId: string
+): Promise<string | null> {
+  return getContentItemIdOnProject({
+    projectId: process.env.PROJECT_ID,
+    contentId,
+  })
+}
+
 export async function getContentItemIdOnProject({
   projectId,
   contentId,
@@ -129,7 +243,7 @@ export async function getContentItemIdOnProject({
     }
   }>(
     `
-      query isOnProject($projectId: ID!, $after: String) {
+      query GetContentItemIdOnProject($projectId: ID!, $after: String) {
         node(id: $projectId) {
           ... on ProjectNext {
             items(first: 100, after: $after) {
