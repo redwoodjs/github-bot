@@ -63,7 +63,7 @@
   },
   "scripts": {
     "clean": "git clean -fdx -e .env -e *.pem",
-    "validate": "GITHUB_TOKEN=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 yarn rw exec validate --no-prisma"
+    "validate": "yarn rw exec validate --no-prisma"
   },
   "packageManager": "yarn@3.2.0"
 }
