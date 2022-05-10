@@ -12,7 +12,7 @@ export async function addIdsToProcessEnv({
 }
 
 export async function getIds({ owner, name }: { owner: string; name: string }) {
-  const [PROJECT_ID] = await getProjectIds(owner, ['Merge (WIP)'])
+  const [PROJECT_ID] = await getProjectIds(owner, ['Main'])
 
   const { node } = await getProjectNextFields(PROJECT_ID)
 
