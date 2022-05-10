@@ -1,3 +1,5 @@
+import * as dateFns from 'date-fns'
+
 import { octokit } from 'src/lib/github'
 
 export function addToMainProject(contentId: string) {
@@ -291,3 +293,145 @@ export async function getContentItemIdOnProject({
 
   return null
 }
+
+// ------------------------
+
+export async function getMainProjectBacklogItems() {
+  const mainProjectItems = await getMainProjectItems()
+
+  return mainProjectItems.filter((item) => {
+    const statusField = getField(item, 'Status')
+    return statusField?.value === process.env.BACKLOG_STATUS_FIELD_ID
+  })
+}
+
+export async function getMainProjectDoneItems() {
+  const mainProjectItems = await getMainProjectItems()
+
+  return mainProjectItems.filter((item) => {
+    const statusField = getField(item, 'Status')
+    return statusField?.value === process.env.DONE_STATUS_FIELD_ID
+  })
+}
+
+export function getField(
+  projectNextItem,
+  field: 'Status' | 'Cycle' | 'Priority'
+) {
+  return projectNextItem.fieldValues.nodes.find(
+    (fieldValue) => fieldValue.projectField.name === field
+  )
+}
+
+export function getMainProjectItems() {
+  return getProjectItems({ projectId: process.env.PROJECT_ID })
+}
+
+export async function getProjectItems({
+  projectId,
+  after,
+}: {
+  projectId: string
+  after?: string
+}) {
+  const { node } = await octokit.graphql<{
+    node: {
+      items: {
+        pageInfo: {
+          hasNextPage: boolean
+          endCursor: string
+        }
+        nodes: Array<{
+          id: string
+        }>
+      }
+    }
+  }>(GET_PROJECT_ITEMS, {
+    projectId,
+    after,
+  })
+
+  if (!node.items.pageInfo.hasNextPage) {
+    return node.items.nodes
+  }
+
+  const nextItems = await getProjectItems({
+    projectId,
+    after: node.items.pageInfo.endCursor,
+  })
+
+  return [...node.items.nodes, ...nextItems]
+}
+
+const GET_PROJECT_ITEMS = `
+  query GetProjectItems($projectId: ID!, $after: String) {
+    node(id: $projectId) {
+      ... on ProjectNext {
+        items(first: 100, after: $after) {
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
+          nodes {
+            id
+            title
+            content {
+              ...on UniformResourceLocatable {
+                url
+              }
+            }
+            fieldValues(first: 10) {
+              nodes {
+                id
+                projectField {
+                  settings
+                  name
+                }
+                value
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`
+
+// ------------------------
+
+// const DATE_FORMAT = 'yyyy-MM-dd'
+
+// const START_OF_FIRST_CYCLE = new Date('2022-04-18')
+
+// let startOfNearestCycle
+// let start = START_OF_FIRST_CYCLE
+// const now = new Date()
+
+// while (!startOfNearestCycle) {
+//   const end = dateFns.addWeeks(start, 2)
+
+//   if (dateFns.isWithinInterval(now, { start, end })) {
+//     startOfNearestCycle = dateFns.format(start, DATE_FORMAT)
+//   } else {
+//     start = end
+//   }
+// }
+
+// let query: string[] | string = [
+//   'repo:redwoodjs/redwood',
+//   '-author:app/renovate',
+//   'sort:created-asc',
+//   `updated:>=${startOfNearestCycle}`,
+// ]
+
+// if (args['is-closed']) {
+//   ;(query as string[]).push('is:closed')
+// }
+
+// query = args.query ? args.query : (query as string[]).join(' ')
+
+// execSync(
+//   `open https://github.com/redwoodjs/redwood/issues?q=${encodeURIComponent(
+//     query
+//   )}`
+// )

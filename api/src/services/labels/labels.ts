@@ -49,10 +49,9 @@ export const actionLabels = [
     description: 'Use this label to add an issue or PR to the current cycle',
   },
   {
-    name: 'action/add-to-ctm-discussion-queue',
+    name: 'action/add-to-discussion-queue',
     color: ACTION_LABEL_COLOR,
-    description:
-      'Use this label to add an issue or PR to the core team meeting discussion queue',
+    description: 'Use this label to add an issue or PR to the discussion queue',
   },
   {
     name: 'action/add-to-backlog',

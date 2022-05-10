@@ -16,6 +16,8 @@ export async function getIds({ owner, name }: { owner: string; name: string }) {
 
   const { node } = await getProjectNextFields(PROJECT_ID)
 
+  // ------------------------
+
   let statusSettings
 
   const { id: STATUS_FIELD_ID } = node.fields.nodes.find((field) => {
@@ -41,6 +43,8 @@ export async function getIds({ owner, name }: { owner: string; name: string }) {
     }
   )
 
+  // ------------------------
+
   let cycleSettings
 
   const { id: CYCLE_FIELD_ID } = node.fields.nodes.find((field) => {
@@ -53,13 +57,51 @@ export async function getIds({ owner, name }: { owner: string; name: string }) {
   const [{ id: CURRENT_CYCLE_FIELD_ID }] =
     JSON.parse(cycleSettings).configuration.iterations
 
+  // ------------------------
+
+  let staleSettings
+
+  const { id: STALE_FIELD_ID } = node.fields.nodes.find((field) => {
+    if (field.name === 'Stale') {
+      staleSettings = field.settings
+      return true
+    }
+  })
+
+  const [{ id: CHECK_STALE_FIELD_ID }] = JSON.parse(staleSettings).options
+
+  // ------------------------
+
+  let prioritySettings
+
+  const { id: PRIORITY_FIELD_ID } = node.fields.nodes.find((field) => {
+    if (field.name === 'Priority') {
+      prioritySettings = field.settings
+      return true
+    }
+  })
+
+  const [
+    URGENT_PRIORITY_FIELD_ID,
+    HIGH_PRIORITY_FIELD_ID,
+    MEDIUM_PRIORITY_FIELD_ID,
+    LOW_PRIORITY_FIELD_ID,
+  ] = ['🚨 Urgent', '1️⃣ High', '2️⃣ Medium', '3️⃣ Low'].map((name) => {
+    const { id } = JSON.parse(prioritySettings).options.find(
+      (option: { id: string; name: string }) => option.name === name
+    )
+    return id
+  })
+
+  // ------------------------
+
   const [
     ADD_TO_CYCLE_LABEL_ID,
     ADD_TO_CTM_DISCUSSION_QUEUE_LABEL_ID,
     ADD_TO_BACKLOG_LABEL_ID,
   ] = await getLabelIds(owner, name, [
     'action/add-to-cycle',
-    'action/add-to-ctm-discussion-queue',
+    'action/add-to-discussion-queue',
     'action/add-to-backlog',
   ])
 
@@ -83,6 +125,15 @@ export async function getIds({ owner, name }: { owner: string; name: string }) {
     // cycle
     CYCLE_FIELD_ID,
     CURRENT_CYCLE_FIELD_ID,
+    // stale
+    STALE_FIELD_ID,
+    CHECK_STALE_FIELD_ID,
+    // priority
+    PRIORITY_FIELD_ID,
+    URGENT_PRIORITY_FIELD_ID,
+    HIGH_PRIORITY_FIELD_ID,
+    MEDIUM_PRIORITY_FIELD_ID,
+    LOW_PRIORITY_FIELD_ID,
     // labels
     ADD_TO_CYCLE_LABEL_ID,
     ADD_TO_CTM_DISCUSSION_QUEUE_LABEL_ID,
