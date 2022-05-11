@@ -34,6 +34,7 @@ import {
   updateMainProjectItemCycleFieldToCurrent,
   updateMainProjectItemStatusFieldToTriage,
   updateMainProjectItemStatusFieldToBacklog,
+  updateMainProjectItemNeedsDiscussionFieldToTrue,
 } from 'src/services/projects'
 
 if (process.env.NODE_ENV === 'development') {
@@ -174,6 +175,8 @@ async function handleIssuesOpened(event: Event, payload: IssuesOpenedEvent) {
   // await assignCoreTeamTriage({ assignableId: (payload.issue as Issue).node_id })
 }
 
+// ------------------------
+
 function handleContentLabeled(
   event: Event,
   payload: IssuesLabeledEvent | PullRequestLabeledEvent
@@ -186,6 +189,12 @@ function handleContentLabeled(
         `content labeled ${payload.label.name}; adding to the current cycle`
       )
       return handleAddToCycleLabel(node_id)
+
+    case 'action/add-to-discussion-queue':
+      logger.info(
+        `content labeled ${payload.label.name}; adding to the discussion queue`
+      )
+      return handleAddToDiscussionQueue(node_id)
 
     case 'action/add-to-backlog':
       logger.info(
@@ -212,6 +221,19 @@ async function handleAddToCycleLabel(node_id: string) {
   )
 }
 
+async function handleAddToDiscussionQueue(node_id: string) {
+  await removeLabels({
+    labelableId: node_id,
+    labelIds: [process.env.ADD_TO_DISCUSSION_QUEUE_LABEL_ID],
+  })
+
+  const { addProjectNextItem } = await addToMainProject(node_id)
+
+  return updateMainProjectItemNeedsDiscussionFieldToTrue(
+    addProjectNextItem.projectNextItem.id
+  )
+}
+
 async function handleAddToBacklog(node_id: string) {
   await removeLabels({
     labelableId: node_id,
@@ -227,6 +249,8 @@ async function handleAddToBacklog(node_id: string) {
   // TODO
   // assign priority (1?)
 }
+
+// ------------------------
 
 async function handleIssuesClosed(event: Event, payload: IssuesEvent) {
   const projectItemId = await getContentItemIdOnMainProject(

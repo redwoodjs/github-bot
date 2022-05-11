@@ -210,6 +210,18 @@ export const UPDATE_PROJECT_ITEM_FIELD_MUTATION = `
 
 // ------------------------
 
+export function updateMainProjectItemNeedsDiscussionFieldToTrue(
+  itemId: string
+) {
+  return updateMainProjectItemField({
+    itemId: itemId,
+    fieldId: process.env.NEEDS_DISCUSSION_FIELD_ID,
+    value: process.env.CHECK_NEEDS_DISCUSSION_FIELD_ID,
+  })
+}
+
+// ------------------------
+
 export function getContentItemIdOnMainProject(
   contentId: string
 ): Promise<string | null> {

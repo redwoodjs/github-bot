@@ -72,6 +72,20 @@ export async function getIds({ owner, name }: { owner: string; name: string }) {
 
   // ------------------------
 
+  let needsDiscussion
+
+  const { id: NEEDS_DISCUSSION_FIELD_ID } = node.fields.nodes.find((field) => {
+    if (field.name === 'Needs discussion') {
+      needsDiscussion = field.settings
+      return true
+    }
+  })
+
+  const [{ id: CHECK_NEEDS_DISCUSSION_FIELD_ID }] =
+    JSON.parse(needsDiscussion).options
+
+  // ------------------------
+
   let prioritySettings
 
   const { id: PRIORITY_FIELD_ID } = node.fields.nodes.find((field) => {
@@ -97,7 +111,7 @@ export async function getIds({ owner, name }: { owner: string; name: string }) {
 
   const [
     ADD_TO_CYCLE_LABEL_ID,
-    ADD_TO_CTM_DISCUSSION_QUEUE_LABEL_ID,
+    ADD_TO_DISCUSSION_QUEUE_LABEL_ID,
     ADD_TO_BACKLOG_LABEL_ID,
   ] = await getLabelIds(owner, name, [
     'action/add-to-cycle',
@@ -128,6 +142,9 @@ export async function getIds({ owner, name }: { owner: string; name: string }) {
     // stale
     STALE_FIELD_ID,
     CHECK_STALE_FIELD_ID,
+    // needs discussion
+    NEEDS_DISCUSSION_FIELD_ID,
+    CHECK_NEEDS_DISCUSSION_FIELD_ID,
     // priority
     PRIORITY_FIELD_ID,
     URGENT_PRIORITY_FIELD_ID,
@@ -136,7 +153,7 @@ export async function getIds({ owner, name }: { owner: string; name: string }) {
     LOW_PRIORITY_FIELD_ID,
     // labels
     ADD_TO_CYCLE_LABEL_ID,
-    ADD_TO_CTM_DISCUSSION_QUEUE_LABEL_ID,
+    ADD_TO_DISCUSSION_QUEUE_LABEL_ID,
     ADD_TO_BACKLOG_LABEL_ID,
     // milestones
     NEXT_RELEASE_MILESTONE_ID,
