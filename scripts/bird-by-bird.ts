@@ -2,8 +2,9 @@ import { execSync } from 'child_process'
 
 import { addIdsToProcessEnv } from 'api/src/services/github'
 import {
-  getMainProjectItems,
+  getMainProjectTriageItems,
   getMainProjectBacklogItems,
+  getMainProjectItems,
   getField,
 } from 'api/src/services/projects'
 import { Cli, Command, Option } from 'clipanion'
@@ -21,6 +22,8 @@ export default async () => {
 class BirdByBirdCommand extends Command {
   status = Option.String('--status')
   priority = Option.String('--priority')
+  stale = Option.Boolean('--stale')
+  needsDiscussion = Option.Boolean('--needs-discussion')
 
   async execute() {
     await addIdsToProcessEnv({ owner: 'redwoodjs', name: 'redwood' })
@@ -28,6 +31,10 @@ class BirdByBirdCommand extends Command {
     let birds = []
 
     switch (this.status) {
+      case 'triage':
+        birds = await getMainProjectTriageItems()
+        break
+
       case 'backlog':
         birds = await getMainProjectBacklogItems()
         break
@@ -67,6 +74,22 @@ class BirdByBirdCommand extends Command {
 
       default:
         break
+    }
+
+    if (this.stale) {
+      birds = birds.filter((item) => {
+        const statusField = getField(item, 'Stale')
+        return statusField?.value === process.env.CHECK_STALE_FIELD_ID
+      })
+    }
+
+    if (this.needsDiscussion) {
+      birds = birds.filter((item) => {
+        const statusField = getField(item, 'Stale')
+        return (
+          statusField?.value === process.env.CHECK_NEEDS_DISCUSSION_FIELD_ID
+        )
+      })
     }
 
     if (!birds.length) {

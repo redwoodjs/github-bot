@@ -308,6 +308,15 @@ export async function getContentItemIdOnProject({
 
 // ------------------------
 
+export async function getMainProjectTriageItems() {
+  const mainProjectItems = await getMainProjectItems()
+
+  return mainProjectItems.filter((item) => {
+    const statusField = getField(item, 'Status')
+    return statusField?.value === process.env.TRIAGE_STATUS_FIELD_ID
+  })
+}
+
 export async function getMainProjectBacklogItems() {
   const mainProjectItems = await getMainProjectItems()
 
