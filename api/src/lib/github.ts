@@ -96,6 +96,9 @@ export const coreTeamMaintainers = {
   Tobbe: {
     id: 'MDQ6VXNlcjMwNzkz',
   },
+  alicelovescake: {
+    id: 'MDQ6VXNlcjY2NTQzNDQ5',
+  },
   ...coreTeamTriage,
 }
 
