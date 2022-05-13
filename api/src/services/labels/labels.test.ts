@@ -95,18 +95,18 @@ describe('action labels', () => {
       Array [
         Object {
           "color": "c2e0c6",
-          "description": "Use this label to add an issue or PR to the release project",
-          "name": "action/add-to-release",
+          "description": "Use this label to add an issue or PR to the current cycle",
+          "name": "action/add-to-cycle",
         },
         Object {
           "color": "c2e0c6",
-          "description": "Use this label to add an issue or PR to the core team meeting discussion queue",
-          "name": "action/add-to-ctm-discussion-queue",
+          "description": "Use this label to add an issue or PR to the discussion queue",
+          "name": "action/add-to-discussion-queue",
         },
         Object {
           "color": "c2e0c6",
-          "description": "Use this label to add an issue or PR to the v1 todo queue",
-          "name": "action/add-to-v1-todo-queue",
+          "description": "Use this label to add an issue or PR to the backlog",
+          "name": "action/add-to-backlog",
         },
       ]
     `)

@@ -4,6 +4,8 @@ import { addIdsToProcessEnv } from 'api/src/services/github'
 import {
   getMainProjectTriageItems,
   getMainProjectBacklogItems,
+  getMainProjectTodoItems,
+  getMainProjectInProgressItems,
   getMainProjectItems,
   getField,
 } from 'api/src/services/projects'
@@ -24,6 +26,9 @@ class BirdByBirdCommand extends Command {
   priority = Option.String('--priority')
   stale = Option.Boolean('--stale')
   needsDiscussion = Option.Boolean('--needs-discussion')
+  /**
+   * @todo updatedAt, createdAt
+   */
 
   async execute() {
     await addIdsToProcessEnv({ owner: 'redwoodjs', name: 'redwood' })
@@ -37,6 +42,14 @@ class BirdByBirdCommand extends Command {
 
       case 'backlog':
         birds = await getMainProjectBacklogItems()
+        break
+
+      case 'todo':
+        birds = await getMainProjectTodoItems()
+        break
+
+      case 'in progress':
+        birds = await getMainProjectInProgressItems()
         break
 
       default:
@@ -121,7 +134,7 @@ async function birdByBird(birds, { start = 0 } = {}) {
         initial: 0,
       },
       {
-        onCancel: true,
+        onCancel: () => process.exit(1),
       }
     )
 

@@ -18,7 +18,10 @@ import {
   coreTeamMaintainers,
 } from 'src/lib/github'
 import { logger } from 'src/lib/logger'
-import { addAssigneesToAssignable } from 'src/services/assign'
+import {
+  addAssigneesToAssignable,
+  assignCoreTeamTriageMember,
+} from 'src/services/assign'
 import { addIdsToProcessEnv } from 'src/services/github'
 import { removeLabels } from 'src/services/labels'
 import {
@@ -37,21 +40,25 @@ import {
   updateMainProjectItemNeedsDiscussionFieldToTrue,
 } from 'src/services/projects'
 
+/**
+ * @fixme I'm worried that this isn't being cleaned up when the dev server reloads
+ */
 if (process.env.NODE_ENV === 'development') {
   startSmeeClient()
 }
 
-/**
- * Typing the GitHub event. There's probably a better way to do this.
- */
 type Event = APIGatewayEvent & {
   headers: { 'x-github-event': 'issues' | 'pull_request' }
 }
 
 /**
- * The app's only subscribed to issues and pull requests .
+ * The app's only subscribed to issues and pull requests.
+ * @fixme there's probably a better way to do this.
  */
-type Payload = IssuesEvent | PullRequestEvent
+type Payload = (IssuesEvent | PullRequestEvent) & {
+  issue?: Issue
+  pull_request?: PullRequest
+}
 
 export const handler = async (event: Event, _context: Context) => {
   console.log()
@@ -110,8 +117,7 @@ export const handler = async (event: Event, _context: Context) => {
     await sifter(event, payload)
 
     /**
-     * What to return?
-     * @see {@link https://docs.github.com/en/rest/guides/best-practices-for-integrators#provide-as-much-information-as-possible-to-the-user }
+     * What to return? See {@link https://docs.github.com/en/rest/guides/best-practices-for-integrators#provide-as-much-information-as-possible-to-the-user}
      */
     return {
       statusCode: 200,
@@ -147,39 +153,43 @@ export const handler = async (event: Event, _context: Context) => {
 }
 
 /**
- * When an issue's opened, add it to the triage project and assign a core team triage member.
+ * When an issue's opened:
+ *
+ * - add it to the project
+ * - assign a core team triage member (wip)
  *
  * @remarks
  *
- * If an issue's opened by a core team maintainer,
- * they should triage it.
+ * If an issue's opened by a core team maintainer, they should triage it.
  */
-async function handleIssuesOpened(event: Event, payload: IssuesOpenedEvent) {
+async function handleIssuesOpened(_event: Event, payload: IssuesOpenedEvent) {
   if (coreTeamMaintainerLogins.includes(payload.sender.login)) {
     logger.info("Author's a core team maintainer; returning")
     return
   }
 
-  logger.info("Author isn't a core team maintainer ")
+  logger.info("Author isn't a core team maintainer")
   logger.info('Adding to project and assigning')
 
-  const { addProjectNextItem } = await addToMainProject(
-    (payload.issue as Issue).node_id
-  )
+  const { addProjectNextItem } = await addToMainProject(payload.issue.node_id)
 
   await updateMainProjectItemStatusFieldToTriage(
     addProjectNextItem.projectNextItem.id
   )
 
-  // TODO
-  // await assignCoreTeamTriage({ assignableId: (payload.issue as Issue).node_id })
+  await assignCoreTeamTriageMember({
+    assignableId: payload.issue.node_id,
+  })
 }
 
 // ------------------------
 
 function handleContentLabeled(
   event: Event,
-  payload: IssuesLabeledEvent | PullRequestLabeledEvent
+  payload: (IssuesLabeledEvent | PullRequestLabeledEvent) & {
+    issue?: Issue
+    pull_request?: PullRequest
+  }
 ) {
   const node_id = payload.issue?.node_id ?? payload.pull_request.node_id
 
@@ -245,9 +255,6 @@ async function handleAddToBacklog(node_id: string) {
   return updateMainProjectItemStatusFieldToBacklog(
     addProjectNextItem.projectNextItem.id
   )
-
-  // TODO
-  // assign priority (1?)
 }
 
 // ------------------------

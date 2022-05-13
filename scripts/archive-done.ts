@@ -12,8 +12,10 @@ export default async ({ args: _args }) => {
     (projectItem) => projectItem.id
   )
 
-  for (const itemId of doneProjectItemIds) {
-    process.stdout.write('.')
-    await updateMainProjectItemStatusFieldToArchived(itemId)
-  }
+  await Promise.all(
+    doneProjectItemIds.map(async (itemId) => {
+      await updateMainProjectItemStatusFieldToArchived(itemId)
+      console.log(`Archived ${itemId}`)
+    })
+  )
 }

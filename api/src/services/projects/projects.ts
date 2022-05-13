@@ -326,6 +326,24 @@ export async function getMainProjectBacklogItems() {
   })
 }
 
+export async function getMainProjectTodoItems() {
+  const mainProjectItems = await getMainProjectItems()
+
+  return mainProjectItems.filter((item) => {
+    const statusField = getField(item, 'Status')
+    return statusField?.value === process.env.TODO_STATUS_FIELD_ID
+  })
+}
+
+export async function getMainProjectInProgressItems() {
+  const mainProjectItems = await getMainProjectItems()
+
+  return mainProjectItems.filter((item) => {
+    const statusField = getField(item, 'Status')
+    return statusField?.value === process.env.IN_PROGRESS_STATUS_FIELD_ID
+  })
+}
+
 export async function getMainProjectDoneItems() {
   const mainProjectItems = await getMainProjectItems()
 
@@ -399,6 +417,13 @@ const GET_PROJECT_ITEMS = `
             content {
               ...on UniformResourceLocatable {
                 url
+              }
+              ...on Assignable {
+                assignees(first: 5) {
+                  nodes {
+                    login
+                  }
+                }
               }
             }
             fieldValues(first: 10) {
