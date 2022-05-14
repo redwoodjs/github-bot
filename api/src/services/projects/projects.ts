@@ -84,6 +84,20 @@ export function updateMainProjectItemCycleField({
   })
 }
 
+export function updateMainProjectItemRolloversField({
+  itemId,
+  value,
+}: {
+  itemId: string
+  value: string
+}) {
+  return updateMainProjectItemField({
+    itemId,
+    fieldId: process.env.ROLLOVERS_FIELD_ID,
+    value,
+  })
+}
+
 // ------------------------
 
 export function updateMainProjectItemStatusFieldToTriage(itemId: string) {

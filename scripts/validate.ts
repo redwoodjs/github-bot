@@ -16,6 +16,7 @@ import {
   addToMainProject,
   updateMainProjectItemStatusFieldToTriage,
   updateMainProjectItemCycleFieldToCurrent,
+  updateMainProjectItemRolloversField,
   updateMainProjectItemCycleField,
   updateMainProjectItemField,
   getField,
@@ -125,15 +126,25 @@ class ValidateCommand extends Command {
              * - if it has a status of "Todo" or "In Progress", it should be in the current cycle
              * - unless it has a status of "Triage", it should have a priority
              */
-            if (issueOrPullRequest.__typename === 'Issue') {
-              validateLinkedPullRequests(issueOrPullRequest)
-            } else {
-              validateProject(issueOrPullRequest)
-              validateStatus(issueOrPullRequest)
-              validateCycle(issueOrPullRequest)
-              validatePriority(issueOrPullRequest)
-              validateStale(issueOrPullRequest)
+            if (issueOrPullRequest.hasLinkedPr) {
+              const projectNextItem = getProjectNextItem(issueOrPullRequest)
+              const isInProject = projectNextItem !== undefined
+
+              if (!isInProject) {
+                break
+              }
+
+              const { id, title, url } = issueOrPullRequest
+
+              throw new ProjectValidationError(id, title, url)
             }
+
+            validateProject(issueOrPullRequest)
+            validateStatus(issueOrPullRequest)
+            validateCycle(issueOrPullRequest)
+            validatePriority(issueOrPullRequest)
+            validateStale(issueOrPullRequest)
+
             break
           } catch (e) {
             this.context.stdout.write(`➤ ${chalk.red('ERROR:')} ${e}\n`)
@@ -175,6 +186,26 @@ class ValidateCommand extends Command {
                 `➤ ${chalk.blue('FIXING')}: Adding to the current cycle\n`
               )
               await updateMainProjectItemCycleFieldToCurrent(projectNextItem.id)
+              issueOrPullRequest = await getIssueOrPullRequest(id)
+              continue
+            }
+
+            if (e instanceof PreviousCycleValidationError) {
+              this.context.stdout.write(
+                `➤ ${chalk.blue(
+                  'FIXING'
+                )}: Adding to the current cycle and incrementing rollovers\n`
+              )
+              await updateMainProjectItemCycleFieldToCurrent(projectNextItem.id)
+
+              const rolloversField = getField(projectNextItem, 'Rollovers')
+              const rollovers = rolloversField?.value ?? 0
+
+              await updateMainProjectItemRolloversField({
+                itemId: projectNextItem.id,
+                value: (parseInt(rollovers) + 1).toString(),
+              })
+
               issueOrPullRequest = await getIssueOrPullRequest(id)
               continue
             }
@@ -406,30 +437,6 @@ export async function question(query: string, options?: { choices: string[] }) {
 
 // ------------------------
 
-async function validateLinkedPullRequests(issueOrPullRequest) {
-  const res = await fetch(issueOrPullRequest.url, {
-    headers: {
-      authorization: `token ${process.env.GITHUB_TOKEN}`,
-    },
-  })
-  const body = await res.text()
-  const hasLinkedPr = new RegExp(
-    'Successfully merging a pull request may close this issue'
-  ).test(body)
-
-  if (hasLinkedPr) {
-    const projectNextItem = getProjectNextItem(issueOrPullRequest)
-    const isInProject = projectNextItem !== undefined
-    if (!isInProject) {
-      return
-    }
-
-    const { id, title, url } = issueOrPullRequest
-
-    throw new ProjectValidationError(id, title, url)
-  }
-}
-
 class ProjectValidationError extends Error {
   constructor(id, title, url) {
     super(`"${title}" is in the project but is linked to a pull request`)
@@ -511,11 +518,19 @@ function validateCycle(issueOrPullRequest: IssueOrPullRequest) {
   ].includes(statusField.value)
 
   const hasCycle = cycleField !== undefined
+  const hasPreviousCycle =
+    cycleField?.value !== process.env.CURRENT_CYCLE_FIELD_ID
 
   const { id, title, url } = issueOrPullRequest
 
-  if (hasTodoOrInProgressStatus && !hasCycle) {
-    throw new MissingCycleValidationError(id, title, url)
+  if (hasTodoOrInProgressStatus) {
+    if (!hasCycle) {
+      throw new MissingCycleValidationError(id, title, url)
+    }
+
+    if (hasPreviousCycle) {
+      throw new PreviousCycleValidationError(id, title, url)
+    }
   }
 
   const hasTriageOrBacklogStatus = [
@@ -534,6 +549,17 @@ class MissingCycleValidationError extends Error {
       `"${title}" has a Status of "Todo" or "In Progress" but isn't in the current cycle`
     )
     this.name = 'MissingCycleValidationError'
+
+    this.id = id
+    this.title = title
+    this.url = url
+  }
+}
+
+class PreviousCycleValidationError extends Error {
+  constructor(id, title, url) {
+    super(`"${title}" is in the previous cycle`)
+    this.name = 'PreviousCycleValidationError'
 
     this.id = id
     this.title = title
@@ -633,7 +659,7 @@ function getProjectNextItem(issueOrPullRequest: IssueOrPullRequest) {
 // ------------------------
 
 async function getIssues(after?: string) {
-  const {
+  let {
     repository: { issues },
   } = await octokit.graphql(ISSUES, { after })
 
@@ -643,7 +669,30 @@ async function getIssues(after?: string) {
 
   const nextNodes = await getIssues(issues.pageInfo.endCursor)
 
-  return [...issues.nodes, ...nextNodes]
+  issues = [...issues.nodes, ...nextNodes]
+
+  issues = await Promise.all(
+    issues.map(async (issue) => {
+      const res = await fetch(issue.url, {
+        headers: {
+          authorization: `token ${process.env.GITHUB_TOKEN}`,
+        },
+      })
+
+      const body = await res.text()
+
+      const hasLinkedPr = new RegExp(
+        'Successfully merging a pull request may close this issue'
+      ).test(body)
+
+      return {
+        ...issue,
+        hasLinkedPr,
+      }
+    })
+  )
+
+  return issues
 }
 
 const ISSUES = `

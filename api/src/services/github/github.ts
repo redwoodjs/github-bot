@@ -59,6 +59,12 @@ export async function getIds({ owner, name }: { owner: string; name: string }) {
 
   // ------------------------
 
+  const { id: ROLLOVERS_FIELD_ID } = node.fields.nodes.find(
+    (field) => field.name === 'Rollovers'
+  )
+
+  // ------------------------
+
   let staleSettings
 
   const { id: STALE_FIELD_ID } = node.fields.nodes.find((field) => {
@@ -139,6 +145,8 @@ export async function getIds({ owner, name }: { owner: string; name: string }) {
     // cycle
     CYCLE_FIELD_ID,
     CURRENT_CYCLE_FIELD_ID,
+    // rollovers
+    ROLLOVERS_FIELD_ID,
     // stale
     STALE_FIELD_ID,
     CHECK_STALE_FIELD_ID,
