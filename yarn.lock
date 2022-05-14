@@ -9921,6 +9921,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"data-uri-to-buffer@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "data-uri-to-buffer@npm:4.0.0"
+  checksum: 940461017d78a15a01c9a3f7ba964c634c7b4d6db5cbb2547dc3c743395abe3e6ba582f05b3c259b150bf3715558641255f89afb704d94859a8505871d07618f
+  languageName: node
+  linkType: hard
+
 "data-urls@npm:^2.0.0":
   version: 2.0.0
   resolution: "data-urls@npm:2.0.0"
@@ -9939,7 +9946,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"date-fns@npm:2.28.0":
+"date-fns@npm:2.28.0, date-fns@npm:^2.0.1, date-fns@npm:^2.16.1":
   version: 2.28.0
   resolution: "date-fns@npm:2.28.0"
   checksum: ecdacd36326e7f5f8c4f1e78ae931a8997109f1c841f5163053b866585ca899521b0e7a114eeb48a9fe5135a550787bd4bbd8baa321cded0b4d823f847889a80
@@ -9950,13 +9957,6 @@ __metadata:
   version: 1.30.1
   resolution: "date-fns@npm:1.30.1"
   checksum: bad6ad7c15180121e15d61ad62a4a214c108d66f35b35f5eeb6ade837a3c29aa4444b9528a93a5374b95ba11231c142276351bf52f4d168676f9a1e17ce3726a
-  languageName: node
-  linkType: hard
-
-"date-fns@npm:^2.0.1, date-fns@npm:^2.16.1":
-  version: 2.25.0
-  resolution: "date-fns@npm:2.25.0"
-  checksum: cc5efcf0467b0e642bfed52a4778708212fbcc987809b3b253955026688f51460ec8f163a84c01f526a0c9ef5cac1956305ad1c7883ad6aa239d7157a17eed60
   languageName: node
   linkType: hard
 
@@ -12055,6 +12055,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fetch-blob@npm:^3.1.2, fetch-blob@npm:^3.1.4":
+  version: 3.1.5
+  resolution: "fetch-blob@npm:3.1.5"
+  dependencies:
+    node-domexception: ^1.0.0
+    web-streams-polyfill: ^3.0.3
+  checksum: fb98d84498ed24d87def56c0151159ffa8131b37db24dddbbbb1a2a679b9198a03d2d43003f3a9c156a301dd882a7b4943dccc9c899d58e3dd5747d002099623
+  languageName: node
+  linkType: hard
+
 "figgy-pudding@npm:^3.5.1":
   version: 3.5.2
   resolution: "figgy-pudding@npm:3.5.2"
@@ -12426,6 +12436,15 @@ __metadata:
     node-domexception: 1.0.0
     web-streams-polyfill: 4.0.0-beta.1
   checksum: c3f8d5dca00dc4e1902fbacf61c1e0653746e16e973346c8cdab48e60f07c1363bc7c440947c078c082b034b97733e2ff07f68375a8600cec4990a5ec434233f
+  languageName: node
+  linkType: hard
+
+"formdata-polyfill@npm:^4.0.10":
+  version: 4.0.10
+  resolution: "formdata-polyfill@npm:4.0.10"
+  dependencies:
+    fetch-blob: ^3.1.2
+  checksum: 5392ec484f9ce0d5e0d52fb5a78e7486637d516179b0eb84d81389d7eccf9ca2f663079da56f761355c0a65792810e3b345dc24db9a8bbbcf24ef3c8c88570c6
   languageName: node
   linkType: hard
 
@@ -17102,7 +17121,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-domexception@npm:1.0.0":
+"node-domexception@npm:1.0.0, node-domexception@npm:^1.0.0":
   version: 1.0.0
   resolution: "node-domexception@npm:1.0.0"
   checksum: 5e5d63cda29856402df9472335af4bb13875e1927ad3be861dc5ebde38917aecbf9ae337923777af52a48c426b70148815e890a5d72760f1b4d758cc671b1a2b
@@ -17137,6 +17156,17 @@ __metadata:
     encoding:
       optional: true
   checksum: fcae80f5ac52fbf5012f5e19df2bd3915e67d3b3ad51cb5942943df2238d32ba15890fecabd0e166876a9f98a581ab50f3f10eb942b09405c49ef8da36b826c7
+  languageName: node
+  linkType: hard
+
+"node-fetch@npm:3.2.4":
+  version: 3.2.4
+  resolution: "node-fetch@npm:3.2.4"
+  dependencies:
+    data-uri-to-buffer: ^4.0.0
+    fetch-blob: ^3.1.4
+    formdata-polyfill: ^4.0.10
+  checksum: 0cb167bdcf994d0d79bc0731a0404bd2688da72ed54d892681bd7b72a291f4697868457506a5607d1c82551c21c2051dba4176bcaf65bb4bb26901c4bbad1ffe
   languageName: node
   linkType: hard
 
@@ -20210,7 +20240,7 @@ __metadata:
     chalk: 4.1.2
     clipanion: ^3.2.0-rc.10
     date-fns: 2.28.0
-    node-fetch: 2.6.7
+    node-fetch: 3.2.4
   languageName: unknown
   linkType: soft
 
@@ -23238,7 +23268,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"web-streams-polyfill@npm:^3.2.0":
+"web-streams-polyfill@npm:^3.0.3, web-streams-polyfill@npm:^3.2.0":
   version: 3.2.1
   resolution: "web-streams-polyfill@npm:3.2.1"
   checksum: 70ed6b5708e14afa2ab699221ea197d7c68ec0c8274bbe0181aecc5ba636ca27cbd383d2049f0eb9d529e738f5c088825502b317f3df24d18a278e4cc9a10e8b
