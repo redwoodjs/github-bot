@@ -1,5 +1,3 @@
-import * as dateFns from 'date-fns'
-
 import { octokit } from 'src/lib/github'
 
 export function addToMainProject(contentId: string) {
