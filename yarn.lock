@@ -3296,10 +3296,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@octokit/webhooks-types@npm:5.5.1":
-  version: 5.5.1
-  resolution: "@octokit/webhooks-types@npm:5.5.1"
-  checksum: d0b1a99024b17944bbba1f972264fc7945fce3cb417b08de7891e5ce73bbee61bab3efb7034e769f38704096f0bab8b729e10f657ad6fb70dd2864a23ea9c61f
+"@octokit/webhooks-types@npm:5.6.0":
+  version: 5.6.0
+  resolution: "@octokit/webhooks-types@npm:5.6.0"
+  checksum: f9fd36be5398876a4fd23872e643cc97ea59de4486fd936d8e4f38e1a98c7bc1e70a3722cb8922dacffae30422520ef8ab87ad780e3f630284d96a2c1957e367
   languageName: node
   linkType: hard
 
@@ -6907,7 +6907,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "api@workspace:api"
   dependencies:
-    "@octokit/webhooks-types": 5.5.1
+    "@octokit/webhooks-types": 5.6.0
     "@redwoodjs/api": 1.0.2
     "@redwoodjs/api-server": 1.0.2
     "@redwoodjs/graphql-server": 1.0.2
@@ -9939,7 +9939,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"date-fns@npm:2.28.0":
+"date-fns@npm:2.28.0, date-fns@npm:^2.0.1, date-fns@npm:^2.16.1":
   version: 2.28.0
   resolution: "date-fns@npm:2.28.0"
   checksum: ecdacd36326e7f5f8c4f1e78ae931a8997109f1c841f5163053b866585ca899521b0e7a114eeb48a9fe5135a550787bd4bbd8baa321cded0b4d823f847889a80
@@ -9950,13 +9950,6 @@ __metadata:
   version: 1.30.1
   resolution: "date-fns@npm:1.30.1"
   checksum: bad6ad7c15180121e15d61ad62a4a214c108d66f35b35f5eeb6ade837a3c29aa4444b9528a93a5374b95ba11231c142276351bf52f4d168676f9a1e17ce3726a
-  languageName: node
-  linkType: hard
-
-"date-fns@npm:^2.0.1, date-fns@npm:^2.16.1":
-  version: 2.25.0
-  resolution: "date-fns@npm:2.25.0"
-  checksum: cc5efcf0467b0e642bfed52a4778708212fbcc987809b3b253955026688f51460ec8f163a84c01f526a0c9ef5cac1956305ad1c7883ad6aa239d7157a17eed60
   languageName: node
   linkType: hard
 
