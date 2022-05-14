@@ -7,7 +7,7 @@
     "@redwoodjs/api-server": "1.0.2",
     "@redwoodjs/graphql-server": "1.0.2",
     "octokit": "1.7.1",
-    "smee-client": "1.2.2"
+    "smee-client": "1.2.3"
   },
   "devDependencies": {
     "@octokit/webhooks-types": "5.5.1"
