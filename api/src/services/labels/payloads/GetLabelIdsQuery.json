@@ -1,0 +1,216 @@
+{
+  "repository": {
+    "labels": {
+      "nodes": [
+        {
+          "name": "topic/docs",
+          "id": "MDU6TGFiZWwxMzk4MjA0NjE4"
+        },
+        {
+          "name": "help wanted",
+          "id": "MDU6TGFiZWwxMzk4MjA0NjIx"
+        },
+        {
+          "name": "good first issue",
+          "id": "MDU6TGFiZWwxMzk4MjA0NjIy"
+        },
+        {
+          "name": "topic/prisma",
+          "id": "MDU6TGFiZWwxOTAyNTE4MzEx"
+        },
+        {
+          "name": "topic/generators-&-scaffolds",
+          "id": "MDU6TGFiZWwxOTA1MTY3NzAw"
+        },
+        {
+          "name": "topic/router",
+          "id": "MDU6TGFiZWwxOTA1MTc0Njg3"
+        },
+        {
+          "name": "topic/forms",
+          "id": "MDU6TGFiZWwxOTA1MTc1ODI0"
+        },
+        {
+          "name": "bug/needs-info",
+          "id": "MDU6TGFiZWwxOTA3MjI5NjAw"
+        },
+        {
+          "name": "bug/repro-available",
+          "id": "MDU6TGFiZWwxOTA3MjMxMTQ5"
+        },
+        {
+          "name": "bug/confirmed",
+          "id": "MDU6TGFiZWwxOTA3MjMyMzk0"
+        },
+        {
+          "name": "topic/cli",
+          "id": "MDU6TGFiZWwxOTA3MjY3NTA3"
+        },
+        {
+          "name": "topic/create-redwood-app",
+          "id": "MDU6TGFiZWwxOTA3MjY3OTM1"
+        },
+        {
+          "name": "topic/api",
+          "id": "MDU6TGFiZWwxOTA3Mjc2NDgy"
+        },
+        {
+          "name": "topic/ops-&-contributing-dx",
+          "id": "MDU6TGFiZWwxOTA5OTE3ODEw"
+        },
+        {
+          "name": "topic/windows",
+          "id": "MDU6TGFiZWwxOTE2NTM5NzI3"
+        },
+        {
+          "name": "topic/config",
+          "id": "MDU6TGFiZWwxOTQ5NjQxNDg5"
+        },
+        {
+          "name": "topic/auth",
+          "id": "MDU6TGFiZWwxOTUyOTIxOTkz"
+        },
+        {
+          "name": "topic/deployment",
+          "id": "MDU6TGFiZWwyMDk1NjkyMzIz"
+        },
+        {
+          "name": "topic/testing",
+          "id": "MDU6TGFiZWwyMTMwNjI3Mjkz"
+        },
+        {
+          "name": "topic/web",
+          "id": "MDU6TGFiZWwyMTQ2NjIwMjA0"
+        },
+        {
+          "name": "topic/structure-&-vscode-ide",
+          "id": "MDU6TGFiZWwyMjQyOTE4MjI5"
+        },
+        {
+          "name": "next-release/test",
+          "id": "MDU6TGFiZWwyMjk3ODMyMTUx"
+        },
+        {
+          "name": "release:feature-breaking",
+          "id": "MDU6TGFiZWwyMzE0NzAxNTIx"
+        },
+        {
+          "name": "hacktoberfest",
+          "id": "MDU6TGFiZWwyMzg5NDc4NTUx"
+        },
+        {
+          "name": "topic/storybook",
+          "id": "MDU6TGFiZWwyNDM4NTAxNzUz"
+        },
+        {
+          "name": "hacktoberfest-accepted",
+          "id": "MDU6TGFiZWwyNDY5ODY3MDM4"
+        },
+        {
+          "name": "topic/cells",
+          "id": "MDU6TGFiZWwyNTg2NjY4MjYy"
+        },
+        {
+          "name": "topic/a11y",
+          "id": "MDU6TGFiZWwyNzMwMzI0ODI4"
+        },
+        {
+          "name": "topic/prerender",
+          "id": "MDU6TGFiZWwyNzU0OTAyNzU0"
+        },
+        {
+          "name": "topic/logging",
+          "id": "MDU6TGFiZWwyODAwMzIzNDA4"
+        },
+        {
+          "name": "topic/security",
+          "id": "MDU6TGFiZWwyODM0MDQ2NTc2"
+        },
+        {
+          "name": "topic/webhooks",
+          "id": "MDU6TGFiZWwyOTUyNTE4ODk1"
+        },
+        {
+          "name": "topic/typescript",
+          "id": "MDU6TGFiZWwzMDA1NDQxNzY5"
+        },
+        {
+          "name": "topic/performance",
+          "id": "MDU6TGFiZWwzMDA1NDU0ODQ3"
+        },
+        {
+          "name": "next-release/update-docs",
+          "id": "MDU6TGFiZWwzMDA1NDYwODE3"
+        },
+        {
+          "name": "topic/graphql",
+          "id": "MDU6TGFiZWwzMDA1NDYxMzMy"
+        },
+        {
+          "name": "topic/mobile",
+          "id": "MDU6TGFiZWwzMDA5MjQxNTIz"
+        },
+        {
+          "name": "topic/fully-integrated-dx",
+          "id": "MDU6TGFiZWwzMDIwNTg4OTc0"
+        },
+        {
+          "name": "topic/core",
+          "id": "MDU6TGFiZWwzMDM3NTc5MDcx"
+        },
+        {
+          "name": "topic/services",
+          "id": "MDU6TGFiZWwzMDQwMzI4MzM0"
+        },
+        {
+          "name": "next-release/codemod",
+          "id": "MDU6TGFiZWwzMDcwNTkxMzUz"
+        },
+        {
+          "name": "next-release/wait-to-merge",
+          "id": "MDU6TGFiZWwzMDg5ODkyOTY2"
+        },
+        {
+          "name": "topic/record",
+          "id": "LA_kwDOC2M2f87VeuW6"
+        },
+        {
+          "name": "release:chore",
+          "id": "LA_kwDOC2M2f87afZ1K"
+        },
+        {
+          "name": "release:fix",
+          "id": "LA_kwDOC2M2f87afaDD"
+        },
+        {
+          "name": "release:feature",
+          "id": "LA_kwDOC2M2f87afaQF"
+        },
+        {
+          "name": "action/add-to-cycle",
+          "id": "LA_kwDOC2M2f87e3FkP"
+        },
+        {
+          "name": "action/add-to-backlog",
+          "id": "LA_kwDOC2M2f87fhNsx"
+        },
+        {
+          "name": "tutorial-qa",
+          "id": "LA_kwDOC2M2f87nt4Sq"
+        },
+        {
+          "name": "release:docs",
+          "id": "LA_kwDOC2M2f87xfriY"
+        },
+        {
+          "name": "action/add-to-discussion-queue",
+          "id": "LA_kwDOC2M2f871Z5FF"
+        },
+        {
+          "name": "dependencies",
+          "id": "LA_kwDOC2M2f875n4VO"
+        }
+      ]
+    }
+  }
+}

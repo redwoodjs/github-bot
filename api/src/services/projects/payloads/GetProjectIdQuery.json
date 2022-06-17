@@ -1,0 +1,40 @@
+{
+  "organization": {
+    "projectsNext": {
+      "nodes": [
+        {
+          "title": "Framework Testing & E2E",
+          "id": "PN_kwDOAq9qTM4AAyUL"
+        },
+        {
+          "title": "Main",
+          "id": "PN_kwDOAq9qTM4ABn0O"
+        },
+        {
+          "title": "Release",
+          "id": "PN_kwDOAq9qTM4AARb-"
+        },
+        {
+          "title": "Serverless deploy target",
+          "id": "PN_kwDOAq9qTM4AAVpk"
+        },
+        {
+          "title": "Test",
+          "id": "PN_kwDOAq9qTM4AAQhF"
+        },
+        {
+          "title": "Triage",
+          "id": "PN_kwDOAq9qTM0dIA"
+        },
+        {
+          "title": "Tutorial QA Week",
+          "id": "PN_kwDOAq9qTM4AA6Nu"
+        },
+        {
+          "title": "v1 DX Improvements",
+          "id": "PN_kwDOAq9qTM4AA2y5"
+        }
+      ]
+    }
+  }
+}

@@ -12,37 +12,17 @@ import type { APIGatewayEvent, Context } from 'aws-lambda'
 
 import { verifyEvent, WebhookVerificationError } from '@redwoodjs/api/webhooks'
 
-import {
-  startSmeeClient,
-  coreTeamMaintainerLogins,
-  coreTeamMaintainers,
-} from 'src/lib/github'
+import { startSmeeClient, coreTeamMaintainers } from 'src/lib/github'
 import { logger } from 'src/lib/logger'
+import { assign } from 'src/services/assign'
+import { removeLabel } from 'src/services/labels'
+import { milestonePullRequest } from 'src/services/milestones'
 import {
-  addAssigneesToAssignable,
-  assignCoreTeamTriageMember,
-} from 'src/services/assign'
-import { addIdsToProcessEnv } from 'src/services/github'
-import { removeLabels } from 'src/services/labels'
-import {
-  addChoreMilestoneToPullRequest,
-  addNextReleaseMilestoneToPullRequest,
-} from 'src/services/milestones'
-import type { AddMilestoneToPullRequestRes } from 'src/services/milestones'
-import {
-  addToMainProject,
-  updateMainProjectItemStatusFieldToInProgress,
-  getContentItemIdOnMainProject,
-  updateMainProjectItemStatusFieldToDone,
-  updateMainProjectItemCycleFieldToCurrent,
-  updateMainProjectItemStatusFieldToTriage,
-  updateMainProjectItemStatusFieldToBacklog,
-  updateMainProjectItemNeedsDiscussionFieldToTrue,
+  addToProject,
+  updateProjectItem,
+  getItemIdFromContentId,
 } from 'src/services/projects'
 
-/**
- * @fixme I'm worried that this isn't being cleaned up when the dev server reloads
- */
 if (process.env.NODE_ENV === 'development') {
   startSmeeClient()
 }
@@ -51,10 +31,6 @@ type Event = APIGatewayEvent & {
   headers: { 'x-github-event': 'issues' | 'pull_request' }
 }
 
-/**
- * The app's only subscribed to issues and pull requests.
- * @fixme there's probably a better way to do this.
- */
 type Payload = (IssuesEvent | PullRequestEvent) & {
   issue?: Issue
   pull_request?: PullRequest
@@ -100,10 +76,8 @@ export const handler = async (event: Event, _context: Context) => {
       payload.issue?.html_url ?? payload.pull_request.html_url
     )
 
-    await addIdsToProcessEnv({
-      owner: payload.organization.login,
-      name: payload.repository.name,
-    })
+    process.env.OWNER = payload.organization.login
+    process.env.NAME = payload.repository.name
 
     const sifter = sift({
       'issues.opened': handleIssuesOpened,
@@ -156,14 +130,14 @@ export const handler = async (event: Event, _context: Context) => {
  * When an issue's opened:
  *
  * - add it to the project
- * - assign a core team triage member (wip)
+ * - assign a core team triage member
  *
  * @remarks
  *
  * If an issue's opened by a core team maintainer, they should triage it.
  */
-async function handleIssuesOpened(_event: Event, payload: IssuesOpenedEvent) {
-  if (coreTeamMaintainerLogins.includes(payload.sender.login)) {
+async function handleIssuesOpened(payload: IssuesOpenedEvent) {
+  if (coreTeamMaintainers.includes(payload.sender.login)) {
     logger.info("Author's a core team maintainer; returning")
     return
   }
@@ -171,21 +145,19 @@ async function handleIssuesOpened(_event: Event, payload: IssuesOpenedEvent) {
   logger.info("Author isn't a core team maintainer")
   logger.info('Adding to project and assigning')
 
-  const { addProjectNextItem } = await addToMainProject(payload.issue.node_id)
+  const itemId = await addToProject(payload.issue.node_id)
 
-  await updateMainProjectItemStatusFieldToTriage(
-    addProjectNextItem.projectNextItem.id
-  )
+  await updateProjectItem(itemId, { Status: 'Triage' })
 
-  await assignCoreTeamTriageMember({
+  await assign({
     assignableId: payload.issue.node_id,
+    to: 'Core Team/Triage',
   })
 }
 
 // ------------------------
 
 function handleContentLabeled(
-  event: Event,
   payload: (IssuesLabeledEvent | PullRequestLabeledEvent) & {
     issue?: Issue
     pull_request?: PullRequest
@@ -215,68 +187,57 @@ function handleContentLabeled(
 }
 
 async function handleAddToCycleLabel(node_id: string) {
-  await removeLabels({
+  await removeLabel({
     labelableId: node_id,
-    labelIds: [process.env.ADD_TO_CYCLE_LABEL_ID],
+    label: 'action/add-to-cycle',
   })
 
-  const { addProjectNextItem } = await addToMainProject(node_id)
+  const itemId = await addToProject(node_id)
 
-  await updateMainProjectItemStatusFieldToInProgress(
-    addProjectNextItem.projectNextItem.id
-  )
-
-  return updateMainProjectItemCycleFieldToCurrent(
-    addProjectNextItem.projectNextItem.id
-  )
+  await updateProjectItem(itemId, {
+    Cycle: true,
+    Status: 'In progress',
+  })
 }
 
 async function handleAddToDiscussionQueue(node_id: string) {
-  await removeLabels({
+  await removeLabel({
     labelableId: node_id,
-    labelIds: [process.env.ADD_TO_DISCUSSION_QUEUE_LABEL_ID],
+    label: 'action/add-to-discussion-queue',
   })
 
-  const { addProjectNextItem } = await addToMainProject(node_id)
+  const itemId = await addToProject(node_id)
 
-  return updateMainProjectItemNeedsDiscussionFieldToTrue(
-    addProjectNextItem.projectNextItem.id
-  )
+  await updateProjectItem(itemId, { 'Needs discussion': true })
 }
 
 async function handleAddToBacklog(node_id: string) {
-  await removeLabels({
+  await removeLabel({
     labelableId: node_id,
-    labelIds: [process.env.ADD_TO_BACKLOG_LABEL_ID],
+    label: 'action/add-to-backlog',
   })
 
-  const { addProjectNextItem } = await addToMainProject(node_id)
+  const itemId = await addToProject(node_id)
 
-  return updateMainProjectItemStatusFieldToBacklog(
-    addProjectNextItem.projectNextItem.id
-  )
+  await updateProjectItem(itemId, { Status: 'Backlog' })
 }
 
 // ------------------------
 
-async function handleIssuesClosed(event: Event, payload: IssuesEvent) {
-  const projectItemId = await getContentItemIdOnMainProject(
-    payload.issue.node_id
-  )
+async function handleIssuesClosed(payload: IssuesEvent) {
+  const itemId = await getItemIdFromContentId(payload.issue.node_id)
 
-  if (!projectItemId) {
-    logger.info("Issue isn't on the board; returning")
+  if (!itemId) {
+    logger.info("Issue isn't in the project; returning")
     return
   }
 
   logger.info('Issue is on the board; moving to done')
-  return updateMainProjectItemStatusFieldToDone(projectItemId)
+
+  await updateProjectItem(itemId, { Status: 'Done' })
 }
 
-async function handlePullRequestOpened(
-  event: Event,
-  payload: PullRequestOpenedEvent
-) {
+async function handlePullRequestOpened(payload: PullRequestOpenedEvent) {
   if (payload.sender.login === 'renovate[bot]') {
     logger.info('Pull request opened by renovate bot; returning')
     return
@@ -284,15 +245,11 @@ async function handlePullRequestOpened(
 
   logger.info('Adding pull request to the project')
 
-  const { addProjectNextItem } = await addToMainProject(
-    (payload.pull_request as PullRequest).node_id
-  )
+  const itemId = await addToProject(payload.pull_request)
 
-  await updateMainProjectItemStatusFieldToTriage(
-    addProjectNextItem.projectNextItem.id
-  )
+  await updateProjectItem(itemId, { Status: 'Triage' })
 
-  if (!coreTeamMaintainerLogins.includes(payload.sender.login)) {
+  if (!coreTeamMaintainers.includes(payload.sender.login)) {
     return
   }
 
@@ -300,13 +257,10 @@ async function handlePullRequestOpened(
     'Author is a core team maintainer; updating the status field to in progress and adding to the current cycle'
   )
 
-  await updateMainProjectItemStatusFieldToInProgress(
-    addProjectNextItem.projectNextItem.id
-  )
-
-  await updateMainProjectItemCycleFieldToCurrent(
-    addProjectNextItem.projectNextItem.id
-  )
+  await updateProjectItem(itemId, {
+    Cycle: true,
+    Status: 'In progress',
+  })
 
   /**
    * Make sure the core team maintainer who opened the PR or another core team maintainer is assigned.
@@ -315,23 +269,20 @@ async function handlePullRequestOpened(
     !(payload.pull_request as PullRequest).assignees.length ||
     !(payload.pull_request as PullRequest).assignees
       .map((assignee) => assignee.login)
-      .some((login) => coreTeamMaintainerLogins.includes(login))
+      .some((login) => coreTeamMaintainers.includes(login))
   ) {
     logger.info(
       "The core team maintainer didn't assign themselves; assigning them"
     )
 
-    return addAssigneesToAssignable({
+    await assign({
       assignableId: (payload.pull_request as PullRequest).node_id,
-      assigneeIds: [coreTeamMaintainers[payload.sender.login].id],
+      to: payload.sender.login,
     })
   }
 }
 
-function handlePullRequestClosed(
-  event: Event,
-  payload: PullRequestEvent
-): void | Promise<AddMilestoneToPullRequestRes> {
+async function handlePullRequestClosed(payload: PullRequestEvent) {
   if (!payload.pull_request.merged) {
     logger.info('The pull request was closed; returning')
     return
@@ -348,18 +299,29 @@ function handlePullRequestClosed(
     }
 
     logger.info('Adding the next-release milestone')
-    return addNextReleaseMilestoneToPullRequest(payload.pull_request.node_id)
+
+    await milestonePullRequest({
+      pullRequestId: payload.pull_request.node_id,
+      milestone: 'next-release',
+    })
+
+    return
   } else {
     logger.info(
       `The pull request was merged into ${payload.pull_request.base.ref}`
     )
+
     logger.info('Adding the chore milestone')
-    return addChoreMilestoneToPullRequest(payload.pull_request.node_id)
+
+    await milestonePullRequest({
+      pullRequestId: payload.pull_request.node_id,
+      milestone: 'chore',
+    })
   }
 }
 
 /**
- * Utility for routing eventActions to handlers.
+ * Utility for routing "event actions" to their handlers.
  */
 type Events = 'issues' | 'pull_request'
 type Actions = 'opened' | 'labeled' | 'closed'
@@ -367,7 +329,7 @@ type EventActions = `${Events}.${Actions}`
 
 type EventActionHandlers = Record<
   EventActions,
-  (event: Event, payload: Payload) => Promise<unknown>
+  (payload: Payload) => Promise<void>
 >
 
 function sift(eventActionHandlers: EventActionHandlers) {
@@ -380,17 +342,17 @@ function sift(eventActionHandlers: EventActionHandlers) {
       .map(([, fn]) => fn)
 
     if (!handlers.length) {
-      logger.info(`no event-action handlers found for ${eventAction}`)
+      logger.info(`No event-action handlers found for ${eventAction}`)
       return
     }
 
     logger.info(
-      `found ${handlers.length} event-action handler to run: ${handlers
+      `Found ${handlers.length} event-action handler to run: ${handlers
         .map((handler) => handler.name)
         .join(', ')}`
     )
 
-    await Promise.allSettled(handlers.map((handler) => handler(event, payload)))
+    await Promise.allSettled(handlers.map((handler) => handler(payload)))
   }
 
   return sifter

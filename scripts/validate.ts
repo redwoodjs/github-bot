@@ -6,28 +6,29 @@
  * - add other repos: sprout, example store
  */
 
-import { execSync } from 'child_process'
-import * as readline from 'readline'
+import { execSync } from 'node:child_process'
+import * as readline from 'node:readline'
 
 import { octokit } from 'api/src/lib/github'
-import { addIdsToProcessEnv } from 'api/src/services/github'
 import {
-  deleteFromMainProject,
-  addToMainProject,
-  updateMainProjectItemStatusFieldToTriage,
-  updateMainProjectItemCycleFieldToCurrent,
-  updateMainProjectItemRolloversField,
-  updateMainProjectItemCycleField,
-  updateMainProjectItemField,
+  addToProject,
   getField,
-} from 'api/src/services/projects'
+  getProjectFieldAndValueNamesToIds,
+  projectId,
+  getProjectId,
+  removeFromProject,
+  statusNamesToIds,
+  updateProjectItem,
+  currentCycleId,
+} from 'api/src/services/projects/projects'
 import chalk from 'chalk'
 import { Cli, Command, Option } from 'clipanion'
 import * as dateFns from 'date-fns'
 import fetch from 'node-fetch'
 
 export default async () => {
-  await addIdsToProcessEnv({ owner: 'redwoodjs', name: 'redwood' })
+  process.env.OWNER = 'redwoodjs'
+  process.env.NAME = 'redwood'
 
   const [_node, _rwCli, _execCommand, _scriptName, _prismaFlag, ...args] =
     process.argv
@@ -79,6 +80,14 @@ class ValidateCommand extends Command {
         )
     }
 
+    if (!projectId) {
+      await getProjectId()
+    }
+
+    if (!statusNamesToIds.size) {
+      await getProjectFieldAndValueNamesToIds()
+    }
+
     if (this.status) {
       issuesOrPullRequestsToValidate = issuesOrPullRequestsToValidate.filter(
         (issueOrPullRequest) => {
@@ -94,26 +103,12 @@ class ValidateCommand extends Command {
             return false
           }
 
-          switch (this.status) {
-            case 'triage':
-              return statusField.value === process.env.TRIAGE_STATUS_FIELD_ID
-            case 'backlog':
-              return statusField.value === process.env.BACKLOG_STATUS_FIELD_ID
-            case 'todo':
-              return statusField.value === process.env.TODO_STATUS_FIELD_ID
-            case 'in progress':
-              return (
-                statusField.value === process.env.IN_PROGRESS_STATUS_FIELD_ID
-              )
-            default:
-              return false
-          }
+          return statusField.value === statusNamesToIds.get(this.status)
         }
       )
     }
 
     const missingPriority = []
-    const stale = []
 
     await Promise.allSettled(
       issuesOrPullRequestsToValidate.map(async (issueOrPullRequest) => {
@@ -159,7 +154,7 @@ class ValidateCommand extends Command {
               this.context.stdout.write(
                 `➤ ${chalk.blue('FIXING')}: Removing from project board\n`
               )
-              await deleteFromMainProject(projectNextItem.id)
+              await removeFromProject(projectNextItem.id)
               break
             }
 
@@ -167,7 +162,7 @@ class ValidateCommand extends Command {
               this.context.stdout.write(
                 `➤ ${chalk.blue('FIXING')}: Adding to project board\n`
               )
-              await addToMainProject(id)
+              await addToProject(id)
               issueOrPullRequest = await getIssueOrPullRequest(id)
               continue
             }
@@ -176,7 +171,7 @@ class ValidateCommand extends Command {
               this.context.stdout.write(
                 `➤ ${chalk.blue('FIXING')}: Adding to triage\n`
               )
-              await updateMainProjectItemStatusFieldToTriage(projectNextItem.id)
+              await updateProjectItem(projectNextItem.id, { Status: 'Triage' })
               issueOrPullRequest = await getIssueOrPullRequest(id)
               continue
             }
@@ -185,7 +180,7 @@ class ValidateCommand extends Command {
               this.context.stdout.write(
                 `➤ ${chalk.blue('FIXING')}: Adding to the current cycle\n`
               )
-              await updateMainProjectItemCycleFieldToCurrent(projectNextItem.id)
+              await updateProjectItem(projectNextItem.id, { Cycle: true })
               issueOrPullRequest = await getIssueOrPullRequest(id)
               continue
             }
@@ -196,14 +191,13 @@ class ValidateCommand extends Command {
                   'FIXING'
                 )}: Adding to the current cycle and incrementing rollovers\n`
               )
-              await updateMainProjectItemCycleFieldToCurrent(projectNextItem.id)
+              await updateProjectItem(projectNextItem.id, { Cycle: true })
 
               const rolloversField = getField(projectNextItem, 'Rollovers')
               const rollovers = rolloversField?.value ?? 0
 
-              await updateMainProjectItemRolloversField({
-                itemId: projectNextItem.id,
-                value: (parseInt(rollovers) + 1).toString(),
+              await updateProjectItem(projectNextItem.id, {
+                Rollovers: parseInt(rollovers) + 1,
               })
 
               issueOrPullRequest = await getIssueOrPullRequest(id)
@@ -215,10 +209,7 @@ class ValidateCommand extends Command {
                 `➤ ${chalk.blue('FIXING')}: Removing from the current cycle\n`
               )
 
-              await updateMainProjectItemCycleField({
-                itemId: projectNextItem.id,
-                value: '',
-              })
+              await updateProjectItem(projectNextItem.id, { Cycle: false })
 
               issueOrPullRequest = await getIssueOrPullRequest(id)
               continue
@@ -230,8 +221,23 @@ class ValidateCommand extends Command {
             }
 
             if (e instanceof StaleError) {
-              stale.push(issueOrPullRequest)
-              break
+              this.context.stdout.write(
+                `➤ ${chalk.blue('FIXING')}: Marking as stale\n`
+              )
+
+              const projectNextItem = getProjectNextItem(issueOrPullRequest)
+
+              await updateProjectItem(projectNextItem.id, { Stale: true })
+            }
+
+            if (e instanceof NotStaleError) {
+              this.context.stdout.write(
+                `➤ ${chalk.blue('FIXING')}: Unmarking as stale\n`
+              )
+
+              const projectNextItem = getProjectNextItem(issueOrPullRequest)
+
+              await updateProjectItem(projectNextItem.id, { Stale: false })
             }
 
             throw e
@@ -248,13 +254,12 @@ class ValidateCommand extends Command {
       })
     )
 
-    const issuesOrPullRequestsNeedAttention =
-      missingPriority.length || stale.length
+    const issuesOrPullRequestsNeedAttention = missingPriority.length
 
     if (issuesOrPullRequestsNeedAttention) {
       this.context.stdout.write(
         `  ➤ ${chalk.gray('INFO')}: ${
-          missingPriority.length + stale.length
+          missingPriority.length
         } issues or pull requests need your attention`
       )
 
@@ -269,41 +274,14 @@ class ValidateCommand extends Command {
           )
         }
       }
-
-      if (stale.length) {
-        for (const issueOrPullRequest of stale) {
-          execSync(`open ${issueOrPullRequest.url}`)
-
-          const answer = await question(
-            `➤ ${chalk.yellow(
-              'PROMPT'
-            )}: This one is stale. Try to unblock it, but if you can't, enter "c" > `,
-            {
-              choices: ['c'],
-            }
-          )
-
-          if (answer === 'c') {
-            continue
-          }
-
-          const projectNextItem = getProjectNextItem(issueOrPullRequest)
-
-          await updateMainProjectItemField({
-            itemId: projectNextItem.id,
-            fieldId: process.env.STALE_FIELD_ID,
-            value: process.env.CHECK_STALE_FIELD_ID,
-          })
-        }
-      }
     }
   }
 }
 
-async function getIssueOrPullRequest(id) {
+async function getIssueOrPullRequest(id: string) {
   const { node: issueOrPullRequest } = await octokit.graphql<{
     node: IssueOrPullRequest
-  }>(ISSUE_OR_PULL_REQUEST, { id })
+  }>(issueOrPullRequestQuery, { id })
 
   return issueOrPullRequest
 }
@@ -340,8 +318,8 @@ interface ProjectNextItem {
   }
 }
 
-const ISSUE_OR_PULL_REQUEST = `
-  query ($id: ID!) {
+const issueOrPullRequestQuery = `
+  query IssueOrPullRequestQuery($id: ID!) {
     node(id: $id) {
       ...on Issue {
         __typename
@@ -513,13 +491,12 @@ function validateCycle(issueOrPullRequest: IssueOrPullRequest) {
   const cycleField = getField(projectNextItem, 'Cycle')
 
   const hasTodoOrInProgressStatus = [
-    process.env.TODO_STATUS_FIELD_ID,
-    process.env.IN_PROGRESS_STATUS_FIELD_ID,
+    statusNamesToIds.get('Todo'),
+    statusNamesToIds.get('In progress'),
   ].includes(statusField.value)
 
   const hasCycle = cycleField !== undefined
-  const hasPreviousCycle =
-    cycleField?.value !== process.env.CURRENT_CYCLE_FIELD_ID
+  const hasPreviousCycle = cycleField?.value !== currentCycleId
 
   const { id, title, url } = issueOrPullRequest
 
@@ -534,8 +511,8 @@ function validateCycle(issueOrPullRequest: IssueOrPullRequest) {
   }
 
   const hasTriageOrBacklogStatus = [
-    process.env.TRIAGE_STATUS_FIELD_ID,
-    process.env.BACKLOG_STATUS_FIELD_ID,
+    statusNamesToIds.get('Triage'),
+    statusNamesToIds.get('Backlog'),
   ].includes(statusField.value)
 
   if (hasTriageOrBacklogStatus && hasCycle) {
@@ -590,7 +567,7 @@ function validatePriority(issueOrPullRequest: IssueOrPullRequest) {
   const statusField = getField(projectNextItem, 'Status')
   const priorityField = getField(projectNextItem, 'Priority')
 
-  if (statusField.value === process.env.TRIAGE_STATUS_FIELD_ID) {
+  if (statusField.value === statusNamesToIds.get('Triage')) {
     return
   }
 
@@ -630,9 +607,16 @@ function validateStale(issueOrPullRequest: IssueOrPullRequest) {
       )
     )
 
+    const { id, title, url } = issueOrPullRequest
+
     if (hasntBeenUpdatedInAWeek) {
-      const { id, title, url } = issueOrPullRequest
       throw new StaleError(id, title, url)
+    }
+
+    const staleField = getField(projectNextItem, 'Stale')
+
+    if (staleField) {
+      throw new NotStaleError(id, title, url)
     }
   }
 }
@@ -650,9 +634,20 @@ class StaleError extends Error {
   }
 }
 
+class NotStaleError extends Error {
+  constructor(id, title, url) {
+    super(`"${title}" is marked stale but it isn't`)
+    this.name = 'NotStaleError'
+
+    this.id = id
+    this.title = title
+    this.url = url
+  }
+}
+
 function getProjectNextItem(issueOrPullRequest: IssueOrPullRequest) {
   return issueOrPullRequest.projectNextItems.nodes.find(
-    (projectNextItem) => projectNextItem.project.id === process.env.PROJECT_ID
+    (projectNextItem) => projectNextItem.project.id === projectId
   )
 }
 
@@ -661,7 +656,7 @@ function getProjectNextItem(issueOrPullRequest: IssueOrPullRequest) {
 async function getIssues(after?: string) {
   let {
     repository: { issues },
-  } = await octokit.graphql(ISSUES, { after })
+  } = await octokit.graphql(openIssuesQuery, { after })
 
   if (!issues.pageInfo.hasNextPage) {
     return issues.nodes
@@ -695,8 +690,8 @@ async function getIssues(after?: string) {
   return issues
 }
 
-const ISSUES = `
-  query OpenIssues($after: String) {
+const openIssuesQuery = `
+  query OpenIssuesQuery($after: String) {
     repository(owner: "redwoodjs", name: "redwood") {
       issues(
         first: 100
@@ -745,7 +740,7 @@ const ISSUES = `
 async function getPullRequests(after?: string) {
   const {
     repository: { pullRequests },
-  } = await octokit.graphql(PULL_REQUESTS, { after })
+  } = await octokit.graphql(openPullRequestsQuery, { after })
 
   if (!pullRequests.pageInfo.hasNextPage) {
     return pullRequests.nodes
@@ -756,8 +751,8 @@ async function getPullRequests(after?: string) {
   return [...pullRequests.nodes, ...nextNodes]
 }
 
-const PULL_REQUESTS = `
-  query OpenIssues($after: String) {
+const openPullRequestsQuery = `
+  query OpenPullRequestsQuery($after: String) {
     repository(owner: "redwoodjs", name: "redwood") {
       pullRequests(
         first: 100

@@ -1,0 +1,83 @@
+{
+  "node": {
+    "fields": {
+      "nodes": [
+        {
+          "name": "Title",
+          "id": "PNF_lADOAq9qTM4ABn0OzgA8U5Q",
+          "settings": "{\"width\":515}"
+        },
+        {
+          "name": "Assignees",
+          "id": "PNF_lADOAq9qTM4ABn0OzgA8U5U",
+          "settings": "null"
+        },
+        {
+          "name": "Status",
+          "id": "PNF_lADOAq9qTM4ABn0OzgA8U5Y",
+          "settings": "{\"width\":127,\"options\":[{\"id\":\"30985805\",\"name\":\"Triage\",\"name_html\":\"Triage\"},{\"id\":\"2f2ba648\",\"name\":\"Backlog\",\"name_html\":\"Backlog\"},{\"id\":\"f75ad846\",\"name\":\"Todo\",\"name_html\":\"Todo\"},{\"id\":\"47fc9ee4\",\"name\":\"In progress\",\"name_html\":\"In progress\"},{\"id\":\"98236657\",\"name\":\"Done\",\"name_html\":\"Done\"},{\"id\":\"04688006\",\"name\":\"Archived\",\"name_html\":\"Archived\"}]}"
+        },
+        {
+          "name": "Labels",
+          "id": "PNF_lADOAq9qTM4ABn0OzgA8U5c",
+          "settings": "null"
+        },
+        {
+          "name": "Linked Pull Requests",
+          "id": "PNF_lADOAq9qTM4ABn0OzgA8U5g",
+          "settings": "null"
+        },
+        {
+          "name": "Tracks",
+          "id": "PNF_lADOAq9qTM4ABn0OzgA8U5k",
+          "settings": "null"
+        },
+        {
+          "name": "Reviewers",
+          "id": "PNF_lADOAq9qTM4ABn0OzgA8U5o",
+          "settings": "null"
+        },
+        {
+          "name": "Repository",
+          "id": "PNF_lADOAq9qTM4ABn0OzgA8U5s",
+          "settings": "null"
+        },
+        {
+          "name": "Milestone",
+          "id": "PNF_lADOAq9qTM4ABn0OzgA8U5w",
+          "settings": "null"
+        },
+        {
+          "name": "Cycle",
+          "id": "PNF_lADOAq9qTM4ABn0OzgA8VEw",
+          "settings": "{\"width\":104,\"configuration\":{\"duration\":14,\"start_day\":4,\"iterations\":[{\"id\":\"3f06cf41\",\"title\":\"Cycle 5\",\"duration\":14,\"start_date\":\"2022-06-13\",\"title_html\":\"Cycle 5\"},{\"id\":\"d5a29c54\",\"title\":\"Cycle 6\",\"duration\":14,\"start_date\":\"2022-06-27\",\"title_html\":\"Cycle 6\"}],\"completed_iterations\":[{\"id\":\"2102f08c\",\"title\":\"Cycle 4\",\"duration\":14,\"start_date\":\"2022-05-30\",\"title_html\":\"Cycle 4\"},{\"id\":\"8b194bbd\",\"title\":\"Cycle 3\",\"duration\":14,\"start_date\":\"2022-05-16\",\"title_html\":\"Cycle 3\"},{\"id\":\"68005724\",\"title\":\"Cycle 2\",\"duration\":14,\"start_date\":\"2022-05-02\",\"title_html\":\"Cycle 2\"}]}}"
+        },
+        {
+          "name": "Priority",
+          "id": "PNF_lADOAq9qTM4ABn0OzgA8XpE",
+          "settings": "{\"width\":129,\"options\":[{\"id\":\"ce369865\",\"name\":\"🚨 Urgent\",\"name_html\":\"<g-emoji class=\\\"g-emoji\\\" alias=\\\"rotating_light\\\" fallback-src=\\\"https://github.githubassets.com/images/icons/emoji/unicode/1f6a8.png\\\">🚨</g-emoji> Urgent\"},{\"id\":\"052e57cf\",\"name\":\"1️⃣ High\",\"name_html\":\"<g-emoji class=\\\"g-emoji\\\" alias=\\\"one\\\" fallback-src=\\\"https://github.githubassets.com/images/icons/emoji/unicode/0031-20e3.png\\\">1️⃣</g-emoji> High\"},{\"id\":\"8cc6ba48\",\"name\":\"2️⃣ Medium\",\"name_html\":\"<g-emoji class=\\\"g-emoji\\\" alias=\\\"two\\\" fallback-src=\\\"https://github.githubassets.com/images/icons/emoji/unicode/0032-20e3.png\\\">2️⃣</g-emoji> Medium\"},{\"id\":\"0a6d1555\",\"name\":\"3️⃣ Low\",\"name_html\":\"<g-emoji class=\\\"g-emoji\\\" alias=\\\"three\\\" fallback-src=\\\"https://github.githubassets.com/images/icons/emoji/unicode/0033-20e3.png\\\">3️⃣</g-emoji> Low\"}]}"
+        },
+        {
+          "name": "Notes",
+          "id": "PNF_lADOAq9qTM4ABn0OzgA9XSM",
+          "settings": "{\"width\":369}"
+        },
+        {
+          "name": "Stale",
+          "id": "PNF_lADOAq9qTM4ABn0OzgBAvTU",
+          "settings": "{\"width\":68,\"options\":[{\"id\":\"290df9e2\",\"name\":\"☑️\",\"name_html\":\"<g-emoji class=\\\"g-emoji\\\" alias=\\\"ballot_box_with_check\\\" fallback-src=\\\"https://github.githubassets.com/images/icons/emoji/unicode/2611.png\\\">☑️</g-emoji>\"}]}"
+        },
+        {
+          "name": "Needs discussion",
+          "id": "PNF_lADOAq9qTM4ABn0OzgBA-D0",
+          "settings": "{\"width\":148,\"options\":[{\"id\":\"bde7db46\",\"name\":\"☑️\",\"name_html\":\"<g-emoji class=\\\"g-emoji\\\" alias=\\\"ballot_box_with_check\\\" fallback-src=\\\"https://github.githubassets.com/images/icons/emoji/unicode/2611.png\\\">☑️</g-emoji>\"}]}"
+        },
+        {
+          "name": "Rollovers",
+          "id": "PNF_lADOAq9qTM4ABn0OzgBF9oY",
+          "settings": "{\"width\":96}"
+        }
+      ]
+    }
+  }
+}

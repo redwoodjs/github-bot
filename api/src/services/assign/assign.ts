@@ -1,75 +1,67 @@
-import { octokit, coreTeamTriage, coreTeamTriageLogins } from 'src/lib/github'
-import { getMainProjectTriageItems } from 'src/services/projects'
+import {
+  octokit,
+  coreTeamTriage,
+  coreTeamMaintainersUsernamesToIds,
+  coreTeamTriageUsernamesToIds,
+} from 'src/lib/github'
+import type { CoreTeamMaintainers } from 'src/lib/github'
+import { getProjectItems } from 'src/services/projects'
 
 /**
- * Assign a core team triage member based on who has the least amount of things assigned to them.
+ * Assign a maintainer
  */
-export async function assignCoreTeamTriageMember({
+
+export async function assign({
   assignableId,
+  to,
 }: {
   assignableId: string
+  to: CoreTeamMaintainers | 'Core Team/Triage'
 }) {
-  const assigneeId = await getNextCoreTeamTriageAssigneeId()
+  let assigneeId
 
-  return addAssigneesToAssignable({
+  if (to === 'Core Team/Triage') {
+    assigneeId = await getNextTriageTeamMember()
+  }
+
+  assigneeId = coreTeamMaintainersUsernamesToIds[to]
+
+  return octokit.graphql(addAssigneesToAssignableMutation, {
     assignableId,
-    assigneeIds: [assigneeId],
+    assigneeId,
   })
 }
 
-export async function getNextCoreTeamTriageAssigneeId() {
-  const triageProjectItems = await getMainProjectTriageItems()
+export async function getNextTriageTeamMember() {
+  const triageItems = await getProjectItems('Triage')
 
-  const coreTeamTriageNoAssigned = coreTeamTriageLogins.map((login) => {
-    const noAssigned = triageProjectItems.reduce(
-      (noAssigned: number, needsTriageItem) => {
-        const isAssigned = needsTriageItem.content.assignees?.nodes?.some(
-          (assignee) => assignee.login === login
-        )
+  const noAssigned = coreTeamTriage.map((username) => {
+    const noAssigned = triageItems.reduce((noAssigned: number, triageItem) => {
+      const isAssigned = triageItem.content.assignees?.nodes?.some(
+        (assignee) => assignee.login === username
+      )
 
-        if (!isAssigned) {
-          return noAssigned
-        }
+      return noAssigned + isAssigned ? 1 : 0
+    }, 0)
 
-        return noAssigned + 1
-      },
-      0
-    )
-
-    return [login, noAssigned]
+    return [username, noAssigned]
   })
 
-  const [nextCoreTeamTriageAssignee] = coreTeamTriageNoAssigned.reduce(
-    ([prevLogin, prevAssigned], [nextLogin, nextAssigned]) => {
-      if (prevAssigned < nextAssigned) {
-        return [prevLogin, prevAssigned]
+  const [username] = noAssigned.reduce(
+    ([previousUsername, previousAssigned], [nextLogin, nextAssigned]) => {
+      if (previousAssigned < nextAssigned) {
+        return [previousUsername, previousAssigned]
       }
+
       return [nextLogin, nextAssigned]
     }
   )
 
-  return coreTeamTriage[nextCoreTeamTriageAssignee].id
+  return coreTeamTriageUsernamesToIds[username]
 }
 
-export function addAssigneesToAssignable({
-  assignableId,
-  assigneeIds,
-}: {
-  assignableId: string
-  assigneeIds: string[]
-}) {
-  return octokit.graphql<{
-    addAssigneesToAssignable: {
-      clientMutationId: string
-    }
-  }>(MUTATION, {
-    assignableId,
-    assigneeIds,
-  })
-}
-
-export const MUTATION = `
-  mutation AddAssigneesToAssignable($assignableId: ID!, $assigneeIds: [ID!]!) {
+export const addAssigneesToAssignableMutation = `
+  mutation AddAssigneesToAssignableMutation($assignableId: ID!, $assigneeIds: [ID!]!) {
     addAssigneesToAssignable(
       input: { assignableId: $assignableId, assigneeIds: $assigneeIds }
     ) {

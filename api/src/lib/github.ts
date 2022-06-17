@@ -44,9 +44,16 @@ export const octokit = new Octokit({
 // }
 
 /**
- * For routing webhooks to localhost in local dev.
+ * For routing webhooks to localhost.
  */
+
+let smeeClientStarted = false
+
 export const startSmeeClient = () => {
+  if (smeeClientStarted) {
+    return
+  }
+
   const smee = new SmeeClient({
     source: 'https://smee.io/AyeWlHVe8FLb25OU',
     target: 'http://localhost:8911/github',
@@ -54,52 +61,38 @@ export const startSmeeClient = () => {
   })
 
   const events = smee.start()
+  smeeClientStarted = true
 
   process.on('exit', () => {
     events.close()
+    smeeClientStarted = false
   })
 }
 
-export const coreTeamTriage = {
-  callingmedic911: {
-    id: 'MDQ6VXNlcjI2Mjk5MDI',
-  },
-  jtoar: {
-    id: 'MDQ6VXNlcjMyOTkyMzM1',
-  },
-  simoncrypta: {
-    id: 'MDQ6VXNlcjE4MDEzNTMy',
-  },
+export const coreTeamTriageUsernamesToIds = {
+  callingmedic911: 'MDQ6VXNlcjI2Mjk5MDI',
+  dac09: 'MDQ6VXNlcjE1MjE4Nzc=',
+  dthyresson: 'MDQ6VXNlcjEwNTE2MzM=',
+  jtoar: 'MDQ6VXNlcjMyOTkyMzM1',
+  simoncrypta: 'MDQ6VXNlcjE4MDEzNTMy',
 }
 
-export const coreTeamTriageLogins = Object.keys(coreTeamTriage)
+export type CoreTeamTriage = keyof typeof coreTeamTriageUsernamesToIds
 
-export const coreTeamMaintainers = {
-  cannikin: {
-    id: 'MDQ6VXNlcjMwMA==',
-  },
-  dac09: {
-    id: 'MDQ6VXNlcjE1MjE4Nzc=',
-  },
-  dthyresson: {
-    id: 'MDQ6VXNlcjEwNTE2MzM=',
-  },
-  mojombo: {
-    id: 'MDQ6VXNlcjE=',
-  },
-  peterp: {
-    id: 'MDQ6VXNlcjQ0ODQ5',
-  },
-  thedavidprice: {
-    id: 'MDQ6VXNlcjI5NTE=',
-  },
-  Tobbe: {
-    id: 'MDQ6VXNlcjMwNzkz',
-  },
-  alicelovescake: {
-    id: 'MDQ6VXNlcjY2NTQzNDQ5',
-  },
-  ...coreTeamTriage,
+export const coreTeamTriage = Object.keys(coreTeamTriageUsernamesToIds)
+
+export const coreTeamMaintainersUsernamesToIds = {
+  cannikin: 'MDQ6VXNlcjMwMA==',
+  mojombo: 'MDQ6VXNlcjE=',
+  peterp: 'MDQ6VXNlcjQ0ODQ5',
+  thedavidprice: 'MDQ6VXNlcjI5NTE=',
+  Tobbe: 'MDQ6VXNlcjMwNzkz',
+  alicelovescake: 'MDQ6VXNlcjY2NTQzNDQ5',
+  ...coreTeamTriageUsernamesToIds,
 }
 
-export const coreTeamMaintainerLogins = Object.keys(coreTeamMaintainers)
+export type CoreTeamMaintainers = keyof typeof coreTeamMaintainersUsernamesToIds
+
+export const coreTeamMaintainers = Object.keys(
+  coreTeamMaintainersUsernamesToIds
+)

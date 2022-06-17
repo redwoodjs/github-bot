@@ -1,31 +1,87 @@
-import { octokit } from 'src/lib/github'
+import { setupServer } from 'msw/node'
 
 import {
-  removeLabels,
-  REMOVE_LABELS_MUTATION,
-  createLabel,
-  CREATE_LABEL_MUTATION,
-  actionLabels,
+  createLabelMutation,
+  getLabelIdsQuery,
+  getLabelNamesToIds,
+  labels,
+  labelNamesToIds,
+  removeLabel,
+  removeLabelsFromLabelableMutation,
 } from './labels'
+import handlers, { labelable } from './labels.handlers'
 
-jest.mock('src/lib/github', () => {
-  return {
-    octokit: {
-      graphql: jest.fn(),
-    },
-  }
+const server = setupServer(...handlers)
+
+beforeAll(() => server.listen())
+afterEach(() => {
+  labelNamesToIds.clear()
+  server.resetHandlers()
+})
+afterAll(() => server.close())
+
+it('labels', () => {
+  expect(labels).toMatchInlineSnapshot(`
+    Array [
+      Object {
+        "color": "c2e0c6",
+        "description": "Use this label to add an issue or PR to the current cycle",
+        "name": "action/add-to-cycle",
+      },
+      Object {
+        "color": "c2e0c6",
+        "description": "Use this label to add an issue or PR to the discussion queue",
+        "name": "action/add-to-discussion-queue",
+      },
+      Object {
+        "color": "c2e0c6",
+        "description": "Use this label to add an issue or PR to the backlog",
+        "name": "action/add-to-backlog",
+      },
+    ]
+  `)
 })
 
-describe('removeLabels', () => {
-  const variables = {
-    labelableId: 'issue',
-    labelIds: ['action/add-to-release'],
-  }
-
+describe('getLabelNamesToIds', () => {
   it('uses the correct query', () => {
-    expect(REMOVE_LABELS_MUTATION).toMatchInlineSnapshot(`
+    expect(getLabelIdsQuery).toMatchInlineSnapshot(`
       "
-        mutation RemoveLabelsFromLabelable($labelableId: ID!, $labelIds: [ID!]!) {
+        query GetLabelIdsQuery($owner: String!, $name: String!) {
+          repository(owner: $owner, name: $name) {
+            labels(first: 100) {
+              nodes {
+                name
+                id
+              }
+            }
+          }
+        }
+      "
+    `)
+  })
+
+  it('gets and caches ids from titles', async () => {
+    expect(labelNamesToIds.size).toBe(0)
+
+    const namesToIds = await getLabelNamesToIds()
+
+    expect(namesToIds).toMatchInlineSnapshot(`
+      Map {
+        "action/add-to-cycle" => "LA_kwDOC2M2f87e3FkP",
+        "action/add-to-discussion-queue" => "LA_kwDOC2M2f871Z5FF",
+        "action/add-to-backlog" => "LA_kwDOC2M2f87fhNsx",
+      }
+    `)
+
+    expect(labelNamesToIds.size).toBe(labels.length)
+  })
+})
+
+describe('removeLabel', () => {
+  it('uses the correct query', () => {
+    expect(removeLabelsFromLabelableMutation).toMatchInlineSnapshot(`
+      "
+        mutation RemoveLabelsFromLabelableMutation($labelableId: ID!, $labelIds: [ID!]!) {
           removeLabelsFromLabelable(
             input: { labelableId: $labelableId, labelIds: $labelIds }
           ) {
@@ -36,25 +92,23 @@ describe('removeLabels', () => {
     `)
   })
 
-  it('calls octokit.graphql with the correct query and variables', async () => {
-    await removeLabels(variables)
-    expect(octokit.graphql).toHaveBeenCalledWith(
-      REMOVE_LABELS_MUTATION,
-      variables
-    )
+  it('removes a label from a labelable', async () => {
+    await removeLabel({
+      labelableId: labelable.id,
+      label: 'action/add-to-backlog',
+    })
+
+    expect(labelable).toHaveProperty('labels', [
+      labelNamesToIds.get('action/add-to-backlog'),
+    ])
   })
 })
 
 describe('createLabel', () => {
-  const variables = {
-    repositoryId: 'redwood',
-    ...actionLabels[0],
-  }
-
   it('uses the correct query', () => {
-    expect(CREATE_LABEL_MUTATION).toMatchInlineSnapshot(`
+    expect(createLabelMutation).toMatchInlineSnapshot(`
       "
-        mutation createLabel(
+        mutation CreateLabelMutation(
           $repositoryId: ID!
           $name: String!
           $color: String!
@@ -75,40 +129,6 @@ describe('createLabel', () => {
           }
         }
       "
-    `)
-  })
-
-  it('calls octokit.graphql with the correct query and variables', async () => {
-    await createLabel(variables)
-    expect(octokit.graphql).toHaveBeenCalledWith(CREATE_LABEL_MUTATION, {
-      ...variables,
-      headers: {
-        accept: 'application/vnd.github.bane-preview+json',
-      },
-    })
-  })
-})
-
-describe('action labels', () => {
-  it("hasn't changed", () => {
-    expect(actionLabels).toMatchInlineSnapshot(`
-      Array [
-        Object {
-          "color": "c2e0c6",
-          "description": "Use this label to add an issue or PR to the current cycle",
-          "name": "action/add-to-cycle",
-        },
-        Object {
-          "color": "c2e0c6",
-          "description": "Use this label to add an issue or PR to the discussion queue",
-          "name": "action/add-to-discussion-queue",
-        },
-        Object {
-          "color": "c2e0c6",
-          "description": "Use this label to add an issue or PR to the backlog",
-          "name": "action/add-to-backlog",
-        },
-      ]
     `)
   })
 })
