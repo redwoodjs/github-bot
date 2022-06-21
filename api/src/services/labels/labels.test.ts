@@ -1,5 +1,7 @@
 import { setupServer } from 'msw/node'
 
+import { installationHandler } from 'src/lib/github'
+
 import {
   createLabelMutation,
   getLabelIdsQuery,
@@ -11,7 +13,7 @@ import {
 } from './labels'
 import handlers, { labelable } from './labels.handlers'
 
-const server = setupServer(...handlers)
+const server = setupServer(installationHandler, ...handlers)
 
 beforeAll(() => server.listen())
 afterEach(() => {

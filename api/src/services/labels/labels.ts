@@ -111,40 +111,40 @@ export const removeLabelsFromLabelableMutation = `
  * Create labels
  */
 
-export async function createLabels() {
-  // const repositoryId = await getRepositoryId()
+// export async function createLabels() {
+//   const repositoryId = await getRepositoryId()
 
-  return Promise.all(
-    labels.map((label) => {
-      return createLabel({
-        repositoryId,
-        ...label,
-      })
-    })
-  )
-}
+//   return Promise.all(
+//     labels.map((label) => {
+//       return createLabel({
+//         repositoryId,
+//         ...label,
+//       })
+//     })
+//   )
+// }
 
-export function createLabel({
-  repositoryId,
-  name,
-  color,
-  description,
-}: {
-  repositoryId: string
-  name: Labels
-  color: typeof COLOR
-  description: string
-}) {
-  return octokit.graphql(createLabelMutation, {
-    repositoryId,
-    name,
-    color,
-    description,
-    headers: {
-      accept: 'application/vnd.github.bane-preview+json',
-    },
-  })
-}
+// export function createLabel({
+//   repositoryId,
+//   name,
+//   color,
+//   description,
+// }: {
+//   repositoryId: string
+//   name: Labels
+//   color: typeof COLOR
+//   description: string
+// }) {
+//   return octokit.graphql(createLabelMutation, {
+//     repositoryId,
+//     name,
+//     color,
+//     description,
+//     headers: {
+//       accept: 'application/vnd.github.bane-preview+json',
+//     },
+//   })
+// }
 
 export const createLabelMutation = `
   mutation CreateLabelMutation(

@@ -3,6 +3,15 @@ import path from 'node:path'
 
 import { graphql } from 'msw'
 
+export function getPayload(operationName: string) {
+  return JSON.parse(
+    fs.readFileSync(
+      path.join(__dirname, 'payloads', `${operationName}.json`),
+      'utf-8'
+    )
+  )
+}
+
 import type {
   GetProjectIdQueryRes,
   AddProjectNextItemMutationRes,
@@ -18,21 +27,6 @@ export const project = {
   },
 }
 
-export let item = {}
-
-export function clearItem() {
-  item = {}
-}
-
-export function getPayload(operationName: string) {
-  return JSON.parse(
-    fs.readFileSync(
-      path.join(__dirname, 'payloads', `${operationName}.json`),
-      'utf-8'
-    )
-  )
-}
-
 const handlers = [
   graphql.query<GetProjectIdQueryRes, any>(
     'GetProjectIdQuery',
@@ -43,7 +37,7 @@ const handlers = [
   graphql.mutation<AddProjectNextItemMutationRes, any>(
     'AddProjectNextItemMutation',
     (_req, res, ctx) => {
-      item.id = 'item'
+      const item = { id: 'item' }
 
       project.items.push(item)
 
@@ -83,11 +77,11 @@ const handlers = [
       value: string
     }
   >('UpdateProjectNextItemFieldMutation', (req, res, _ctx) => {
-    const { fieldId, value } = req.variables
+    const { itemId, fieldId, value } = req.variables
 
-    item[fieldId] = {
-      value,
-    }
+    const item = project.items.find((item) => item.id === itemId)
+
+    item[fieldId] = value
 
     return res()
   }),

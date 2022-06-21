@@ -1,5 +1,7 @@
 import { setupServer } from 'msw/node'
 
+import { installationHandler } from 'src/lib/github'
+
 import {
   milestoneTitlesToIds,
   getMilestoneIdsQuery,
@@ -10,7 +12,7 @@ import {
 } from './milestones'
 import handlers, { pullRequest } from './milestones.handlers'
 
-const server = setupServer(...handlers)
+const server = setupServer(installationHandler, ...handlers)
 
 beforeAll(() => server.listen())
 afterEach(() => {

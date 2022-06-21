@@ -149,10 +149,7 @@ async function handleIssuesOpened(payload: IssuesOpenedEvent) {
 
   await updateProjectItem(itemId, { Status: 'Triage' })
 
-  await assign({
-    assignableId: payload.issue.node_id,
-    to: 'Core Team/Triage',
-  })
+  await assign(payload.issue.node_id, { to: 'Core Team/Triage' })
 }
 
 // ------------------------
@@ -245,7 +242,7 @@ async function handlePullRequestOpened(payload: PullRequestOpenedEvent) {
 
   logger.info('Adding pull request to the project')
 
-  const itemId = await addToProject(payload.pull_request)
+  const itemId = await addToProject(payload.pull_request.node_id)
 
   await updateProjectItem(itemId, { Status: 'Triage' })
 
@@ -275,10 +272,7 @@ async function handlePullRequestOpened(payload: PullRequestOpenedEvent) {
       "The core team maintainer didn't assign themselves; assigning them"
     )
 
-    await assign({
-      assignableId: (payload.pull_request as PullRequest).node_id,
-      to: payload.sender.login,
-    })
+    await assign(payload.pull_request.node_id, { to: payload.sender.login })
   }
 }
 

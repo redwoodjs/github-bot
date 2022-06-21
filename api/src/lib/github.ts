@@ -1,47 +1,22 @@
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
 
-import { App, Octokit } from 'octokit'
+import { createAppAuth } from '@octokit/auth-app'
+import { rest } from 'msw'
+import { Octokit } from 'octokit'
 import SmeeClient from 'smee-client'
 
-export const app = new App({
-  appId: process.env.GITHUB_APP_ID,
-  privateKey: fs.readFileSync(
-    path.resolve(__dirname, '../../../private-key.pem'),
-    'utf-8'
-  ),
-})
-
 export const octokit = new Octokit({
-  auth: process.env.GITHUB_TOKEN,
+  authStrategy: createAppAuth,
+  auth: {
+    appId: process.env.GITHUB_APP_ID,
+    privateKey: fs.readFileSync(
+      path.resolve(__dirname, '../../../private-key.pem'),
+      'utf-8'
+    ),
+    installationId: process.env.GITHUB_INSTALLATION_ID,
+  },
 })
-
-/**
- * This is the preferred strategy,
- * but it isn't viable till GitHub allows apps to access projects beta.
- */
-// let redwoodInstallation
-
-// const full_name =
-//   process.env.NODE_ENV === 'development'
-//     ? process.env.DEV_REPO
-//     : 'redwoodjs/redwood'
-
-// export async function getRedwoodInstallation() {
-//   if (redwoodInstallation) {
-//     return redwoodInstallation
-//   }
-
-//   for await (const { octokit, repository } of app.eachRepository.iterator()) {
-//     if (repository.full_name === full_name) {
-//       redwoodInstallation = {
-//         octokit,
-//         repository,
-//       }
-//       return redwoodInstallation
-//     }
-//   }
-// }
 
 /**
  * For routing webhooks to localhost.
@@ -69,15 +44,13 @@ export const startSmeeClient = () => {
   })
 }
 
-export const coreTeamTriageUsernamesToIds = {
+const coreTeamTriageUsernamesToIds = {
   callingmedic911: 'MDQ6VXNlcjI2Mjk5MDI',
   dac09: 'MDQ6VXNlcjE1MjE4Nzc=',
   dthyresson: 'MDQ6VXNlcjEwNTE2MzM=',
   jtoar: 'MDQ6VXNlcjMyOTkyMzM1',
   simoncrypta: 'MDQ6VXNlcjE4MDEzNTMy',
 }
-
-export type CoreTeamTriage = keyof typeof coreTeamTriageUsernamesToIds
 
 export const coreTeamTriage = Object.keys(coreTeamTriageUsernamesToIds)
 
@@ -95,4 +68,13 @@ export type CoreTeamMaintainers = keyof typeof coreTeamMaintainersUsernamesToIds
 
 export const coreTeamMaintainers = Object.keys(
   coreTeamMaintainersUsernamesToIds
+)
+
+/**
+ * For testing
+ */
+
+export const installationHandler = rest.post(
+  `https://api.github.com/app/installations/${process.env.GITHUB_INSTALLATION_ID}/access_tokens`,
+  (_req, res, _ctx) => res()
 )

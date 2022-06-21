@@ -1,34 +1,33 @@
 import {
   octokit,
-  coreTeamTriage,
+  coreTeamMaintainers,
   coreTeamMaintainersUsernamesToIds,
-  coreTeamTriageUsernamesToIds,
+  coreTeamTriage,
 } from 'src/lib/github'
 import type { CoreTeamMaintainers } from 'src/lib/github'
 import { getProjectItems } from 'src/services/projects'
 
-/**
- * Assign a maintainer
- */
-
-export async function assign({
-  assignableId,
-  to,
-}: {
-  assignableId: string
-  to: CoreTeamMaintainers | 'Core Team/Triage'
-}) {
-  let assigneeId
-
-  if (to === 'Core Team/Triage') {
-    assigneeId = await getNextTriageTeamMember()
+export async function assign(
+  assignableId: string,
+  {
+    to,
+  }: {
+    to: 'Core Team/Triage' | CoreTeamMaintainers
+  }
+) {
+  if (to !== 'Core Team/Triage' && !coreTeamMaintainers.includes(to)) {
+    throw new Error(`Can't assign to ${to}`)
   }
 
-  assigneeId = coreTeamMaintainersUsernamesToIds[to]
+  if (to === 'Core Team/Triage') {
+    to = await getNextTriageTeamMember()
+  }
+
+  const assigneeId = coreTeamMaintainersUsernamesToIds[to]
 
   return octokit.graphql(addAssigneesToAssignableMutation, {
     assignableId,
-    assigneeId,
+    assigneeIds: [assigneeId],
   })
 }
 
@@ -57,7 +56,7 @@ export async function getNextTriageTeamMember() {
     }
   )
 
-  return coreTeamTriageUsernamesToIds[username]
+  return username
 }
 
 export const addAssigneesToAssignableMutation = `

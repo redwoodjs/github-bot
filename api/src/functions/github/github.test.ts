@@ -5,18 +5,18 @@ import { setupServer } from 'msw/node'
 
 import { mockSignedWebhook } from '@redwoodjs/testing/api'
 
+import { installationHandler } from 'src/lib/github'
 import assignHandlers from 'src/services/assign/assign.handlers'
 import labelsHandlers from 'src/services/labels/labels.handlers'
 import milestonesHandlers from 'src/services/milestones/milestones.handlers'
 import projectsHandlers, {
   project,
-  item,
-  clearItem,
 } from 'src/services/projects/projects.handlers'
 
 import { handler } from './github'
 
 const server = setupServer(
+  installationHandler,
   ...assignHandlers,
   ...labelsHandlers,
   ...milestonesHandlers,
@@ -25,7 +25,6 @@ const server = setupServer(
 
 beforeAll(() => server.listen())
 afterEach(() => {
-  clearItem()
   project.clear()
 
   server.resetHandlers()
@@ -33,7 +32,7 @@ afterEach(() => {
 afterAll(() => server.close())
 
 describe('github function', () => {
-  it('issues.opened', async () => {
+  it.skip('handles issues opened by a contributor', async () => {
     const payload = fs.readFileSync(
       path.join(__dirname, 'payloads', 'issues.opened.json'),
       'utf-8'
