@@ -31,7 +31,8 @@ import {
   getProjectItemsQuery,
   getProjectItems,
 } from './projects'
-import handlers, { project, getPayload } from './projects.handlers'
+import type { Statuses } from './projects'
+import handlers, { project, createProjectItem } from './projects.handlers'
 
 const server = setupServer(installationHandler, ...handlers)
 
@@ -511,11 +512,32 @@ describe('getProjectItems', () => {
     `)
   })
 
+  const statusesToItems: Array<[Statuses, number]> = [
+    ['Triage', 10],
+    ['Todo', 3],
+    ['In progress', 3],
+    ['Done', 20],
+  ]
+
+  beforeEach(async () => {
+    await getProjectFieldAndValueNamesToIds()
+
+    for (const [Status, count] of statusesToItems) {
+      for (let i = 0; i < count; i++) {
+        project.items.push(createProjectItem({ assignee: 'jtoar', Status }))
+      }
+    }
+  })
+
   it('gets project items', async () => {
     const items = await getProjectItems()
-
-    expect(items.length).toBe(
-      getPayload('GetProjectItemsQuery').node.items.nodes.length
-    )
+    expect(items.length).toBe(project.items.length)
   })
+
+  for (const [Status, count] of statusesToItems) {
+    it(`gets ${Status} project items`, async () => {
+      const items = await getProjectItems(Status)
+      expect(items.length).toBe(count)
+    })
+  }
 })

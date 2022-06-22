@@ -3,6 +3,11 @@ import path from 'node:path'
 
 import { graphql } from 'msw'
 
+import type { CoreTeamMaintainers } from 'src/lib/github'
+
+import { statusNamesToIds } from './projects'
+import type { Statuses } from './projects'
+
 export function getPayload(operationName: string) {
   return JSON.parse(
     fs.readFileSync(
@@ -25,6 +30,34 @@ export const project = {
   clear() {
     this.items = []
   },
+}
+
+export function createProjectItem({
+  assignee,
+  Status,
+}: {
+  assignee: CoreTeamMaintainers
+  Status: Statuses
+}) {
+  return {
+    id: `content-${Math.random()}`,
+    content: {
+      assignees: {
+        nodes: [{ login: assignee }],
+      },
+    },
+    fieldValues: {
+      nodes: [
+        {
+          id: `item_${Math.random()}`,
+          projectField: {
+            name: 'Status',
+          },
+          value: statusNamesToIds.get(Status),
+        },
+      ],
+    },
+  }
 }
 
 const handlers = [
@@ -86,7 +119,19 @@ const handlers = [
     return res()
   }),
   graphql.query('GetProjectItemsQuery', (_req, res, ctx) => {
-    return res(ctx.data(getPayload('GetProjectItemsQuery')))
+    return res(
+      ctx.data({
+        node: {
+          items: {
+            pageInfo: {
+              hasNextPage: false,
+              endCursor: 'end',
+            },
+            nodes: project.items,
+          },
+        },
+      })
+    )
   }),
 ]
 

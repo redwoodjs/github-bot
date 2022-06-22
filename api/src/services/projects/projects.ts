@@ -149,7 +149,7 @@ export const statuses = [
   'Archived',
 ] as const
 
-type Statuses = typeof statuses[number]
+export type Statuses = typeof statuses[number]
 
 export const statusNamesToIds = new Map<Statuses, string>()
 
@@ -626,7 +626,7 @@ export const getProjectItemsQuery = `
   }
 `
 
-type GetProjectItemsQueryRes = {
+export type GetProjectItemsQueryRes = {
   node: {
     items: {
       pageInfo: {
@@ -635,6 +635,25 @@ type GetProjectItemsQueryRes = {
       }
       nodes: Array<{
         id: string
+        title: string
+        content: {
+          url: string
+          assignees: {
+            nodes: Array<{
+              login: string
+            }>
+          }
+        }
+        fieldValues: {
+          nodes: Array<{
+            id: string
+            projectField: {
+              settings: string
+              name: string
+            }
+            value: string
+          }>
+        }
       }>
     }
   }

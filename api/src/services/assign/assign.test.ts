@@ -1,12 +1,23 @@
 import { setupServer } from 'msw/node'
 
-import { installationHandler } from 'src/lib/github'
-import { coreTeamMaintainersUsernamesToIds } from 'src/lib/github'
+import {
+  installationHandler,
+  coreTeamMaintainersUsernamesToIds,
+} from 'src/lib/github'
+import { getProjectFieldAndValueNamesToIds } from 'src/services/projects'
+import projectHandlers, {
+  project,
+  createProjectItem,
+} from 'src/services/projects/projects.handlers'
 
-import { addAssigneesToAssignableMutation, assign } from './assign'
+import {
+  addAssigneesToAssignableMutation,
+  assign,
+  getNextTriageTeamMember,
+} from './assign'
 import handlers, { issue, pullRequest } from './assign.handlers'
 
-const server = setupServer(installationHandler, ...handlers)
+const server = setupServer(installationHandler, ...handlers, ...projectHandlers)
 
 beforeAll(() => server.listen())
 afterEach(() => server.resetHandlers())
@@ -51,5 +62,60 @@ describe('assign ', () => {
     } catch (e) {
       expect(e).toMatchInlineSnapshot(`[Error: Can't assign to bazinga]`)
     }
+  })
+
+  it('chooses the next triage team member if the assignee is Core Team/Triage', async () => {
+    await getProjectFieldAndValueNamesToIds()
+
+    project.items = [
+      createProjectItem({ assignee: 'jtoar', Status: 'Triage' }),
+      createProjectItem({ assignee: 'jtoar', Status: 'Triage' }),
+      createProjectItem({ assignee: 'jtoar', Status: 'Triage' }),
+      createProjectItem({ assignee: 'jtoar', Status: 'Triage' }),
+      createProjectItem({ assignee: 'jtoar', Status: 'Triage' }),
+      createProjectItem({ assignee: 'jtoar', Status: 'Triage' }),
+      createProjectItem({ assignee: 'simoncrypta', Status: 'Triage' }),
+      createProjectItem({ assignee: 'simoncrypta', Status: 'Triage' }),
+      createProjectItem({ assignee: 'simoncrypta', Status: 'Triage' }),
+      createProjectItem({ assignee: 'callingmedic911', Status: 'Triage' }),
+      createProjectItem({ assignee: 'callingmedic911', Status: 'Triage' }),
+      createProjectItem({ assignee: 'dac09', Status: 'Triage' }),
+    ]
+
+    let username = await getNextTriageTeamMember()
+    expect(username).toBe('dthyresson') // 1
+    project.items.push(
+      createProjectItem({ assignee: username, Status: 'Triage' })
+    )
+
+    username = await getNextTriageTeamMember()
+    expect(username).toBe('dthyresson') // 2
+    project.items.push(
+      createProjectItem({ assignee: username, Status: 'Triage' })
+    )
+
+    username = await getNextTriageTeamMember()
+    expect(username).toBe('dac09') // 2
+    project.items.push(
+      createProjectItem({ assignee: username, Status: 'Triage' })
+    )
+
+    username = await getNextTriageTeamMember()
+    expect(username).toBe('dthyresson') // 3
+    project.items.push(
+      createProjectItem({ assignee: username, Status: 'Triage' })
+    )
+
+    username = await getNextTriageTeamMember()
+    expect(username).toBe('dac09') // 3
+    project.items.push(
+      createProjectItem({ assignee: username, Status: 'Triage' })
+    )
+
+    username = await getNextTriageTeamMember()
+    expect(username).toBe('callingmedic911') // 3
+    project.items.push(
+      createProjectItem({ assignee: username, Status: 'Triage' })
+    )
   })
 })

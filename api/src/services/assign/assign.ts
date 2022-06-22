@@ -40,7 +40,7 @@ export async function getNextTriageTeamMember() {
         (assignee) => assignee.login === username
       )
 
-      return noAssigned + isAssigned ? 1 : 0
+      return noAssigned + (isAssigned ? 1 : 0)
     }, 0)
 
     return [username, noAssigned]
