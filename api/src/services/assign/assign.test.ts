@@ -1,5 +1,6 @@
 import { setupServer } from 'msw/node'
 
+import { content, setPayload } from 'src/functions/github/github.handlers'
 import {
   installationHandler,
   coreTeamMaintainersUsernamesToIds,
@@ -15,7 +16,7 @@ import {
   assign,
   getNextTriageTeamMember,
 } from './assign'
-import handlers, { issue, pullRequest } from './assign.handlers'
+import handlers from './assign.handlers'
 
 const server = setupServer(installationHandler, ...handlers, ...projectHandlers)
 
@@ -39,22 +40,18 @@ describe('assign ', () => {
   })
 
   it('assigns maintainers to issues and pull requests', async () => {
-    await assign(issue.id, {
-      to: 'jtoar',
-    })
+    setPayload('issues.opened.contributor')
 
-    expect(issue).toHaveProperty('assignees', [
-      coreTeamMaintainersUsernamesToIds['jtoar'],
-    ])
+    await assign(content.id, { to: 'jtoar' })
 
-    expect(pullRequest).not.toHaveProperty('assignees', [
+    expect(content).toHaveProperty('assignees', [
       coreTeamMaintainersUsernamesToIds['jtoar'],
     ])
   })
 
   it("throws if the assignee isn't in the triage team", async () => {
     try {
-      await assign(issue.id, {
+      await assign(content.id, {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         to: 'bazinga',

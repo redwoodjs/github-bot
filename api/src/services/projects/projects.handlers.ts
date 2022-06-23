@@ -36,9 +36,9 @@ export function createProjectItem({
   assignee,
   Status,
 }: {
-  assignee: CoreTeamMaintainers
-  Status: Statuses
-}) {
+  assignee?: CoreTeamMaintainers
+  Status?: Statuses
+} = {}) {
   return {
     id: `content-${Math.random()}`,
     content: {
@@ -70,7 +70,7 @@ const handlers = [
   graphql.mutation<AddProjectNextItemMutationRes, any>(
     'AddProjectNextItemMutation',
     (_req, res, ctx) => {
-      const item = { id: 'item' }
+      const item = createProjectItem()
 
       project.items.push(item)
 

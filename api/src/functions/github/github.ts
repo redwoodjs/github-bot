@@ -198,8 +198,7 @@ async function handleAddToCycleLabel(node_id: string) {
 }
 
 async function handleAddToDiscussionQueue(node_id: string) {
-  await removeLabel({
-    labelableId: node_id,
+  await removeLabel(node_id, {
     label: 'action/add-to-discussion-queue',
   })
 
@@ -294,8 +293,7 @@ async function handlePullRequestClosed(payload: PullRequestEvent) {
 
     logger.info('Adding the next-release milestone')
 
-    await milestonePullRequest({
-      pullRequestId: payload.pull_request.node_id,
+    await milestonePullRequest(payload.pull_request.node_id, {
       milestone: 'next-release',
     })
 
@@ -307,8 +305,7 @@ async function handlePullRequestClosed(payload: PullRequestEvent) {
 
     logger.info('Adding the chore milestone')
 
-    await milestonePullRequest({
-      pullRequestId: payload.pull_request.node_id,
+    await milestonePullRequest(payload.pull_request.node_id, {
       milestone: 'chore',
     })
   }
@@ -319,7 +316,7 @@ async function handlePullRequestClosed(payload: PullRequestEvent) {
  */
 type Events = 'issues' | 'pull_request'
 type Actions = 'opened' | 'labeled' | 'closed'
-type EventActions = `${Events}.${Actions}`
+export type EventActions = `${Events}.${Actions}`
 
 type EventActionHandlers = Record<
   EventActions,

@@ -1,24 +1,10 @@
 import { graphql } from 'msw'
 
-export const issue = {
-  id: 'issue',
-  assignees: [],
-}
-
-export const pullRequest = {
-  id: 'pull request',
-  assignees: [],
-}
-
-export const issuesOrPullRequests = [issue, pullRequest]
+import { content } from 'src/functions/github/github.handlers'
 
 const handlers = [
   graphql.mutation('AddAssigneesToAssignableMutation', (req, res, _ctx) => {
-    const { assignableId, assigneeIds } = req.variables
-
-    const content = issuesOrPullRequests.find(
-      (issuesOrPullRequest) => issuesOrPullRequest.id === assignableId
-    )
+    const { assigneeIds } = req.variables
 
     content.assignees.push(...assigneeIds)
 

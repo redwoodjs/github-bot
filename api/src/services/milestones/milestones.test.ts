@@ -1,5 +1,6 @@
 import { setupServer } from 'msw/node'
 
+import { setPayload, content } from 'src/functions/github/github.handlers'
 import { installationHandler } from 'src/lib/github'
 
 import {
@@ -10,7 +11,7 @@ import {
   getMilestoneTitlesToIds,
   milestones,
 } from './milestones'
-import handlers, { pullRequest } from './milestones.handlers'
+import handlers from './milestones.handlers'
 
 const server = setupServer(installationHandler, ...handlers)
 
@@ -21,7 +22,7 @@ afterEach(() => {
 })
 afterAll(() => server.close())
 
-it('milestones', () => {
+it('uses the correct milestones', () => {
   expect(milestones).toMatchInlineSnapshot(`
     Array [
       "next-release",
@@ -31,7 +32,7 @@ it('milestones', () => {
 })
 
 describe('getMilestoneTitlesToIds', () => {
-  it('uses the correct query', () => {
+  it('uses the correct operation', () => {
     expect(getMilestoneIdsQuery).toMatchInlineSnapshot(`
       "
         query GetMilestoneIdsQuery($owner: String!, $name: String!) {
@@ -51,21 +52,19 @@ describe('getMilestoneTitlesToIds', () => {
   it('gets and caches ids from titles', async () => {
     expect(milestoneTitlesToIds.size).toBe(0)
 
-    const titlesToIds = await getMilestoneTitlesToIds()
+    await getMilestoneTitlesToIds()
 
-    expect(titlesToIds).toMatchInlineSnapshot(`
+    expect(milestoneTitlesToIds).toMatchInlineSnapshot(`
       Map {
         "next-release" => "MI_kwDOC2M2f84Aa82f",
         "chore" => "MDk6TWlsZXN0b25lNjc4MjU1MA==",
       }
     `)
-
-    expect(milestoneTitlesToIds.size).toBe(milestones.length)
   })
 })
 
 describe('milestonePullRequest', () => {
-  it('uses the correct query', () => {
+  it('uses the correct operation', () => {
     expect(updatePullRequestMutation).toMatchInlineSnapshot(`
       "
         mutation UpdatePullRequestMutation($pullRequestId: ID!, $milestoneId: ID!) {
@@ -79,30 +78,29 @@ describe('milestonePullRequest', () => {
     `)
   })
 
-  it('adds milestones to a pull request', async () => {
-    await milestonePullRequest({
-      pullRequestId: pullRequest.id,
-      milestone: 'next-release',
-    })
+  it('adds milestones to a pull request and gets and caches ids from titles', async () => {
+    setPayload('pull_request.closed')
 
-    const nextReleaseId = milestoneTitlesToIds.get('next-release')
+    expect(milestoneTitlesToIds.size).toBe(0)
 
-    expect(pullRequest).toHaveProperty('milestones', [nextReleaseId])
+    await milestonePullRequest(content.id, { milestone: 'next-release' })
 
-    await milestonePullRequest({
-      pullRequestId: pullRequest.id,
-      milestone: 'chore',
-    })
+    expect(milestoneTitlesToIds).toMatchInlineSnapshot(`
+      Map {
+        "next-release" => "MI_kwDOC2M2f84Aa82f",
+        "chore" => "MDk6TWlsZXN0b25lNjc4MjU1MA==",
+      }
+    `)
 
-    const choreId = milestoneTitlesToIds.get('chore')
-
-    expect(pullRequest).toHaveProperty('milestones', [nextReleaseId, choreId])
+    expect(content).toHaveProperty(
+      'milestone',
+      milestoneTitlesToIds.get('next-release')
+    )
   })
 
   it('throws if passed an unsupported milestone', async () => {
     try {
-      await milestonePullRequest({
-        pullRequestId: pullRequest.id,
+      await milestonePullRequest(content.id, {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         milestone: 'bazinga',

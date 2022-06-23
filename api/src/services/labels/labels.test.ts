@@ -1,9 +1,9 @@
 import { setupServer } from 'msw/node'
 
+import { setPayload, content } from 'src/functions/github/github.handlers'
 import { installationHandler } from 'src/lib/github'
 
 import {
-  createLabelMutation,
   getLabelIdsQuery,
   getLabelNamesToIds,
   labels,
@@ -11,7 +11,7 @@ import {
   removeLabel,
   removeLabelsFromLabelableMutation,
 } from './labels'
-import handlers, { labelable } from './labels.handlers'
+import handlers from './labels.handlers'
 
 const server = setupServer(installationHandler, ...handlers)
 
@@ -22,30 +22,18 @@ afterEach(() => {
 })
 afterAll(() => server.close())
 
-it('labels', () => {
+it('uses the correct labels', () => {
   expect(labels).toMatchInlineSnapshot(`
     Array [
-      Object {
-        "color": "c2e0c6",
-        "description": "Use this label to add an issue or PR to the current cycle",
-        "name": "action/add-to-cycle",
-      },
-      Object {
-        "color": "c2e0c6",
-        "description": "Use this label to add an issue or PR to the discussion queue",
-        "name": "action/add-to-discussion-queue",
-      },
-      Object {
-        "color": "c2e0c6",
-        "description": "Use this label to add an issue or PR to the backlog",
-        "name": "action/add-to-backlog",
-      },
+      "action/add-to-cycle",
+      "action/add-to-discussion-queue",
+      "action/add-to-backlog",
     ]
   `)
 })
 
 describe('getLabelNamesToIds', () => {
-  it('uses the correct query', () => {
+  it('uses the correct operation', () => {
     expect(getLabelIdsQuery).toMatchInlineSnapshot(`
       "
         query GetLabelIdsQuery($owner: String!, $name: String!) {
@@ -65,22 +53,20 @@ describe('getLabelNamesToIds', () => {
   it('gets and caches ids from titles', async () => {
     expect(labelNamesToIds.size).toBe(0)
 
-    const namesToIds = await getLabelNamesToIds()
+    await getLabelNamesToIds()
 
-    expect(namesToIds).toMatchInlineSnapshot(`
+    expect(labelNamesToIds).toMatchInlineSnapshot(`
       Map {
         "action/add-to-cycle" => "LA_kwDOC2M2f87e3FkP",
         "action/add-to-discussion-queue" => "LA_kwDOC2M2f871Z5FF",
         "action/add-to-backlog" => "LA_kwDOC2M2f87fhNsx",
       }
     `)
-
-    expect(labelNamesToIds.size).toBe(labels.length)
   })
 })
 
 describe('removeLabel', () => {
-  it('uses the correct query', () => {
+  it('uses the correct operation', () => {
     expect(removeLabelsFromLabelableMutation).toMatchInlineSnapshot(`
       "
         mutation RemoveLabelsFromLabelableMutation($labelableId: ID!, $labelIds: [ID!]!) {
@@ -94,43 +80,27 @@ describe('removeLabel', () => {
     `)
   })
 
-  it('removes a label from a labelable', async () => {
-    await removeLabel({
-      labelableId: labelable.id,
-      label: 'action/add-to-backlog',
-    })
+  it('removes a label', async () => {
+    setPayload('issues.labeled')
 
-    expect(labelable).toHaveProperty('labels', [
-      labelNamesToIds.get('action/add-to-backlog'),
-    ])
-  })
-})
+    await getLabelNamesToIds()
 
-describe('createLabel', () => {
-  it('uses the correct query', () => {
-    expect(createLabelMutation).toMatchInlineSnapshot(`
-      "
-        mutation CreateLabelMutation(
-          $repositoryId: ID!
-          $name: String!
-          $color: String!
-          $description: String!
-        ) {
-          createLabel(
-            input: {
-              repositoryId: $repositoryId
-              name: $name
-              color: $color
-              description: $description
-            }
-          ) {
-            label {
-              name
-              id
-            }
-          }
-        }
-      "
-    `)
+    expect(content.labels).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          node_id: labelNamesToIds.get('action/add-to-discussion-queue'),
+        }),
+      ])
+    )
+
+    await removeLabel(content.id, { label: 'action/add-to-discussion-queue' })
+
+    expect(content.labels).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          node_id: labelNamesToIds.get('action/add-to-discussion-queue'),
+        }),
+      ])
+    )
   })
 })

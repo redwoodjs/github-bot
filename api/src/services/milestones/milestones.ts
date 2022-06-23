@@ -53,19 +53,20 @@ export type GetMilestoneIdsQueryRes = {
  * Add a milestone
  */
 
-export async function milestonePullRequest({
-  pullRequestId,
-  milestone,
-}: {
-  pullRequestId: string
-  milestone: Milestones
-}) {
-  if (!milestoneTitlesToIds.size) {
-    await getMilestoneTitlesToIds()
+export async function milestonePullRequest(
+  pullRequestId: string,
+  {
+    milestone,
+  }: {
+    milestone: Milestones
+  }
+) {
+  if (!milestones.includes(milestone)) {
+    throw new Error(`Can't add milestone ${milestone}`)
   }
 
-  if (!milestoneTitlesToIds.has(milestone)) {
-    throw new Error(`Can't add milestone ${milestone}`)
+  if (!milestoneTitlesToIds.size) {
+    await getMilestoneTitlesToIds()
   }
 
   const milestoneId = milestoneTitlesToIds.get(milestone)
