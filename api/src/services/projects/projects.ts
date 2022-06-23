@@ -136,7 +136,7 @@ export const priorities = [
   '3️⃣ Low',
 ] as const
 
-type Priorities = typeof priorities[number]
+export type Priorities = typeof priorities[number]
 
 export const priorityNamesToIds = new Map<Priorities, string>()
 
