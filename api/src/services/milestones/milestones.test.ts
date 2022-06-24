@@ -1,15 +1,15 @@
 import { setupServer } from 'msw/node'
 
-import { setPayload, content } from 'src/functions/github/github.handlers'
+import { content, setPayload } from 'src/functions/github/github.handlers'
 import { installationHandler } from 'src/lib/github'
 
 import {
-  milestoneTitlesToIds,
-  getMilestoneIdsQuery,
-  updatePullRequestMutation,
-  milestonePullRequest,
   getMilestoneTitlesToIds,
+  getMilestoneIdsQuery,
   milestones,
+  milestonePullRequest,
+  milestoneTitlesToIds,
+  updatePullRequestMutation,
 } from './milestones'
 import handlers from './milestones.handlers'
 
@@ -51,9 +51,7 @@ describe('getMilestoneTitlesToIds', () => {
 
   it('gets and caches ids from titles', async () => {
     expect(milestoneTitlesToIds.size).toBe(0)
-
     await getMilestoneTitlesToIds()
-
     expect(milestoneTitlesToIds).toMatchInlineSnapshot(`
       Map {
         "next-release" => "MI_kwDOC2M2f84Aa82f",

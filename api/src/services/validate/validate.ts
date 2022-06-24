@@ -14,7 +14,7 @@ import {
 } from 'src/services/projects'
 
 export async function validateIssuesOrPullRequest(
-  issueOrPullRequest: IssueOrPullRequest & { hasLinkedPr: boolean }
+  issueOrPullRequest: IssueOrPullRequest & { hasLinkedPr?: boolean }
 ) {
   // eslint-disable-next-line no-constant-condition
   while (true) {
@@ -26,31 +26,22 @@ export async function validateIssuesOrPullRequest(
        * Otherwise, onto the next one
        */
       if (issueOrPullRequest.hasLinkedPr) {
-        const projectNextItem = getProjectNextItem(issueOrPullRequest)
-        const isInProject = projectNextItem !== undefined
-
-        if (!isInProject) {
+        if (!isInProject(issueOrPullRequest)) {
           break
         }
-
         const { id, title, url } = issueOrPullRequest
-
         throw new ProjectError(id, title, url)
       }
-
-      /**
-       * It belongs in the project. First, make sure it's in the project...
-       */
       validateProject(issueOrPullRequest)
       validateStatus(issueOrPullRequest)
       validateCycle(issueOrPullRequest)
       validateStale(issueOrPullRequest)
       break
     } catch (e) {
-      this.context.stdout.write(`➤ ${chalk.red('ERROR:')} ${e}\n`)
+      this.context.stdout.write(`┌ ${chalk.red('ERROR:')} ${e}\n`)
       const { url, id } = issueOrPullRequest
       this.context.stdout.write(
-        `  ${chalk.gray(chalk.underline(url))} ${chalk.gray(id)}\n`
+        `│ ${chalk.gray(chalk.underline(url))} ${chalk.gray(id)}\n`
       )
 
       const projectNextItem = getProjectNextItem(issueOrPullRequest)
@@ -60,10 +51,10 @@ export async function validateIssuesOrPullRequest(
        * Remove it and move on (i.e. `break`).
        */
       if (e instanceof ProjectError) {
-        this.context.stdout.write(
-          `➤ ${chalk.blue('FIXING')}: Removing from the project\n`
-        )
         await removeFromProject(projectNextItem.id)
+        this.context.stdout.write(
+          `└ ${chalk.blue('FIXED')}: removed from the project\n`
+        )
         break
       }
 
@@ -71,11 +62,11 @@ export async function validateIssuesOrPullRequest(
        * It's not in the project but it's supposed to be.
        * Add it, refetch it, and run the loop again.
        */
-      if (e instanceof MissingProjectError) {
-        this.context.stdout.write(
-          `➤ ${chalk.blue('FIXING')}: Adding to project board\n`
-        )
+      if (e instanceof StrayError) {
         await addToProject(id)
+        this.context.stdout.write(
+          `└ ${chalk.blue('FIXED')}: added to the project\n`
+        )
         issueOrPullRequest = await getIssueOrPullRequest(id)
         continue
       }
@@ -85,10 +76,8 @@ export async function validateIssuesOrPullRequest(
        * Add it to triage, refetch it, and run the loop again.
        */
       if (e instanceof MissingStatusError) {
-        this.context.stdout.write(
-          `➤ ${chalk.blue('FIXING')}: Adding to triage\n`
-        )
         await updateProjectItem(projectNextItem.id, { Status: 'Triage' })
+        this.context.stdout.write(`└ ${chalk.blue('FIXED')}: added to triage\n`)
         issueOrPullRequest = await getIssueOrPullRequest(id)
         continue
       }
@@ -97,11 +86,11 @@ export async function validateIssuesOrPullRequest(
        * It has a status of 'Todo' or 'In Progress', but it's not in the current cycle.
        * Add it to the current cycle, refetch it, and run the loop again.
        */
-      if (e instanceof MissingCycleError) {
-        this.context.stdout.write(
-          `➤ ${chalk.blue('FIXING')}: Adding to the current cycle\n`
-        )
+      if (e instanceof NoCycleError) {
         await updateProjectItem(projectNextItem.id, { Cycle: true })
+        this.context.stdout.write(
+          `└ ${chalk.blue('FIXED')}: added to the current cycle\n`
+        )
         issueOrPullRequest = await getIssueOrPullRequest(id)
         continue
       }
@@ -111,12 +100,6 @@ export async function validateIssuesOrPullRequest(
        * Add it to the current one, increment rollovers, refetch it, and run the loop again.
        */
       if (e instanceof PreviousCycleError) {
-        this.context.stdout.write(
-          `➤ ${chalk.blue(
-            'FIXING'
-          )}: Adding to the current cycle and incrementing rollovers\n`
-        )
-
         const rolloversField = getField(projectNextItem, 'Rollovers')
         const rollovers = rolloversField?.value ?? 0
 
@@ -124,6 +107,12 @@ export async function validateIssuesOrPullRequest(
           Cycle: true,
           Rollovers: parseInt(rollovers) + 1,
         })
+
+        this.context.stdout.write(
+          `└ ${chalk.blue(
+            'FIXED'
+          )}: added to the current cycle and incremented rollovers\n`
+        )
 
         issueOrPullRequest = await getIssueOrPullRequest(id)
         continue
@@ -134,10 +123,10 @@ export async function validateIssuesOrPullRequest(
        * Remove it, refetch it, and run the loop again.
        */
       if (e instanceof CurrentCycleError) {
-        this.context.stdout.write(
-          `➤ ${chalk.blue('FIXING')}: Removing from the current cycle\n`
-        )
         await updateProjectItem(projectNextItem.id, { Cycle: false })
+        this.context.stdout.write(
+          `└ ${chalk.blue('FIXED')}: removed from the current cycle\n`
+        )
         issueOrPullRequest = await getIssueOrPullRequest(id)
         continue
       }
@@ -147,10 +136,8 @@ export async function validateIssuesOrPullRequest(
        * Mark it, refetch it, and run the loop again.
        */
       if (e instanceof StaleError) {
-        this.context.stdout.write(
-          `➤ ${chalk.blue('FIXING')}: Marking as stale\n`
-        )
         await updateProjectItem(projectNextItem.id, { Stale: true })
+        this.context.stdout.write(`└ ${chalk.blue('FIXED')}: marked as stale\n`)
         issueOrPullRequest = await getIssueOrPullRequest(id)
         continue
       }
@@ -159,11 +146,9 @@ export async function validateIssuesOrPullRequest(
        * It's not stale, but is marked as stale.
        * Un-mark it, refetch it, and run the loop again.
        */
-      if (e instanceof NotStaleError) {
-        this.context.stdout.write(
-          `➤ ${chalk.blue('FIXING')}: Un-marking as stale\n`
-        )
+      if (e instanceof UpdatedError) {
         await updateProjectItem(projectNextItem.id, { Stale: false })
+        this.context.stdout.write(`└ ${chalk.blue('FIXED')}: cleared\n`)
         issueOrPullRequest = await getIssueOrPullRequest(id)
         continue
       }
@@ -174,17 +159,9 @@ export async function validateIssuesOrPullRequest(
       throw e
     }
   }
-
-  const { id, title, url } = issueOrPullRequest
-
-  this.context.stdout.write(
-    `➤ ${chalk.green('OK')}: ${title} ${chalk.gray(
-      chalk.underline(url)
-    )} ${chalk.gray(id)}\n`
-  )
 }
 
-class ProjectError extends Error {
+export class ProjectError extends Error {
   constructor(id, title, url) {
     super(`"${title}" is in the project but is linked to a pull request`)
     this.name = 'ProjectError'
@@ -199,27 +176,29 @@ class ProjectError extends Error {
  * Throws if an issue or pull request isn't in the main project.
  */
 export function validateProject(issueOrPullRequest: IssueOrPullRequest) {
-  const projectNextItem = getProjectNextItem(issueOrPullRequest)
-  const isInProject = projectNextItem !== undefined
-
-  if (isInProject) {
+  if (isInProject(issueOrPullRequest)) {
     return
   }
 
   const { id, title, url } = issueOrPullRequest
 
-  throw new MissingProjectError(id, title, url)
+  throw new StrayError(id, title, url)
 }
 
-export class MissingProjectError extends Error {
+export class StrayError extends Error {
   constructor(id, title, url) {
     super(`"${title}" isn't in the project`)
-    this.name = 'MissingProjectError'
+    this.name = 'StrayError'
 
     this.id = id
     this.title = title
     this.url = url
   }
+}
+
+function isInProject(issueOrPullRequest) {
+  const projectNextItem = getProjectNextItem(issueOrPullRequest)
+  return projectNextItem !== undefined
 }
 
 /**
@@ -267,14 +246,15 @@ export function validateCycle(issueOrPullRequest: IssueOrPullRequest) {
   ].includes(statusField.value)
 
   const hasCycle = cycleField !== undefined
-  const hasPreviousCycle = cycleField?.value !== currentCycleId
 
   const { id, title, url } = issueOrPullRequest
 
   if (hasTodoOrInProgressStatus) {
     if (!hasCycle) {
-      throw new MissingCycleError(id, title, url)
+      throw new NoCycleError(id, title, url)
     }
+
+    const hasPreviousCycle = cycleField?.value !== currentCycleId
 
     if (hasPreviousCycle) {
       throw new PreviousCycleError(id, title, url)
@@ -291,12 +271,12 @@ export function validateCycle(issueOrPullRequest: IssueOrPullRequest) {
   }
 }
 
-export class MissingCycleError extends Error {
+export class NoCycleError extends Error {
   constructor(id, title, url) {
     super(
       `"${title}" has a Status of "Todo" or "In Progress" but isn't in the current cycle`
     )
-    this.name = 'MissingCycleValidationError'
+    this.name = 'NoCycleError'
 
     this.id = id
     this.title = title
@@ -321,43 +301,6 @@ export class CurrentCycleError extends Error {
       `"${title}" has a Status of "Triage" or "Backlog" but is in the current cycle`
     )
     this.name = 'CurrentCycleError'
-
-    this.id = id
-    this.title = title
-    this.url = url
-  }
-}
-
-/**
- * Makes sure that an issue or pull request has a priority.
- *
- * @remarks
- *
- * Issues or pull requests with the "Triage" status don't need a priority.
- */
-export function validatePriority(issueOrPullRequest: IssueOrPullRequest) {
-  const projectNextItem = getProjectNextItem(issueOrPullRequest)
-  const statusField = getField(projectNextItem, 'Status')
-  const priorityField = getField(projectNextItem, 'Priority')
-
-  if (statusField.value === statusNamesToIds.get('Triage')) {
-    return
-  }
-
-  const hasPriority = priorityField !== undefined
-
-  if (hasPriority) {
-    return
-  }
-
-  const { id, title, url } = issueOrPullRequest
-  throw new MissingPriorityError(id, title, url)
-}
-
-export class MissingPriorityError extends Error {
-  constructor(id, title, url) {
-    super(`"${title}" doesn't have a priority`)
-    this.name = 'MissingPriorityError'
 
     this.id = id
     this.title = title
@@ -396,7 +339,7 @@ export function validateStale(issueOrPullRequest: IssueOrPullRequest) {
   }
 
   if (staleField) {
-    throw new NotStaleError(id, title, url)
+    throw new UpdatedError(id, title, url)
   }
 }
 
@@ -413,10 +356,10 @@ export class StaleError extends Error {
   }
 }
 
-export class NotStaleError extends Error {
+export class UpdatedError extends Error {
   constructor(id, title, url) {
-    super(`"${title}" is marked stale but isn't`)
-    this.name = 'NotStaleError'
+    super(`"${title}" is marked as stale but isn't`)
+    this.name = 'UpdatedError'
 
     this.id = id
     this.title = title
@@ -429,32 +372,32 @@ export class NotStaleError extends Error {
  */
 
 export const fields = `
-  id
-  title
-  url
-  updatedAt
-  author {
-    login
-  }
-  projectNextItems(first: 10) {
-    nodes {
-      id
-      fieldValues(first: 10) {
-        nodes {
-          id
-          projectField {
-            settings
-            name
-          }
-          value
-        }
-      }
-      project {
+id
+title
+url
+updatedAt
+author {
+  login
+}
+projectNextItems(first: 10) {
+  nodes {
+    id
+    fieldValues(first: 10) {
+      nodes {
         id
-        title
+        projectField {
+          settings
+          name
+        }
+        value
       }
     }
+    project {
+      id
+      title
+    }
   }
+}
 `
 
 export async function getOpenIssues(after?: string) {
@@ -555,13 +498,13 @@ export const getOpenPullRequestsQuery = `
 export async function getIssueOrPullRequest(id: string) {
   const { node: issueOrPullRequest } = await octokit.graphql<{
     node: IssueOrPullRequest
-  }>(issueOrPullRequestQuery, { id })
+  }>(getIssueOrPullRequestQuery, { id })
 
   return issueOrPullRequest
 }
 
-const issueOrPullRequestQuery = `
-  query IssueOrPullRequestQuery($id: ID!) {
+export const getIssueOrPullRequestQuery = `
+  query GetIssueOrPullRequestQuery($id: ID!) {
     node(id: $id) {
       ...on Issue {
         ${fields}

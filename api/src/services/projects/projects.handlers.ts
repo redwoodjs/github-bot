@@ -1,12 +1,25 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
+import { copycat } from '@snaplet/copycat'
 import { graphql } from 'msw'
 
 import type { CoreTeamMaintainers } from 'src/lib/github'
+import { IssueOrPullRequest } from 'src/services/validate'
 
-import { statusNamesToIds } from './projects'
-import type { Statuses } from './projects'
+import {
+  checkStaleId,
+  currentCycleId,
+  fieldNamesToIds,
+  projectId,
+  statusNamesToIds,
+} from './projects'
+import type {
+  AddProjectNextItemMutationRes,
+  GetProjectIdQueryRes,
+  GetProjectNextFieldsQueryRes,
+  Statuses,
+} from './projects'
 
 export function getPayload(operationName: string) {
   return JSON.parse(
@@ -17,12 +30,6 @@ export function getPayload(operationName: string) {
   )
 }
 
-import type {
-  GetProjectIdQueryRes,
-  AddProjectNextItemMutationRes,
-  GetProjectNextFieldsQueryRes,
-} from './projects'
-
 export const project = {
   title: 'Main',
   id: 'PN_kwDOAq9qTM4ABn0O',
@@ -32,15 +39,56 @@ export const project = {
   },
 }
 
-export function createProjectItem({
-  assignee,
-  Status,
-}: {
-  assignee?: CoreTeamMaintainers
-  Status?: Statuses
-} = {}) {
+export function createIssueOrPullRequest(
+  seed: string,
+  {
+    hasLinkedPr = false,
+    isInProject = true,
+    updatedAt = new Date().toISOString(),
+    ...projectOptions
+  }: {
+    hasLinkedPr?: boolean
+    isInProject?: boolean
+    updatedAt?: string
+    Cycle?: '@current' | '@previous'
+    Stale?: boolean
+    Status?: Statuses
+  } = {}
+): IssueOrPullRequest & { hasLinkedPr?: boolean } {
   return {
-    id: `content-${Math.random()}`,
+    hasLinkedPr,
+    id: copycat.uuid(seed),
+    node_id: copycat.uuid(seed),
+    title: copycat.sentence(seed),
+    url: copycat.sentence(seed),
+    updatedAt,
+    author: {
+      login: copycat.username(seed),
+    },
+    projectNextItems: {
+      nodes: [isInProject && createProjectItem(seed, projectOptions)].filter(
+        Boolean
+      ),
+    },
+  }
+}
+
+export function createProjectItem(
+  seed: string,
+  {
+    assignee,
+    Cycle,
+    Stale,
+    Status,
+  }: {
+    assignee?: CoreTeamMaintainers
+    Cycle?: '@current' | '@previous'
+    Stale?: boolean
+    Status?: Statuses
+  } = {}
+) {
+  return {
+    id: copycat.uuid(`item_${seed}`),
     content: {
       assignees: {
         nodes: [{ login: assignee }],
@@ -48,16 +96,41 @@ export function createProjectItem({
     },
     fieldValues: {
       nodes: [
-        {
-          id: `item_${Math.random()}`,
+        Cycle && {
+          id: fieldNamesToIds.get('Cycle'),
+          projectField: {
+            name: 'Cycle',
+          },
+          value: Cycle === '@current' ? currentCycleId : '@previous',
+        },
+        Stale && {
+          id: fieldNamesToIds.get('Stale'),
+          projectField: {
+            name: 'Stale',
+          },
+          value: checkStaleId,
+        },
+        Status && {
+          id: fieldNamesToIds.get('Status'),
           projectField: {
             name: 'Status',
           },
           value: statusNamesToIds.get(Status),
         },
-      ],
+      ].filter(Boolean),
+    },
+    project: {
+      id: projectId,
     },
   }
+}
+
+export const issuesOrPullRequests: Array<
+  ReturnType<typeof createIssueOrPullRequest>
+> = []
+
+export function clearIssuesOrPullRequests() {
+  issuesOrPullRequests.length = 0
 }
 
 const handlers = [
@@ -67,10 +140,20 @@ const handlers = [
       return res(ctx.data(getPayload('GetProjectIdQuery')))
     }
   ),
-  graphql.mutation<AddProjectNextItemMutationRes, any>(
+  graphql.mutation<AddProjectNextItemMutationRes, { contentId: string }>(
     'AddProjectNextItemMutation',
-    (_req, res, ctx) => {
-      const item = createProjectItem()
+    (req, res, ctx) => {
+      const { contentId } = req.variables
+
+      const issuesOrPullRequest = issuesOrPullRequests.find(
+        (issuesOrPullRequest) => issuesOrPullRequest.node_id === contentId
+      )
+
+      const item = createProjectItem('foo', {})
+
+      issuesOrPullRequest.projectNextItems = {
+        nodes: [item],
+      }
 
       project.items.push(item)
 
@@ -114,7 +197,31 @@ const handlers = [
 
     const item = project.items.find((item) => item.id === itemId)
 
-    item[fieldId] = value
+    const fieldValue = item.fieldValues.nodes.find(
+      (node) => node.id === fieldId
+    )
+
+    const fieldIdsToNames = [...fieldNamesToIds.keys()].reduce((obj, key) => {
+      obj[fieldNamesToIds.get(key)] = key
+      return obj
+    }, {})
+
+    if (fieldValue) {
+      if (value === '') {
+        item.fieldValues.nodes = item.fieldValues.nodes.filter(
+          (node) => node.id !== fieldId
+        )
+      }
+      fieldValue.value = value
+    } else {
+      item.fieldValues.nodes.push({
+        id: fieldId,
+        projectField: {
+          name: fieldIdsToNames[fieldId],
+        },
+        value,
+      })
+    }
 
     return res()
   }),

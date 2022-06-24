@@ -1,273 +1,43 @@
-import { copycat } from '@snaplet/copycat'
 import * as dateFns from 'date-fns'
 import { setupServer } from 'msw/node'
 
 import { installationHandler } from 'src/lib/github'
-import {
-  currentCycleId,
-  projectId,
-  fieldNamesToIds,
-  getProjectId,
-  getProjectFieldAndValueNamesToIds,
-  statusNamesToIds,
-} from 'src/services/projects'
-import {
-  Statuses,
-  Priorities,
-  checkStaleId,
-} from 'src/services/projects/projects'
-import handlers from 'src/services/projects/projects.handlers'
+import { getProjectFieldAndValueNamesToIds } from 'src/services/projects'
+import projectHandlers, {
+  clearIssuesOrPullRequests,
+  createIssueOrPullRequest,
+  issuesOrPullRequests,
+  project,
+} from 'src/services/projects/projects.handlers'
 
 import {
-  fields,
-  getOpenIssuesQuery,
-  getOpenPullRequestsQuery,
+  CurrentCycleError,
+  MissingStatusError,
+  NoCycleError,
+  PreviousCycleError,
+  StrayError,
   validateCycle,
+  validateIssuesOrPullRequest,
   validateProject,
   validateStatus,
   validateStale,
 } from './validate'
-import type { IssueOrPullRequest } from './validate'
+import handlers from './validate.handlers'
 
-const server = setupServer(installationHandler, ...handlers)
+const server = setupServer(installationHandler, ...handlers, ...projectHandlers)
 
 beforeAll(async () => {
   server.listen()
-  await getProjectId()
   await getProjectFieldAndValueNamesToIds()
 })
-afterEach(() => server.resetHandlers())
+afterEach(() => {
+  clearIssuesOrPullRequests()
+  project.clear()
+  server.resetHandlers()
+})
 afterAll(() => server.close())
 
-it.skip('uses the correct operations', () => {
-  expect(fields).toMatchInlineSnapshot(`
-    "
-      id
-      title
-      url
-      updatedAt
-      author {
-        login
-      }
-      projectNextItems(first: 10) {
-        nodes {
-          id
-          fieldValues(first: 10) {
-            nodes {
-              id
-              projectField {
-                settings
-                name
-              }
-              value
-            }
-          }
-          project {
-            id
-            title
-          }
-        }
-      }
-    "
-  `)
-
-  expect(getOpenIssuesQuery).toMatchInlineSnapshot(`
-    "
-      query GetOpenIssuesQuery($after: String) {
-        repository(owner: \\"redwoodjs\\", name: \\"redwood\\") {
-          issues(
-            first: 100
-            states: OPEN
-            orderBy: { field: CREATED_AT, direction: ASC }
-            after: $after
-          ) {
-            pageInfo {
-              hasNextPage
-              endCursor
-            }
-            nodes {
-
-      id
-      title
-      url
-      updatedAt
-      author {
-        login
-      }
-      projectNextItems(first: 10) {
-        nodes {
-          id
-          fieldValues(first: 10) {
-            nodes {
-              id
-              projectField {
-                settings
-                name
-              }
-              value
-            }
-          }
-          project {
-            id
-            title
-          }
-        }
-      }
-
-            }
-          }
-        }
-      }
-    "
-  `)
-
-  expect(getOpenPullRequestsQuery).toMatchInlineSnapshot(`
-    "
-      query GetOpenPullRequestsQuery($after: String) {
-        repository(owner: \\"redwoodjs\\", name: \\"redwood\\") {
-          pullRequests(
-            first: 100
-            states: OPEN
-            orderBy: { field: CREATED_AT, direction: ASC }
-            after: $after
-          ) {
-            pageInfo {
-              hasNextPage
-              endCursor
-            }
-            nodes {
-
-      id
-      title
-      url
-      updatedAt
-      author {
-        login
-      }
-      projectNextItems(first: 10) {
-        nodes {
-          id
-          fieldValues(first: 10) {
-            nodes {
-              id
-              projectField {
-                settings
-                name
-              }
-              value
-            }
-          }
-          project {
-            id
-            title
-          }
-        }
-      }
-
-            }
-          }
-        }
-      }
-    "
-  `)
-})
-
-it.skip('gets open issues', () => {})
-
-it.skip('gets open pull requests', () => {})
-
-function createIssueOrPullRequest(
-  seed,
-  {
-    isInProject = true,
-    updatedAt,
-    ...options
-  }: {
-    isInProject?: boolean
-    updatedAt?: string
-    Cycle?: boolean | 'previous'
-    Priority?: Priorities
-    Stale?: boolean
-    Status?: Statuses
-  } = {
-    Stale: false,
-  }
-): IssueOrPullRequest {
-  const nodes = []
-
-  if (isInProject) {
-    nodes.push(createProjectItem(seed, options))
-  }
-
-  return {
-    id: copycat.uuid(seed),
-    title: copycat.sentence(seed),
-    url: copycat.sentence(seed),
-    updatedAt: updatedAt ?? copycat.dateString(seed),
-    author: {
-      login: copycat.username(seed),
-    },
-    projectNextItems: {
-      nodes,
-    },
-  }
-}
-
-function createProjectItem(
-  seed,
-  {
-    Cycle,
-    Priority,
-    Stale,
-    Status,
-  }: {
-    Cycle?: boolean | 'previous'
-    Priority?: Priorities
-    Stale?: boolean
-    Status?: Statuses
-  } = {}
-) {
-  return {
-    id: copycat.uuid(`${seed}bar`),
-    fieldValues: {
-      nodes: [
-        Cycle && {
-          id: fieldNamesToIds.get('Cycle'),
-          projectField: {
-            name: 'Cycle',
-          },
-          value: Cycle === 'previous' ? 'previous' : currentCycleId,
-        },
-        Priority && {
-          id: fieldNamesToIds.get('Priority'),
-          projectField: {
-            name: 'Priority',
-          },
-          value: Priority,
-        },
-        Stale && {
-          id: fieldNamesToIds.get('Stale'),
-          projectField: {
-            name: 'Stale',
-          },
-          value: checkStaleId,
-        },
-        Status && {
-          id: fieldNamesToIds.get('Status'),
-          projectField: {
-            name: 'Status',
-          },
-          value: statusNamesToIds.get(Status),
-        },
-      ].filter(Boolean),
-    },
-    project: {
-      id: projectId,
-    },
-  }
-}
-
-describe('validate project', () => {
+describe('validateProject', () => {
   it("throws if an issue or pull request isn't in the project", () => {
     const issueOrPullRequest = createIssueOrPullRequest('foo', {
       isInProject: false,
@@ -276,8 +46,9 @@ describe('validate project', () => {
     try {
       validateProject(issueOrPullRequest)
     } catch (e) {
+      expect(e).toBeInstanceOf(StrayError)
       expect(e).toMatchInlineSnapshot(
-        `[MissingProjectError: "Kiraevavi somani kihy viyoshi nihahyke kimeraeni." isn't in the project]`
+        `[StrayError: "Kiraevavi somani kihy viyoshi nihahyke kimeraeni." isn't in the project]`
       )
     }
   })
@@ -289,13 +60,14 @@ describe('validate project', () => {
   })
 })
 
-describe('validate status', () => {
+describe('validateStatus', () => {
   it("throws if an issue or pull request doesn't have a status", () => {
     const issueOrPullRequest = createIssueOrPullRequest('foo')
 
     try {
       validateStatus(issueOrPullRequest)
     } catch (e) {
+      expect(e).toBeInstanceOf(MissingStatusError)
       expect(e).toMatchInlineSnapshot(
         `[MissingStatusError: "Kiraevavi somani kihy viyoshi nihahyke kimeraeni." doesn't have a Status]`
       )
@@ -311,7 +83,7 @@ describe('validate status', () => {
   })
 })
 
-describe('validate cycle', () => {
+describe('validateCycle', () => {
   it("throws if an issue or pull request has a status of 'Todo' or 'In progress' and isn't in the current cycle", () => {
     let issueOrPullRequest = createIssueOrPullRequest('foo', {
       isInProject: true,
@@ -321,8 +93,9 @@ describe('validate cycle', () => {
     try {
       validateCycle(issueOrPullRequest)
     } catch (e) {
+      expect(e).toBeInstanceOf(NoCycleError)
       expect(e).toMatchInlineSnapshot(
-        `[MissingCycleValidationError: "Kiraevavi somani kihy viyoshi nihahyke kimeraeni." has a Status of "Todo" or "In Progress" but isn't in the current cycle]`
+        `[NoCycleError: "Kiraevavi somani kihy viyoshi nihahyke kimeraeni." has a Status of "Todo" or "In Progress" but isn't in the current cycle]`
       )
     }
 
@@ -334,20 +107,21 @@ describe('validate cycle', () => {
       validateCycle(issueOrPullRequest)
     } catch (e) {
       expect(e).toMatchInlineSnapshot(
-        `[MissingCycleValidationError: "Kiraevavi somani kihy viyoshi nihahyke kimeraeni." has a Status of "Todo" or "In Progress" but isn't in the current cycle]`
+        `[NoCycleError: "Kiraevavi somani kihy viyoshi nihahyke kimeraeni." has a Status of "Todo" or "In Progress" but isn't in the current cycle]`
       )
     }
   })
 
   it("throws if an issue or pull request has a status of 'Todo' or 'In progress' and is in the previous cycle", () => {
     const issueOrPullRequest = createIssueOrPullRequest('foo', {
-      Cycle: 'previous',
+      Cycle: '@previous',
       Status: 'Todo',
     })
 
     try {
       validateCycle(issueOrPullRequest)
     } catch (e) {
+      expect(e).toBeInstanceOf(PreviousCycleError)
       expect(e).toMatchInlineSnapshot(
         `[PreviousCycleError: "Kiraevavi somani kihy viyoshi nihahyke kimeraeni." is in the previous cycle]`
       )
@@ -356,13 +130,13 @@ describe('validate cycle', () => {
 
   it("throws if an issue or pull request has a status of 'Triage' or 'Backlog' and is in the cycle", () => {
     const issueOrPullRequest = createIssueOrPullRequest('foo', {
-      Cycle: true,
       Status: 'Triage',
     })
 
     try {
       validateCycle(issueOrPullRequest)
     } catch (e) {
+      expect(e).toBeInstanceOf(CurrentCycleError)
       expect(e).toMatchInlineSnapshot(
         `[CurrentCycleError: "Kiraevavi somani kihy viyoshi nihahyke kimeraeni." has a Status of "Triage" or "Backlog" but is in the current cycle]`
       )
@@ -371,7 +145,7 @@ describe('validate cycle', () => {
 
   it("does nothing if an issue or pull request has a status of 'Todo' or 'In progress' and is in the current cycle", () => {
     const issueOrPullRequest = createIssueOrPullRequest('foo', {
-      Cycle: true,
+      Cycle: '@current',
       Status: 'Todo',
     })
 
@@ -379,44 +153,12 @@ describe('validate cycle', () => {
   })
 })
 
-// describe('validate priority', () => {
-//   it("throws if an issue or pull request doesn't have a priority", () => {
-//     const issueOrPullRequest = createIssueOrPullRequest('foo', {
-//       Cycle: true,
-//       Status: 'In progress',
-//     })
-
-//     try {
-//       validatePriority(issueOrPullRequest)
-//     } catch (e) {
-//       expect(e).toMatchInlineSnapshot()
-//     }
-//   })
-
-//   it("does nothing if an issue or pull request has a priority or has a status of 'Triage'", () => {
-//     let issueOrPullRequest = createIssueOrPullRequest('foo', {
-//       Cycle: true,
-//       Priority: '1️⃣ High',
-//       Status: 'In progress',
-//     })
-
-//     validatePriority(issueOrPullRequest)
-
-//     issueOrPullRequest = createIssueOrPullRequest('foo', {
-//       Status: 'Triage',
-//     })
-
-//     validatePriority(issueOrPullRequest)
-//   })
-// })
-
-describe('validate stale', () => {
+describe('validateStale', () => {
   it("throws if an issue or pull request is in the current cycle and hasn't been updated in a week", () => {
     const issueOrPullRequest = createIssueOrPullRequest('foo', {
-      updatedAt: dateFns.subWeeks(new Date(), 2).toISOString(),
-      Cycle: true,
-      Priority: '1️⃣ High',
+      Cycle: '@current',
       Status: 'In progress',
+      updatedAt: dateFns.subWeeks(new Date(), 2).toISOString(),
     })
 
     try {
@@ -430,31 +172,216 @@ describe('validate stale', () => {
 
   it('throws if an issue or pull request in the current cycle is marked as stale but has been updated within a week', () => {
     const issueOrPullRequest = createIssueOrPullRequest('foo', {
-      updatedAt: new Date().toISOString(),
-      Cycle: true,
-      Priority: '1️⃣ High',
+      Cycle: '@current',
       Stale: true,
       Status: 'In progress',
+      updatedAt: new Date().toISOString(),
     })
 
     try {
       validateStale(issueOrPullRequest)
     } catch (e) {
       expect(e).toMatchInlineSnapshot(
-        `[NotStaleError: "Kiraevavi somani kihy viyoshi nihahyke kimeraeni." is marked stale but isn't]`
+        `[UpdatedError: "Kiraevavi somani kihy viyoshi nihahyke kimeraeni." is marked as stale but isn't]`
       )
     }
   })
 
   it('does nothing if an issue or pull request is stale and already marked as stale', () => {
     const issueOrPullRequest = createIssueOrPullRequest('foo', {
-      updatedAt: dateFns.subWeeks(new Date(), 2).toISOString(),
-      Cycle: true,
-      Priority: '1️⃣ High',
+      Cycle: '@current',
       Stale: true,
       Status: 'In progress',
+      updatedAt: dateFns.subWeeks(new Date(), 2).toISOString(),
     })
 
     validateStale(issueOrPullRequest)
+  })
+})
+
+describe('validateIssueOrPullRequest', () => {
+  const logs = []
+
+  const validate = validateIssuesOrPullRequest.bind({
+    context: {
+      stdout: {
+        write(stdout) {
+          logs.push(stdout)
+        },
+      },
+    },
+  })
+
+  afterEach(() => {
+    logs.length = 0
+  })
+
+  it('skips issues with linked pull requests', async () => {
+    const issueOrPullRequest = createIssueOrPullRequest('foo', {
+      hasLinkedPr: true,
+      isInProject: false,
+    })
+    await validate(issueOrPullRequest)
+    expect(logs.length).toBe(0)
+  })
+
+  it('removes issues with linked pull requests from the project', async () => {
+    const issueOrPullRequest = createIssueOrPullRequest('foo', {
+      hasLinkedPr: true,
+    })
+
+    await validate(issueOrPullRequest)
+    console.log(logs.join(''))
+    expect(logs).toMatchInlineSnapshot(`
+      Array [
+        "┌ [31mERROR:[39m ProjectError: \\"Kiraevavi somani kihy viyoshi nihahyke kimeraeni.\\" is in the project but is linked to a pull request
+      ",
+        "│ [90m[4mKiraevavi somani kihy viyoshi nihahyke kimeraeni.[24m[39m [90m540b95dd-98a2-56fe-9c95-6e7123c148ca[39m
+      ",
+        "└ [34mFIXED[39m: removed from the project
+      ",
+      ]
+    `)
+  })
+
+  it('adds stray issues or pull requests to the project', async () => {
+    const issueOrPullRequest = createIssueOrPullRequest('foo', {
+      isInProject: false,
+    })
+
+    issuesOrPullRequests.push(issueOrPullRequest)
+    await validate(issueOrPullRequest)
+
+    console.log(logs.join(''))
+    expect(logs).toMatchInlineSnapshot(`
+      Array [
+        "┌ [31mERROR:[39m StrayError: \\"Kiraevavi somani kihy viyoshi nihahyke kimeraeni.\\" isn't in the project
+      ",
+        "│ [90m[4mKiraevavi somani kihy viyoshi nihahyke kimeraeni.[24m[39m [90m540b95dd-98a2-56fe-9c95-6e7123c148ca[39m
+      ",
+        "└ [34mFIXED[39m: added to the project
+      ",
+        "┌ [31mERROR:[39m MissingStatusError: \\"Kiraevavi somani kihy viyoshi nihahyke kimeraeni.\\" doesn't have a Status
+      ",
+        "│ [90m[4mKiraevavi somani kihy viyoshi nihahyke kimeraeni.[24m[39m [90m540b95dd-98a2-56fe-9c95-6e7123c148ca[39m
+      ",
+        "└ [34mFIXED[39m: added to triage
+      ",
+      ]
+    `)
+  })
+
+  it("adds issues or pull requests with a status of 'Todo' or 'In progress' to the current cycle", async () => {
+    const issueOrPullRequest = createIssueOrPullRequest('foo', {
+      Status: 'Todo',
+    })
+
+    issuesOrPullRequests.push(issueOrPullRequest)
+    project.items.push(issueOrPullRequest.projectNextItems.nodes[0])
+
+    await validate(issueOrPullRequest)
+    console.log(logs.join(''))
+    expect(logs).toMatchInlineSnapshot(`
+      Array [
+        "┌ [31mERROR:[39m NoCycleError: \\"Kiraevavi somani kihy viyoshi nihahyke kimeraeni.\\" has a Status of \\"Todo\\" or \\"In Progress\\" but isn't in the current cycle
+      ",
+        "│ [90m[4mKiraevavi somani kihy viyoshi nihahyke kimeraeni.[24m[39m [90m540b95dd-98a2-56fe-9c95-6e7123c148ca[39m
+      ",
+        "└ [34mFIXED[39m: added to the current cycle
+      ",
+      ]
+    `)
+  })
+
+  it('moves issues or pull requests from the previous cycle to the current one', async () => {
+    const issueOrPullRequest = createIssueOrPullRequest('foo', {
+      Cycle: '@previous',
+      Status: 'Todo',
+    })
+
+    issuesOrPullRequests.push(issueOrPullRequest)
+    project.items.push(issueOrPullRequest.projectNextItems.nodes[0])
+
+    await validate(issueOrPullRequest)
+    console.log(logs.join(''))
+    expect(logs).toMatchInlineSnapshot(`
+      Array [
+        "┌ [31mERROR:[39m PreviousCycleError: \\"Kiraevavi somani kihy viyoshi nihahyke kimeraeni.\\" is in the previous cycle
+      ",
+        "│ [90m[4mKiraevavi somani kihy viyoshi nihahyke kimeraeni.[24m[39m [90m540b95dd-98a2-56fe-9c95-6e7123c148ca[39m
+      ",
+        "└ [34mFIXED[39m: added to the current cycle and incremented rollovers
+      ",
+      ]
+    `)
+  })
+
+  it("removes issue or pull request with a status of 'Triage' or 'Backlog' from the current cycle", async () => {
+    const issueOrPullRequest = createIssueOrPullRequest('foo', {
+      Cycle: '@current',
+      Status: 'Triage',
+    })
+    issuesOrPullRequests.push(issueOrPullRequest)
+    project.items.push(issueOrPullRequest.projectNextItems.nodes[0])
+
+    await validate(issueOrPullRequest)
+    console.log(logs.join(''))
+    expect(logs).toMatchInlineSnapshot(`
+      Array [
+        "┌ [31mERROR:[39m CurrentCycleError: \\"Kiraevavi somani kihy viyoshi nihahyke kimeraeni.\\" has a Status of \\"Triage\\" or \\"Backlog\\" but is in the current cycle
+      ",
+        "│ [90m[4mKiraevavi somani kihy viyoshi nihahyke kimeraeni.[24m[39m [90m540b95dd-98a2-56fe-9c95-6e7123c148ca[39m
+      ",
+        "└ [34mFIXED[39m: removed from the current cycle
+      ",
+      ]
+    `)
+  })
+
+  it('marks stale issues or pull requests', async () => {
+    const issueOrPullRequest = createIssueOrPullRequest('foo', {
+      Cycle: '@current',
+      Status: 'Todo',
+      updatedAt: dateFns.subWeeks(new Date(), 2).toISOString(),
+    })
+    issuesOrPullRequests.push(issueOrPullRequest)
+    project.items.push(issueOrPullRequest.projectNextItems.nodes[0])
+
+    await validate(issueOrPullRequest)
+    console.log(logs.join(''))
+    expect(logs).toMatchInlineSnapshot(`
+      Array [
+        "┌ [31mERROR:[39m StaleError: \\"Kiraevavi somani kihy viyoshi nihahyke kimeraeni.\\" is in the current cycle but hasn't been updated in a week
+      ",
+        "│ [90m[4mKiraevavi somani kihy viyoshi nihahyke kimeraeni.[24m[39m [90m540b95dd-98a2-56fe-9c95-6e7123c148ca[39m
+      ",
+        "└ [34mFIXED[39m: marked as stale
+      ",
+      ]
+    `)
+  })
+
+  it('clears updated issues and pull requests', async () => {
+    const issueOrPullRequest = createIssueOrPullRequest('foo', {
+      Cycle: '@current',
+      Stale: true,
+      Status: 'Todo',
+      updatedAt: new Date().toISOString(),
+    })
+    issuesOrPullRequests.push(issueOrPullRequest)
+    project.items.push(issueOrPullRequest.projectNextItems.nodes[0])
+
+    await validate(issueOrPullRequest)
+    console.log(logs.join(''))
+    expect(logs).toMatchInlineSnapshot(`
+      Array [
+        "┌ [31mERROR:[39m UpdatedError: \\"Kiraevavi somani kihy viyoshi nihahyke kimeraeni.\\" is marked as stale but isn't
+      ",
+        "│ [90m[4mKiraevavi somani kihy viyoshi nihahyke kimeraeni.[24m[39m [90m540b95dd-98a2-56fe-9c95-6e7123c148ca[39m
+      ",
+        "└ [34mFIXED[39m: cleared
+      ",
+      ]
+    `)
   })
 })

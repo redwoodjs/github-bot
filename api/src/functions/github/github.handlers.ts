@@ -1,6 +1,8 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
+import { issuesOrPullRequests } from 'src/services/projects/projects.handlers'
+
 import { EventActions } from './github'
 
 export let payload: {
@@ -38,4 +40,6 @@ export function setPayload(eventAction: EventActions | Payloads) {
   )
 
   content = payload.issue ?? payload.pull_request
+
+  issuesOrPullRequests.push(content)
 }

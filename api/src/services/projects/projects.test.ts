@@ -1,38 +1,39 @@
+import { copycat } from '@snaplet/copycat'
 import { setupServer } from 'msw/node'
 
 import { installationHandler } from 'src/lib/github'
 
 import {
-  projectId,
-  getProjectId,
-  getProjectIdQuery,
   addToProject,
   addProjectNextItemMutation,
-  // ------------------------
-  removeFromProject,
-  deleteProjectNextItemMutation,
-  // ------------------------
-  fields,
-  fieldNamesToIds,
-  currentCycleId,
   checkNeedsDiscussionId,
   checkStaleId,
+  currentCycleId,
+  deleteProjectNextItemMutation,
+  fields,
+  fieldNamesToIds,
+  getProjectFieldAndValueNamesToIds,
+  getProjectId,
+  getProjectIdQuery,
+  getProjectItems,
+  getProjectItemsQuery,
+  getProjectNextFieldsQuery,
   priorities,
   priorityNamesToIds,
+  projectId,
+  removeFromProject,
   statuses,
   statusNamesToIds,
-  // ------------------------
-  getProjectFieldAndValueNamesToIds,
-  getProjectNextFieldsQuery,
-  // ------------------------
   updateProjectItem,
   updateProjectNextItemFieldMutation,
-  // ------------------------
-  getProjectItemsQuery,
-  getProjectItems,
 } from './projects'
 import type { Statuses } from './projects'
-import handlers, { project, createProjectItem } from './projects.handlers'
+import handlers, {
+  project,
+  createProjectItem,
+  issuesOrPullRequests,
+  createIssueOrPullRequest,
+} from './projects.handlers'
 
 const server = setupServer(installationHandler, ...handlers)
 
@@ -68,9 +69,7 @@ describe('getProjectId', () => {
 
   it("gets and caches the Main project's id", async () => {
     expect(projectId).toBeUndefined()
-
     await getProjectId()
-
     expect(projectId).toBe(project.id)
   })
 })
@@ -101,7 +100,9 @@ describe('addToProject, removeFromProject', () => {
   })
 
   it('adds and removes issues and pull requests to the project', async () => {
-    const itemId = await addToProject('content')
+    issuesOrPullRequests.push(createIssueOrPullRequest('foo'))
+
+    const itemId = await addToProject(copycat.uuid('foo'))
 
     expect(project.items).toEqual(
       expect.arrayContaining([expect.objectContaining({ id: itemId })])
@@ -249,8 +250,11 @@ describe('updateProjectItemField', () => {
   let item
 
   beforeEach(async () => {
-    const itemId = await addToProject('content')
-    item = project.items.find((item) => item.id === itemId)
+    const issuesOrPullRequest = createIssueOrPullRequest('foo', {
+      isInProject: true,
+    })
+    ;[item] = issuesOrPullRequest.projectNextItems.nodes
+    project.items = [item]
   })
 
   describe('updates project items fields', () => {
@@ -258,14 +262,28 @@ describe('updateProjectItemField', () => {
       it('adds and removes items from the current cycle', async () => {
         await updateProjectItem(item.id, { Cycle: true })
 
-        expect(item).toHaveProperty(
-          fieldNamesToIds.get('Cycle'),
-          currentCycleId
+        expect(item).toEqual(
+          expect.objectContaining({
+            fieldValues: {
+              nodes: expect.arrayContaining([
+                expect.objectContaining({
+                  id: fieldNamesToIds.get('Cycle'),
+                  value: currentCycleId,
+                }),
+              ]),
+            },
+          })
         )
 
         await updateProjectItem(item.id, { Cycle: false })
 
-        expect(item).toHaveProperty(fieldNamesToIds.get('Cycle'), '')
+        expect(item).toEqual(
+          expect.objectContaining({
+            fieldValues: {
+              nodes: expect.arrayContaining([]),
+            },
+          })
+        )
       })
 
       it("throws when `value` isn't a boolean", async () => {
@@ -288,14 +306,28 @@ describe('updateProjectItemField', () => {
       it('toggles Needs discussion', async () => {
         await updateProjectItem(item.id, { 'Needs discussion': true })
 
-        expect(item).toHaveProperty(
-          fieldNamesToIds.get('Needs discussion'),
-          checkNeedsDiscussionId
+        expect(item).toEqual(
+          expect.objectContaining({
+            fieldValues: {
+              nodes: expect.arrayContaining([
+                expect.objectContaining({
+                  id: fieldNamesToIds.get('Needs discussion'),
+                  value: checkNeedsDiscussionId,
+                }),
+              ]),
+            },
+          })
         )
 
         await updateProjectItem(item.id, { 'Needs discussion': false })
 
-        expect(item).toHaveProperty(fieldNamesToIds.get('Needs discussion'), '')
+        expect(item).toEqual(
+          expect.objectContaining({
+            fieldValues: {
+              nodes: expect.arrayContaining([]),
+            },
+          })
+        )
       })
 
       it("throws when `value` isn't a boolean", async () => {
@@ -319,7 +351,18 @@ describe('updateProjectItemField', () => {
         for (const [Priority, id] of priorityNamesToIds.entries()) {
           await updateProjectItem(item.id, { Priority })
 
-          expect(item).toHaveProperty(fieldNamesToIds.get('Priority'), id)
+          expect(item).toEqual(
+            expect.objectContaining({
+              fieldValues: {
+                nodes: expect.arrayContaining([
+                  expect.objectContaining({
+                    id: fieldNamesToIds.get('Priority'),
+                    value: id,
+                  }),
+                ]),
+              },
+            })
+          )
         }
       })
 
@@ -358,14 +401,28 @@ describe('updateProjectItemField', () => {
 
         await updateProjectItem(item.id, { Rollovers })
 
-        expect(item).toHaveProperty(
-          fieldNamesToIds.get('Rollovers'),
-          Rollovers.toString()
+        expect(item).toEqual(
+          expect.objectContaining({
+            fieldValues: {
+              nodes: expect.arrayContaining([
+                expect.objectContaining({
+                  id: fieldNamesToIds.get('Rollovers'),
+                  value: Rollovers.toString(),
+                }),
+              ]),
+            },
+          })
         )
 
         await updateProjectItem(item.id, { Rollovers: 0 })
 
-        expect(item).toHaveProperty(fieldNamesToIds.get('Rollovers'), '')
+        expect(item).toEqual(
+          expect.objectContaining({
+            fieldValues: {
+              nodes: expect.arrayContaining([]),
+            },
+          })
+        )
       })
 
       it("throws when `value` isn't a number", async () => {
@@ -388,11 +445,28 @@ describe('updateProjectItemField', () => {
       it('checks Stale when `value` is `true`', async () => {
         await updateProjectItem(item.id, { Stale: true })
 
-        expect(item).toHaveProperty(fieldNamesToIds.get('Stale'), checkStaleId)
+        expect(item).toEqual(
+          expect.objectContaining({
+            fieldValues: {
+              nodes: expect.arrayContaining([
+                expect.objectContaining({
+                  id: fieldNamesToIds.get('Stale'),
+                  value: checkStaleId,
+                }),
+              ]),
+            },
+          })
+        )
 
         await updateProjectItem(item.id, { Stale: false })
 
-        expect(item).toHaveProperty(fieldNamesToIds.get('Stale'), '')
+        expect(item).toEqual(
+          expect.objectContaining({
+            fieldValues: {
+              nodes: expect.arrayContaining([]),
+            },
+          })
+        )
       })
 
       it("throws when `value` isn't a boolean", async () => {
@@ -416,7 +490,18 @@ describe('updateProjectItemField', () => {
         for (const [Status, id] of statusNamesToIds.entries()) {
           await updateProjectItem(item.id, { Status })
 
-          expect(item).toHaveProperty(fieldNamesToIds.get('Status'), id)
+          expect(item).toEqual(
+            expect.objectContaining({
+              fieldValues: {
+                nodes: expect.arrayContaining([
+                  expect.objectContaining({
+                    id: fieldNamesToIds.get('Status'),
+                    value: id,
+                  }),
+                ]),
+              },
+            })
+          )
         }
       })
 
@@ -451,16 +536,27 @@ describe('updateProjectItemField', () => {
       })
     })
 
-    it('Updates multiple fields at once', async () => {
+    it('updates multiple fields at once', async () => {
       await updateProjectItem(item.id, {
         Cycle: true,
         Status: 'In progress',
       })
 
-      expect(item).toHaveProperty(fieldNamesToIds.get('Cycle'), currentCycleId)
-      expect(item).toHaveProperty(
-        fieldNamesToIds.get('Status'),
-        statusNamesToIds.get('In progress')
+      expect(item).toEqual(
+        expect.objectContaining({
+          fieldValues: {
+            nodes: expect.arrayContaining([
+              expect.objectContaining({
+                id: fieldNamesToIds.get('Cycle'),
+                value: currentCycleId,
+              }),
+              expect.objectContaining({
+                id: fieldNamesToIds.get('Status'),
+                value: statusNamesToIds.get('In progress'),
+              }),
+            ]),
+          },
+        })
       )
     })
   })
@@ -524,7 +620,9 @@ describe('getProjectItems', () => {
 
     for (const [Status, count] of statusesToItems) {
       for (let i = 0; i < count; i++) {
-        project.items.push(createProjectItem({ assignee: 'jtoar', Status }))
+        project.items.push(
+          createProjectItem('foo', { assignee: 'jtoar', Status })
+        )
       }
     }
   })

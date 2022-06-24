@@ -13,7 +13,7 @@ import {
   currentCycleId,
   fieldNamesToIds,
   statusNamesToIds,
-} from 'src/services/projects/projects'
+} from 'src/services/projects'
 import projectsHandlers, {
   project,
 } from 'src/services/projects/projects.handlers'
@@ -32,7 +32,6 @@ const server = setupServer(
 beforeAll(() => server.listen())
 afterEach(() => {
   project.clear()
-
   server.resetHandlers()
 })
 afterAll(() => server.close())
@@ -60,7 +59,14 @@ describe('github function', () => {
       expect(project.items).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            [fieldNamesToIds.get('Status')]: statusNamesToIds.get('Triage'),
+            fieldValues: {
+              nodes: expect.arrayContaining([
+                expect.objectContaining({
+                  id: fieldNamesToIds.get('Status'),
+                  value: statusNamesToIds.get('Triage'),
+                }),
+              ]),
+            },
           }),
         ])
       )
@@ -70,9 +76,7 @@ describe('github function', () => {
 
     it('handles issues opened by the core team', async () => {
       setPayload('issues.opened.coreTeam')
-
       await handler(getMockEvent(), null)
-
       expect(project.items.length).toBe(0)
     })
 
@@ -92,7 +96,14 @@ describe('github function', () => {
       expect(project.items).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            [fieldNamesToIds.get('Needs discussion')]: checkNeedsDiscussionId,
+            fieldValues: {
+              nodes: expect.arrayContaining([
+                expect.objectContaining({
+                  id: fieldNamesToIds.get('Needs discussion'),
+                  value: checkNeedsDiscussionId,
+                }),
+              ]),
+            },
           }),
         ])
       )
@@ -149,9 +160,7 @@ describe('github function', () => {
 
     it('opened by renovate', async () => {
       setPayload('pull_request.opened.renovate')
-
       await handler(getMockEvent(), null)
-
       expect(project.items.length).toBe(0)
     })
 

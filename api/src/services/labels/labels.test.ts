@@ -1,6 +1,6 @@
 import { setupServer } from 'msw/node'
 
-import { setPayload, content } from 'src/functions/github/github.handlers'
+import { content, setPayload } from 'src/functions/github/github.handlers'
 import { installationHandler } from 'src/lib/github'
 
 import {
@@ -52,9 +52,7 @@ describe('getLabelNamesToIds', () => {
 
   it('gets and caches ids from titles', async () => {
     expect(labelNamesToIds.size).toBe(0)
-
     await getLabelNamesToIds()
-
     expect(labelNamesToIds).toMatchInlineSnapshot(`
       Map {
         "action/add-to-cycle" => "LA_kwDOC2M2f87e3FkP",

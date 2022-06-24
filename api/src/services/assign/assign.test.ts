@@ -2,13 +2,13 @@ import { setupServer } from 'msw/node'
 
 import { content, setPayload } from 'src/functions/github/github.handlers'
 import {
-  installationHandler,
   coreTeamMaintainersUsernamesToIds,
+  installationHandler,
 } from 'src/lib/github'
 import { getProjectFieldAndValueNamesToIds } from 'src/services/projects'
 import projectHandlers, {
-  project,
   createProjectItem,
+  project,
 } from 'src/services/projects/projects.handlers'
 
 import {
@@ -20,12 +20,15 @@ import handlers from './assign.handlers'
 
 const server = setupServer(installationHandler, ...handlers, ...projectHandlers)
 
-beforeAll(() => server.listen())
+beforeAll(async () => {
+  server.listen()
+  await getProjectFieldAndValueNamesToIds()
+})
 afterEach(() => server.resetHandlers())
 afterAll(() => server.close())
 
 describe('assign ', () => {
-  it('uses the correct mutation', () => {
+  it('uses the correct operation', () => {
     expect(addAssigneesToAssignableMutation).toMatchInlineSnapshot(`
       "
         mutation AddAssigneesToAssignableMutation($assignableId: ID!, $assigneeIds: [ID!]!) {
@@ -41,9 +44,7 @@ describe('assign ', () => {
 
   it('assigns maintainers to issues and pull requests', async () => {
     setPayload('issues.opened.contributor')
-
     await assign(content.id, { to: 'jtoar' })
-
     expect(content).toHaveProperty('assignees', [
       coreTeamMaintainersUsernamesToIds['jtoar'],
     ])
@@ -62,57 +63,61 @@ describe('assign ', () => {
   })
 
   it('chooses the next triage team member if the assignee is Core Team/Triage', async () => {
-    await getProjectFieldAndValueNamesToIds()
-
     project.items = [
-      createProjectItem({ assignee: 'jtoar', Status: 'Triage' }),
-      createProjectItem({ assignee: 'jtoar', Status: 'Triage' }),
-      createProjectItem({ assignee: 'jtoar', Status: 'Triage' }),
-      createProjectItem({ assignee: 'jtoar', Status: 'Triage' }),
-      createProjectItem({ assignee: 'jtoar', Status: 'Triage' }),
-      createProjectItem({ assignee: 'jtoar', Status: 'Triage' }),
-      createProjectItem({ assignee: 'simoncrypta', Status: 'Triage' }),
-      createProjectItem({ assignee: 'simoncrypta', Status: 'Triage' }),
-      createProjectItem({ assignee: 'simoncrypta', Status: 'Triage' }),
-      createProjectItem({ assignee: 'callingmedic911', Status: 'Triage' }),
-      createProjectItem({ assignee: 'callingmedic911', Status: 'Triage' }),
-      createProjectItem({ assignee: 'dac09', Status: 'Triage' }),
+      createProjectItem('foo', { assignee: 'jtoar', Status: 'Triage' }),
+      createProjectItem('foo', { assignee: 'jtoar', Status: 'Triage' }),
+      createProjectItem('foo', { assignee: 'jtoar', Status: 'Triage' }),
+      createProjectItem('foo', { assignee: 'jtoar', Status: 'Triage' }),
+      createProjectItem('foo', { assignee: 'jtoar', Status: 'Triage' }),
+      createProjectItem('foo', { assignee: 'jtoar', Status: 'Triage' }),
+      createProjectItem('foo', { assignee: 'simoncrypta', Status: 'Triage' }),
+      createProjectItem('foo', { assignee: 'simoncrypta', Status: 'Triage' }),
+      createProjectItem('foo', { assignee: 'simoncrypta', Status: 'Triage' }),
+      createProjectItem('foo', {
+        assignee: 'callingmedic911',
+        Status: 'Triage',
+      }),
+      createProjectItem('foo', {
+        assignee: 'callingmedic911',
+        Status: 'Triage',
+      }),
+      createProjectItem('foo', { assignee: 'dac09', Status: 'Triage' }),
     ]
 
     let username = await getNextTriageTeamMember()
     expect(username).toBe('dthyresson') // 1
     project.items.push(
-      createProjectItem({ assignee: username, Status: 'Triage' })
+      createProjectItem('foo', { assignee: username, Status: 'Triage' })
     )
 
     username = await getNextTriageTeamMember()
     expect(username).toBe('dthyresson') // 2
     project.items.push(
-      createProjectItem({ assignee: username, Status: 'Triage' })
+      createProjectItem('foo', { assignee: username, Status: 'Triage' })
     )
 
     username = await getNextTriageTeamMember()
     expect(username).toBe('dac09') // 2
     project.items.push(
-      createProjectItem({ assignee: username, Status: 'Triage' })
+      createProjectItem('foo', { assignee: username, Status: 'Triage' })
     )
 
     username = await getNextTriageTeamMember()
     expect(username).toBe('dthyresson') // 3
     project.items.push(
-      createProjectItem({ assignee: username, Status: 'Triage' })
+      createProjectItem('foo', { assignee: username, Status: 'Triage' })
     )
 
     username = await getNextTriageTeamMember()
     expect(username).toBe('dac09') // 3
     project.items.push(
-      createProjectItem({ assignee: username, Status: 'Triage' })
+      createProjectItem('foo', { assignee: username, Status: 'Triage' })
     )
 
     username = await getNextTriageTeamMember()
     expect(username).toBe('callingmedic911') // 3
     project.items.push(
-      createProjectItem({ assignee: username, Status: 'Triage' })
+      createProjectItem('foo', { assignee: username, Status: 'Triage' })
     )
   })
 })
