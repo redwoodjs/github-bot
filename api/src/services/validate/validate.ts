@@ -16,6 +16,8 @@ import {
 export async function validateIssuesOrPullRequest(
   issueOrPullRequest: IssueOrPullRequest & { hasLinkedPr?: boolean }
 ) {
+  const report = []
+
   // eslint-disable-next-line no-constant-condition
   while (true) {
     try {
@@ -38,10 +40,12 @@ export async function validateIssuesOrPullRequest(
       validateStale(issueOrPullRequest)
       break
     } catch (e) {
-      this.context.stdout.write(`┌ ${chalk.red('ERROR:')} ${e}\n`)
       const { url, id } = issueOrPullRequest
-      this.context.stdout.write(
-        `│ ${chalk.gray(chalk.underline(url))} ${chalk.gray(id)}\n`
+      report.push(`  ┌ ${chalk.red('ERROR:')} ${e}`)
+      report.push(
+        `${report.length === 1 ? '➤' : ' '} │ ${chalk.gray(
+          chalk.underline(url)
+        )} ${chalk.gray(id)}`
       )
 
       const projectNextItem = getProjectNextItem(issueOrPullRequest)
@@ -52,9 +56,7 @@ export async function validateIssuesOrPullRequest(
        */
       if (e instanceof ProjectError) {
         await removeFromProject(projectNextItem.id)
-        this.context.stdout.write(
-          `└ ${chalk.blue('FIXED')}: removed from the project\n`
-        )
+        report.push(`  └ ${chalk.blue('FIXED')}: removed from the project`)
         break
       }
 
@@ -64,9 +66,7 @@ export async function validateIssuesOrPullRequest(
        */
       if (e instanceof StrayError) {
         await addToProject(id)
-        this.context.stdout.write(
-          `└ ${chalk.blue('FIXED')}: added to the project\n`
-        )
+        report.push(`  └ ${chalk.blue('FIXED')}: added to the project`)
         issueOrPullRequest = await getIssueOrPullRequest(id)
         continue
       }
@@ -77,7 +77,7 @@ export async function validateIssuesOrPullRequest(
        */
       if (e instanceof MissingStatusError) {
         await updateProjectItem(projectNextItem.id, { Status: 'Triage' })
-        this.context.stdout.write(`└ ${chalk.blue('FIXED')}: added to triage\n`)
+        report.push(`  └ ${chalk.blue('FIXED')}: added to triage`)
         issueOrPullRequest = await getIssueOrPullRequest(id)
         continue
       }
@@ -88,9 +88,7 @@ export async function validateIssuesOrPullRequest(
        */
       if (e instanceof NoCycleError) {
         await updateProjectItem(projectNextItem.id, { Cycle: true })
-        this.context.stdout.write(
-          `└ ${chalk.blue('FIXED')}: added to the current cycle\n`
-        )
+        report.push(`  └ ${chalk.blue('FIXED')}: added to the current cycle`)
         issueOrPullRequest = await getIssueOrPullRequest(id)
         continue
       }
@@ -108,10 +106,10 @@ export async function validateIssuesOrPullRequest(
           Rollovers: parseInt(rollovers) + 1,
         })
 
-        this.context.stdout.write(
-          `└ ${chalk.blue(
+        report.push(
+          `  └ ${chalk.blue(
             'FIXED'
-          )}: added to the current cycle and incremented rollovers\n`
+          )}: added to the current cycle and incremented rollovers`
         )
 
         issueOrPullRequest = await getIssueOrPullRequest(id)
@@ -124,8 +122,8 @@ export async function validateIssuesOrPullRequest(
        */
       if (e instanceof CurrentCycleError) {
         await updateProjectItem(projectNextItem.id, { Cycle: false })
-        this.context.stdout.write(
-          `└ ${chalk.blue('FIXED')}: removed from the current cycle\n`
+        report.push(
+          `  └ ${chalk.blue('FIXED')}: removed from the current cycle`
         )
         issueOrPullRequest = await getIssueOrPullRequest(id)
         continue
@@ -137,7 +135,7 @@ export async function validateIssuesOrPullRequest(
        */
       if (e instanceof StaleError) {
         await updateProjectItem(projectNextItem.id, { Stale: true })
-        this.context.stdout.write(`└ ${chalk.blue('FIXED')}: marked as stale\n`)
+        report.push(`  └ ${chalk.blue('FIXED')}: marked as stale`)
         issueOrPullRequest = await getIssueOrPullRequest(id)
         continue
       }
@@ -148,7 +146,7 @@ export async function validateIssuesOrPullRequest(
        */
       if (e instanceof UpdatedError) {
         await updateProjectItem(projectNextItem.id, { Stale: false })
-        this.context.stdout.write(`└ ${chalk.blue('FIXED')}: cleared\n`)
+        report.push(`  └ ${chalk.blue('FIXED')}: cleared`)
         issueOrPullRequest = await getIssueOrPullRequest(id)
         continue
       }
@@ -159,6 +157,10 @@ export async function validateIssuesOrPullRequest(
       throw e
     }
   }
+
+  report.push('')
+
+  this.context.stdout.write(report.join('\n'))
 }
 
 export class ProjectError extends Error {

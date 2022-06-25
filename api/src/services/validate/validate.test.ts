@@ -385,3 +385,49 @@ describe('validateIssueOrPullRequest', () => {
     `)
   })
 })
+
+it.only('validates issues or pull requests', async () => {
+  issuesOrPullRequests.push(
+    createIssueOrPullRequest('foo', {
+      hasLinkedPr: true,
+      isInProject: false,
+    }),
+    createIssueOrPullRequest('bar', {
+      hasLinkedPr: true,
+    }),
+    createIssueOrPullRequest('baz', {
+      isInProject: false,
+    })
+  )
+
+  const logs = []
+
+  const validate = validateIssuesOrPullRequest.bind({
+    context: {
+      stdout: {
+        write(stdout) {
+          logs.push(stdout)
+        },
+      },
+    },
+  })
+
+  await Promise.allSettled(issuesOrPullRequests.map(validate))
+  console.log(logs.join(''))
+  expect(logs).toMatchInlineSnapshot(`
+    Array [
+      "",
+      "  ┌ [31mERROR:[39m ProjectError: \\"Ko kin kikoshichi momi kechikeko, ta raeyochi muyovi chisoma shi hyviceakin niyoki kima.\\" is in the project but is linked to a pull request
+    ➤ │ [90m[4mKo kin kikoshichi momi kechikeko, ta raeyochi muyovi chisoma shi hyviceakin niyoki kima.[24m[39m [90mac9e5df8-6ef1-5b6d-8123-e119ebcb26f6[39m
+      └ [34mFIXED[39m: removed from the project
+    ",
+      "  ┌ [31mERROR:[39m StrayError: \\"Ke mukaiyona ta sokinta ha raehykoha vamivako chitayu.\\" isn't in the project
+    ➤ │ [90m[4mKe mukaiyona ta sokinta ha raehykoha vamivako chitayu.[24m[39m [90m24666978-3b1c-52cb-8b76-775b8e8fba43[39m
+      └ [34mFIXED[39m: added to the project
+      ┌ [31mERROR:[39m MissingStatusError: \\"Ke mukaiyona ta sokinta ha raehykoha vamivako chitayu.\\" doesn't have a Status
+      │ [90m[4mKe mukaiyona ta sokinta ha raehykoha vamivako chitayu.[24m[39m [90m24666978-3b1c-52cb-8b76-775b8e8fba43[39m
+      └ [34mFIXED[39m: added to triage
+    ",
+    ]
+  `)
+})
