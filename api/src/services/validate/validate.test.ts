@@ -386,7 +386,7 @@ describe('validateIssueOrPullRequest', () => {
   })
 })
 
-it.only('validates issues or pull requests', async () => {
+it('validates issues or pull requests', async () => {
   issuesOrPullRequests.push(
     createIssueOrPullRequest('foo', {
       hasLinkedPr: true,
@@ -421,11 +421,11 @@ it.only('validates issues or pull requests', async () => {
     ➤ │ [90m[4mKo kin kikoshichi momi kechikeko, ta raeyochi muyovi chisoma shi hyviceakin niyoki kima.[24m[39m [90mac9e5df8-6ef1-5b6d-8123-e119ebcb26f6[39m
       └ [34mFIXED[39m: removed from the project
     ",
-      "  ┌ [31mERROR:[39m StrayError: \\"Ke mukaiyona ta sokinta ha raehykoha vamivako chitayu.\\" isn't in the project
-    ➤ │ [90m[4mKe mukaiyona ta sokinta ha raehykoha vamivako chitayu.[24m[39m [90m24666978-3b1c-52cb-8b76-775b8e8fba43[39m
+      "  ┌ [31mERROR:[39m StrayError: \\"Kakoani ta nita ramikaime ta, sonahyta ha muha kechiso yonamemu.\\" isn't in the project
+    ➤ │ [90m[4mKakoani ta nita ramikaime ta, sonahyta ha muha kechiso yonamemu.[24m[39m [90m6519f134-a456-5b27-bd07-c9e99f4e6f64[39m
       └ [34mFIXED[39m: added to the project
-      ┌ [31mERROR:[39m MissingStatusError: \\"Ke mukaiyona ta sokinta ha raehykoha vamivako chitayu.\\" doesn't have a Status
-      │ [90m[4mKe mukaiyona ta sokinta ha raehykoha vamivako chitayu.[24m[39m [90m24666978-3b1c-52cb-8b76-775b8e8fba43[39m
+      ┌ [31mERROR:[39m MissingStatusError: \\"Kakoani ta nita ramikaime ta, sonahyta ha muha kechiso yonamemu.\\" doesn't have a Status
+      │ [90m[4mKakoani ta nita ramikaime ta, sonahyta ha muha kechiso yonamemu.[24m[39m [90m6519f134-a456-5b27-bd07-c9e99f4e6f64[39m
       └ [34mFIXED[39m: added to triage
     ",
     ]

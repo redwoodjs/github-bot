@@ -1,6 +1,3 @@
-import fs from 'node:fs'
-import path from 'node:path'
-
 import { createAppAuth } from '@octokit/auth-app'
 import { rest } from 'msw'
 import { Octokit } from 'octokit'
@@ -10,10 +7,7 @@ export const octokit = new Octokit({
   authStrategy: createAppAuth,
   auth: {
     appId: process.env.GITHUB_APP_ID,
-    privateKey: fs.readFileSync(
-      path.resolve(__dirname, '../../../private-key.pem'),
-      'utf-8'
-    ),
+    privateKey: process.env.PRIVATE_KEY,
     installationId: process.env.GITHUB_INSTALLATION_ID,
   },
 })
