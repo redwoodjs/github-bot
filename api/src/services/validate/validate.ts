@@ -158,9 +158,9 @@ export async function validateIssuesOrPullRequest(
     }
   }
 
-  report.push('')
-
-  this.context.stdout.write(report.join('\n'))
+  if (report.length) {
+    this.context.stdout.write(`${report.join('\n')}\n`)
+  }
 }
 
 export class ProjectError extends Error {
@@ -555,3 +555,98 @@ export function getProjectNextItem(issueOrPullRequest: IssueOrPullRequest) {
     (projectNextItem) => projectNextItem.project.id === projectId
   )
 }
+
+/**
+ * Comment on an issue or PR
+ */
+
+// [
+//   'Thanks for opening ${an issue/a pull request}'
+//   "I've assigned ${} to triage it.",
+//   "${} please review this in the next few days",
+// ]
+
+// [
+//   "Thanks for your patience ${}"
+//   `🔔 @${content.author.login} this hasn't seen any activity for at least a week.`
+//   "could you try to find the time to give it some attention?"
+//   "thanks!"
+// ]
+
+// export async function getBody(content) {
+//   const hasCoreTeamMaintainerAssigned =
+//     content.assignees.nodes.length > 0 &&
+//     content.assignees.nodes.some((assignee) =>
+//       coreTeamMaintainers.includes(assignee.login)
+//     )
+
+//   const assignedCoreTeamMembers = content.assignees.nodes.filter((assignee) =>
+//     coreTeamMaintainers.includes(assignee.login)
+//   )
+
+//   const authorIsCoreTeamMaintainer = coreTeamMaintainers.includes(
+//     content.author.login
+//   )
+
+//   const body = []
+
+//   if (!authorIsCoreTeamMaintainer) {
+//     body.push(`Thanks for your patience @${content.author.login}!`)
+//     body.push('\n')
+//   }
+
+//   if (!hasCoreTeamMaintainerAssigned) {
+//     if (!authorIsCoreTeamMaintainer) {
+//       body.push(
+//         `🔔 @jtoar this hasn't seen any activity for at least a week and isn't assigned to anyone.`
+//       )
+//     } else {
+//       body.push(
+//         `🔔 @${content.author.login} this hasn't seen any activity for at least a week.`
+//       )
+//     }
+//   } else {
+//     body.push(
+//       `🔔 ${assignedCoreTeamMembers
+//         .map((assignee) => `@${assignee.login}`)
+//         .join(', ')} this hasn't seen any activity for at least a week. `
+//     )
+//   }
+
+//   body.concat([
+//     `Could you prioritize this and determine a next step or where there's resistance?`,
+//     `But if this isn't a priority, you can remove it from the current cycle I'll stop bothering you.`,
+//   ])
+
+//   return body.join(' ')
+// }
+
+// export async function comment(
+//   subjectId: string,
+//   {
+//     body,
+//   }: {
+//     body: string
+//   }
+// ) {
+//   return octokit.graphql(addCommentMutation, {
+//     subjectId,
+//     body,
+//   })
+// }
+
+// const addCommentMutation = `
+//   mutation AddCommentMutation(
+//     $subjectId: ID!
+//     $body: string!
+//   ) {
+//     addComment(
+//       input: {
+//         subjectId: $subjectId
+//         body: $body
+//       }
+//     ) {
+//       clientMutationId
+//     }
+//   }
+// `

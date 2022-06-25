@@ -234,11 +234,9 @@ describe('validateIssueOrPullRequest', () => {
     console.log(logs.join(''))
     expect(logs).toMatchInlineSnapshot(`
       Array [
-        "┌ [31mERROR:[39m ProjectError: \\"Kiraevavi somani kihy viyoshi nihahyke kimeraeni.\\" is in the project but is linked to a pull request
-      ",
-        "│ [90m[4mKiraevavi somani kihy viyoshi nihahyke kimeraeni.[24m[39m [90m540b95dd-98a2-56fe-9c95-6e7123c148ca[39m
-      ",
-        "└ [34mFIXED[39m: removed from the project
+        "  ┌ [31mERROR:[39m ProjectError: \\"Kiraevavi somani kihy viyoshi nihahyke kimeraeni.\\" is in the project but is linked to a pull request
+      ➤ │ [90m[4mKiraevavi somani kihy viyoshi nihahyke kimeraeni.[24m[39m [90m540b95dd-98a2-56fe-9c95-6e7123c148ca[39m
+        └ [34mFIXED[39m: removed from the project
       ",
       ]
     `)
@@ -255,17 +253,12 @@ describe('validateIssueOrPullRequest', () => {
     console.log(logs.join(''))
     expect(logs).toMatchInlineSnapshot(`
       Array [
-        "┌ [31mERROR:[39m StrayError: \\"Kiraevavi somani kihy viyoshi nihahyke kimeraeni.\\" isn't in the project
-      ",
-        "│ [90m[4mKiraevavi somani kihy viyoshi nihahyke kimeraeni.[24m[39m [90m540b95dd-98a2-56fe-9c95-6e7123c148ca[39m
-      ",
-        "└ [34mFIXED[39m: added to the project
-      ",
-        "┌ [31mERROR:[39m MissingStatusError: \\"Kiraevavi somani kihy viyoshi nihahyke kimeraeni.\\" doesn't have a Status
-      ",
-        "│ [90m[4mKiraevavi somani kihy viyoshi nihahyke kimeraeni.[24m[39m [90m540b95dd-98a2-56fe-9c95-6e7123c148ca[39m
-      ",
-        "└ [34mFIXED[39m: added to triage
+        "  ┌ [31mERROR:[39m StrayError: \\"Kiraevavi somani kihy viyoshi nihahyke kimeraeni.\\" isn't in the project
+      ➤ │ [90m[4mKiraevavi somani kihy viyoshi nihahyke kimeraeni.[24m[39m [90m540b95dd-98a2-56fe-9c95-6e7123c148ca[39m
+        └ [34mFIXED[39m: added to the project
+        ┌ [31mERROR:[39m MissingStatusError: \\"Kiraevavi somani kihy viyoshi nihahyke kimeraeni.\\" doesn't have a Status
+        │ [90m[4mKiraevavi somani kihy viyoshi nihahyke kimeraeni.[24m[39m [90m540b95dd-98a2-56fe-9c95-6e7123c148ca[39m
+        └ [34mFIXED[39m: added to triage
       ",
       ]
     `)
@@ -283,11 +276,9 @@ describe('validateIssueOrPullRequest', () => {
     console.log(logs.join(''))
     expect(logs).toMatchInlineSnapshot(`
       Array [
-        "┌ [31mERROR:[39m NoCycleError: \\"Kiraevavi somani kihy viyoshi nihahyke kimeraeni.\\" has a Status of \\"Todo\\" or \\"In Progress\\" but isn't in the current cycle
-      ",
-        "│ [90m[4mKiraevavi somani kihy viyoshi nihahyke kimeraeni.[24m[39m [90m540b95dd-98a2-56fe-9c95-6e7123c148ca[39m
-      ",
-        "└ [34mFIXED[39m: added to the current cycle
+        "  ┌ [31mERROR:[39m NoCycleError: \\"Kiraevavi somani kihy viyoshi nihahyke kimeraeni.\\" has a Status of \\"Todo\\" or \\"In Progress\\" but isn't in the current cycle
+      ➤ │ [90m[4mKiraevavi somani kihy viyoshi nihahyke kimeraeni.[24m[39m [90m540b95dd-98a2-56fe-9c95-6e7123c148ca[39m
+        └ [34mFIXED[39m: added to the current cycle
       ",
       ]
     `)
@@ -306,11 +297,9 @@ describe('validateIssueOrPullRequest', () => {
     console.log(logs.join(''))
     expect(logs).toMatchInlineSnapshot(`
       Array [
-        "┌ [31mERROR:[39m PreviousCycleError: \\"Kiraevavi somani kihy viyoshi nihahyke kimeraeni.\\" is in the previous cycle
-      ",
-        "│ [90m[4mKiraevavi somani kihy viyoshi nihahyke kimeraeni.[24m[39m [90m540b95dd-98a2-56fe-9c95-6e7123c148ca[39m
-      ",
-        "└ [34mFIXED[39m: added to the current cycle and incremented rollovers
+        "  ┌ [31mERROR:[39m PreviousCycleError: \\"Kiraevavi somani kihy viyoshi nihahyke kimeraeni.\\" is in the previous cycle
+      ➤ │ [90m[4mKiraevavi somani kihy viyoshi nihahyke kimeraeni.[24m[39m [90m540b95dd-98a2-56fe-9c95-6e7123c148ca[39m
+        └ [34mFIXED[39m: added to the current cycle and incremented rollovers
       ",
       ]
     `)
@@ -328,11 +317,9 @@ describe('validateIssueOrPullRequest', () => {
     console.log(logs.join(''))
     expect(logs).toMatchInlineSnapshot(`
       Array [
-        "┌ [31mERROR:[39m CurrentCycleError: \\"Kiraevavi somani kihy viyoshi nihahyke kimeraeni.\\" has a Status of \\"Triage\\" or \\"Backlog\\" but is in the current cycle
-      ",
-        "│ [90m[4mKiraevavi somani kihy viyoshi nihahyke kimeraeni.[24m[39m [90m540b95dd-98a2-56fe-9c95-6e7123c148ca[39m
-      ",
-        "└ [34mFIXED[39m: removed from the current cycle
+        "  ┌ [31mERROR:[39m CurrentCycleError: \\"Kiraevavi somani kihy viyoshi nihahyke kimeraeni.\\" has a Status of \\"Triage\\" or \\"Backlog\\" but is in the current cycle
+      ➤ │ [90m[4mKiraevavi somani kihy viyoshi nihahyke kimeraeni.[24m[39m [90m540b95dd-98a2-56fe-9c95-6e7123c148ca[39m
+        └ [34mFIXED[39m: removed from the current cycle
       ",
       ]
     `)
@@ -351,11 +338,9 @@ describe('validateIssueOrPullRequest', () => {
     console.log(logs.join(''))
     expect(logs).toMatchInlineSnapshot(`
       Array [
-        "┌ [31mERROR:[39m StaleError: \\"Kiraevavi somani kihy viyoshi nihahyke kimeraeni.\\" is in the current cycle but hasn't been updated in a week
-      ",
-        "│ [90m[4mKiraevavi somani kihy viyoshi nihahyke kimeraeni.[24m[39m [90m540b95dd-98a2-56fe-9c95-6e7123c148ca[39m
-      ",
-        "└ [34mFIXED[39m: marked as stale
+        "  ┌ [31mERROR:[39m StaleError: \\"Kiraevavi somani kihy viyoshi nihahyke kimeraeni.\\" is in the current cycle but hasn't been updated in a week
+      ➤ │ [90m[4mKiraevavi somani kihy viyoshi nihahyke kimeraeni.[24m[39m [90m540b95dd-98a2-56fe-9c95-6e7123c148ca[39m
+        └ [34mFIXED[39m: marked as stale
       ",
       ]
     `)
@@ -375,11 +360,9 @@ describe('validateIssueOrPullRequest', () => {
     console.log(logs.join(''))
     expect(logs).toMatchInlineSnapshot(`
       Array [
-        "┌ [31mERROR:[39m UpdatedError: \\"Kiraevavi somani kihy viyoshi nihahyke kimeraeni.\\" is marked as stale but isn't
-      ",
-        "│ [90m[4mKiraevavi somani kihy viyoshi nihahyke kimeraeni.[24m[39m [90m540b95dd-98a2-56fe-9c95-6e7123c148ca[39m
-      ",
-        "└ [34mFIXED[39m: cleared
+        "  ┌ [31mERROR:[39m UpdatedError: \\"Kiraevavi somani kihy viyoshi nihahyke kimeraeni.\\" is marked as stale but isn't
+      ➤ │ [90m[4mKiraevavi somani kihy viyoshi nihahyke kimeraeni.[24m[39m [90m540b95dd-98a2-56fe-9c95-6e7123c148ca[39m
+        └ [34mFIXED[39m: cleared
       ",
       ]
     `)
@@ -416,7 +399,6 @@ it('validates issues or pull requests', async () => {
   console.log(logs.join(''))
   expect(logs).toMatchInlineSnapshot(`
     Array [
-      "",
       "  ┌ [31mERROR:[39m ProjectError: \\"Ko kin kikoshichi momi kechikeko, ta raeyochi muyovi chisoma shi hyviceakin niyoki kima.\\" is in the project but is linked to a pull request
     ➤ │ [90m[4mKo kin kikoshichi momi kechikeko, ta raeyochi muyovi chisoma shi hyviceakin niyoki kima.[24m[39m [90mac9e5df8-6ef1-5b6d-8123-e119ebcb26f6[39m
       └ [34mFIXED[39m: removed from the project
