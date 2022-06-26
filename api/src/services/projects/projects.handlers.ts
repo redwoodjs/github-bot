@@ -42,21 +42,21 @@ export const project = {
 export function createIssueOrPullRequest(
   seed: string,
   {
-    hasLinkedPr = false,
+    hasLinkedPullRequest = false,
     isInProject = true,
     updatedAt = new Date().toISOString(),
     ...projectOptions
   }: {
-    hasLinkedPr?: boolean
+    hasLinkedPullRequest?: boolean
     isInProject?: boolean
     updatedAt?: string
     Cycle?: '@current' | '@previous'
     Stale?: boolean
     Status?: Statuses
   } = {}
-): IssueOrPullRequest & { hasLinkedPr?: boolean } {
+): IssueOrPullRequest & { hasLinkedPullRequest?: boolean } {
   return {
-    hasLinkedPr,
+    hasLinkedPullRequest,
     id: copycat.uuid(seed),
     node_id: copycat.uuid(seed),
     title: copycat.sentence(seed),

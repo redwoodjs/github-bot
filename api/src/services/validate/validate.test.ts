@@ -227,7 +227,7 @@ describe('validateIssueOrPullRequest', () => {
 
   it('skips issues with linked pull requests', async () => {
     const issueOrPullRequest = createIssueOrPullRequest('foo', {
-      hasLinkedPr: true,
+      hasLinkedPullRequest: true,
       isInProject: false,
     })
     await validate(issueOrPullRequest)
@@ -236,7 +236,7 @@ describe('validateIssueOrPullRequest', () => {
 
   it('removes issues with linked pull requests from the project', async () => {
     const issueOrPullRequest = createIssueOrPullRequest('foo', {
-      hasLinkedPr: true,
+      hasLinkedPullRequest: true,
     })
 
     await validate(issueOrPullRequest)
@@ -381,11 +381,11 @@ describe('validateIssueOrPullRequest', () => {
 it('validates issues or pull requests', async () => {
   issuesOrPullRequests.push(
     createIssueOrPullRequest('foo', {
-      hasLinkedPr: true,
+      hasLinkedPullRequest: true,
       isInProject: false,
     }),
     createIssueOrPullRequest('bar', {
-      hasLinkedPr: true,
+      hasLinkedPullRequest: true,
     }),
     createIssueOrPullRequest('baz', {
       isInProject: false,

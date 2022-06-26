@@ -5,6 +5,7 @@ import {
 import {
   getOpenIssues,
   getOpenPullRequests,
+  hasLinkedPullRequest,
   validateIssuesOrPullRequest,
 } from 'api/src/services/validate/validate'
 import { Cli, Command } from 'clipanion'
@@ -26,7 +27,8 @@ class ValidateCommand extends Command {
     await getProjectId()
     await getProjectFieldAndValueNamesToIds()
 
-    const issues = await getOpenIssues()
+    let issues = await getOpenIssues()
+    issues = await Promise.all(issues.map(hasLinkedPullRequest))
     const pullRequests = await getOpenPullRequests()
     let issuesOrPullRequests = [...issues, ...pullRequests]
 

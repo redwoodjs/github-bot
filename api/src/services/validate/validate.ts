@@ -14,7 +14,7 @@ import {
 } from 'src/services/projects'
 
 export async function validateIssuesOrPullRequest(
-  issueOrPullRequest: IssueOrPullRequest & { hasLinkedPr?: boolean }
+  issueOrPullRequest: IssueOrPullRequest & { hasLinkedPullRequest?: boolean }
 ) {
   const report = []
 
@@ -27,7 +27,7 @@ export async function validateIssuesOrPullRequest(
        *
        * Otherwise, onto the next one
        */
-      if (issueOrPullRequest.hasLinkedPr) {
+      if (issueOrPullRequest.hasLinkedPullRequest) {
         if (!isInProject(issueOrPullRequest)) {
           break
         }
@@ -404,7 +404,7 @@ projectNextItems(first: 10) {
 `
 
 export async function getOpenIssues(after?: string) {
-  let {
+  const {
     repository: { issues },
   } = await octokit.graphql(getOpenIssuesQuery, {
     after,
@@ -416,30 +416,26 @@ export async function getOpenIssues(after?: string) {
 
   const nextNodes = await getOpenIssues(issues.pageInfo.endCursor)
 
-  issues = [...issues.nodes, ...nextNodes]
+  return [...issues.nodes, ...nextNodes]
+}
 
-  issues = await Promise.all(
-    issues.map(async (issue) => {
-      const res = await fetch(issue.url, {
-        headers: {
-          authorization: `token ${process.env.GITHUB_TOKEN}`,
-        },
-      })
+export async function hasLinkedPullRequest(issue) {
+  const res = await fetch(issue.url, {
+    headers: {
+      authorization: `token ${process.env.GITHUB_TOKEN}`,
+    },
+  })
 
-      const body = await res.text()
+  const body = await res.text()
 
-      const hasLinkedPr = new RegExp(
-        'Successfully merging a pull request may close this issue'
-      ).test(body)
+  const hasLinkedPullRequest = new RegExp(
+    'Successfully merging a pull request may close this issue'
+  ).test(body)
 
-      return {
-        ...issue,
-        hasLinkedPr,
-      }
-    })
-  )
-
-  return issues
+  return {
+    ...issue,
+    hasLinkedPullRequest,
+  }
 }
 
 export const getOpenIssuesQuery = `
