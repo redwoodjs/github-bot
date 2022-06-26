@@ -145,6 +145,7 @@ export const statuses = [
   'Backlog',
   'Todo',
   'In progress',
+  'Needs review',
   'Done',
   'Archived',
 ] as const

@@ -167,6 +167,7 @@ describe('getProjectFieldAndValueNamesToIds', () => {
           "Backlog",
           "Todo",
           "In progress",
+          "Needs review",
           "Done",
           "Archived",
         ]
@@ -213,6 +214,7 @@ describe('getProjectFieldAndValueNamesToIds', () => {
         "Backlog" => "2f2ba648",
         "Todo" => "f75ad846",
         "In progress" => "47fc9ee4",
+        "Needs review" => "a0a0fdba",
         "Done" => "98236657",
         "Archived" => "04688006",
       }

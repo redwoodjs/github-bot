@@ -242,16 +242,17 @@ export function validateCycle(issueOrPullRequest: IssueOrPullRequest) {
   const statusField = getField(projectNextItem, 'Status')
   const cycleField = getField(projectNextItem, 'Cycle')
 
-  const hasTodoOrInProgressStatus = [
-    statusNamesToIds.get('Todo'),
-    statusNamesToIds.get('In progress'),
-  ].includes(statusField.value)
-
   const hasCycle = cycleField !== undefined
 
   const { id, title, url } = issueOrPullRequest
 
-  if (hasTodoOrInProgressStatus) {
+  if (
+    [
+      statusNamesToIds.get('Todo'),
+      statusNamesToIds.get('In progress'),
+      statusNamesToIds.get('Needs review'),
+    ].includes(statusField.value)
+  ) {
     if (!hasCycle) {
       throw new NoCycleError(id, title, url)
     }
@@ -263,12 +264,12 @@ export function validateCycle(issueOrPullRequest: IssueOrPullRequest) {
     }
   }
 
-  const hasTriageOrBacklogStatus = [
-    statusNamesToIds.get('Triage'),
-    statusNamesToIds.get('Backlog'),
-  ].includes(statusField.value)
-
-  if (hasTriageOrBacklogStatus && hasCycle) {
+  if (
+    [statusNamesToIds.get('Triage'), statusNamesToIds.get('Backlog')].includes(
+      statusField.value
+    ) &&
+    hasCycle
+  ) {
     throw new CurrentCycleError(id, title, url)
   }
 }

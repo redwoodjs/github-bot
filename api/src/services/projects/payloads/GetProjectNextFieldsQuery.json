@@ -5,7 +5,7 @@
         {
           "name": "Status",
           "id": "PNF_lADOAq9qTM4ABn0OzgA8U5Y",
-          "settings": "{\"width\":127,\"options\":[{\"id\":\"30985805\",\"name\":\"Triage\",\"name_html\":\"Triage\"},{\"id\":\"2f2ba648\",\"name\":\"Backlog\",\"name_html\":\"Backlog\"},{\"id\":\"f75ad846\",\"name\":\"Todo\",\"name_html\":\"Todo\"},{\"id\":\"47fc9ee4\",\"name\":\"In progress\",\"name_html\":\"In progress\"},{\"id\":\"98236657\",\"name\":\"Done\",\"name_html\":\"Done\"},{\"id\":\"04688006\",\"name\":\"Archived\",\"name_html\":\"Archived\"}]}"
+          "settings": "{\"width\":127,\"options\":[{\"id\":\"30985805\",\"name\":\"Triage\",\"name_html\":\"Triage\"},{\"id\":\"2f2ba648\",\"name\":\"Backlog\",\"name_html\":\"Backlog\"},{\"id\":\"f75ad846\",\"name\":\"Todo\",\"name_html\":\"Todo\"},{\"id\":\"47fc9ee4\",\"name\":\"In progress\",\"name_html\":\"In progress\"},{\"id\":\"a0a0fdba\",\"name\":\"Needs review\",\"name_html\":\"Needs review\"},{\"id\":\"98236657\",\"name\":\"Done\",\"name_html\":\"Done\"},{\"id\":\"04688006\",\"name\":\"Archived\",\"name_html\":\"Archived\"}]}"
         },
         {
           "name": "Cycle",
