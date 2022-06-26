@@ -110,7 +110,7 @@ export const handler = async (event: Event, _context: Context) => {
         statusCode: 401,
       }
     } else {
-      logger.error({ error }, error.message)
+      logger.error(error, error.message)
 
       return {
         statusCode: 500,
