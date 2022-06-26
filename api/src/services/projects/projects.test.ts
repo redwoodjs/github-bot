@@ -289,18 +289,16 @@ describe('updateProjectItemField', () => {
       })
 
       it("throws when `value` isn't a boolean", async () => {
-        try {
-          await updateProjectItem(item.id, {
+        await expect(
+          updateProjectItem(item.id, {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-expect-error
             Cycle: 'not a boolean',
           })
-        } catch (e) {
-          expect(e).toMatchInlineSnapshot(`
-            [Error: Invalid value for Cycle field
-            Expected undefined or boolean, got string]
+        ).rejects.toThrowErrorMatchingInlineSnapshot(`
+                "Invalid value for Cycle field
+                Expected undefined or boolean, got string"
           `)
-        }
       })
     })
 
@@ -333,18 +331,16 @@ describe('updateProjectItemField', () => {
       })
 
       it("throws when `value` isn't a boolean", async () => {
-        try {
-          await updateProjectItem(item.id, {
+        await expect(
+          updateProjectItem(item.id, {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-expect-error
             'Needs discussion': 'not undefined or a boolean',
           })
-        } catch (e) {
-          expect(e).toMatchInlineSnapshot(`
-            [Error: Invalid value for Needs discussion field
-            Expected undefined or boolean, got string]
+        ).rejects.toThrowErrorMatchingInlineSnapshot(`
+            "Invalid value for Needs discussion field
+            Expected undefined or boolean, got string"
           `)
-        }
       })
     })
 
@@ -369,31 +365,27 @@ describe('updateProjectItemField', () => {
       })
 
       it("throws if `value` isn't a string or a valid priority", async () => {
-        try {
-          await updateProjectItem(item.id, {
+        await expect(
+          updateProjectItem(item.id, {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-expect-error
             Priority: true,
           })
-        } catch (e) {
-          expect(e).toMatchInlineSnapshot(`
-            [Error: Invalid value for Priority field
-            Expected string, got boolean]
+        ).rejects.toThrowErrorMatchingInlineSnapshot(`
+            "Invalid value for Priority field
+            Expected string, got boolean"
           `)
-        }
 
-        try {
-          await updateProjectItem(item.id, {
+        await expect(
+          updateProjectItem(item.id, {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-expect-error
             Priority: '📼 bazinga',
           })
-        } catch (e) {
-          expect(e).toMatchInlineSnapshot(`
-            [Error: Invalid value for Priority field
-            Expected string, got 📼 bazinga]
+        ).rejects.toThrowErrorMatchingInlineSnapshot(`
+            "Invalid value for Priority field
+            Expected string, got 📼 bazinga"
           `)
-        }
       })
     })
 
@@ -428,18 +420,16 @@ describe('updateProjectItemField', () => {
       })
 
       it("throws when `value` isn't a number", async () => {
-        try {
-          await updateProjectItem(item.id, {
+        await expect(
+          updateProjectItem(item.id, {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-expect-error
             Rollovers: 'not a number',
           })
-        } catch (e) {
-          expect(e).toMatchInlineSnapshot(`
-            [Error: Invalid value for Rollovers field
-            Expected undefined or number, got string]
+        ).rejects.toThrowErrorMatchingInlineSnapshot(`
+            "Invalid value for Rollovers field
+            Expected undefined or number, got string"
           `)
-        }
       })
     })
 
@@ -472,18 +462,16 @@ describe('updateProjectItemField', () => {
       })
 
       it("throws when `value` isn't a boolean", async () => {
-        try {
-          await updateProjectItem(item.id, {
+        await expect(
+          updateProjectItem(item.id, {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-expect-error
             Stale: 'not a boolean',
           })
-        } catch (e) {
-          expect(e).toMatchInlineSnapshot(`
-            [Error: Invalid value for Stale field
-            Expected undefined or boolean, got string]
+        ).rejects.toThrowErrorMatchingInlineSnapshot(`
+            "Invalid value for Stale field
+            Expected undefined or boolean, got string"
           `)
-        }
       })
     })
 
@@ -508,33 +496,29 @@ describe('updateProjectItemField', () => {
       })
 
       it("throws if `value` isn't a string", async () => {
-        try {
-          await updateProjectItem(item.id, {
+        await expect(
+          updateProjectItem(item.id, {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-expect-error
             Status: true,
           })
-        } catch (e) {
-          expect(e).toMatchInlineSnapshot(`
-            [Error: Invalid value for Status field
-            Expected string, got boolean]
+        ).rejects.toThrowErrorMatchingInlineSnapshot(`
+            "Invalid value for Status field
+            Expected string, got boolean"
           `)
-        }
       })
 
       it("throws if `value` isn't a valid status", async () => {
-        try {
-          await updateProjectItem(item.id, {
+        expect(
+          updateProjectItem(item.id, {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-expect-error
             Status: 'Needs bazinga',
           })
-        } catch (e) {
-          expect(e).toMatchInlineSnapshot(`
-            [Error: Invalid value for Status field
-            Expected string, got Needs bazinga]
+        ).rejects.toThrowErrorMatchingInlineSnapshot(`
+            "Invalid value for Status field
+            Expected string, got Needs bazinga"
           `)
-        }
       })
     })
 

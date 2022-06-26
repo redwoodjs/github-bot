@@ -6,7 +6,9 @@ import { octokit } from 'src/lib/github'
 import {
   addToProject,
   currentCycleId,
+  cycleStatuses,
   getField,
+  nonCycleStatuses,
   projectId,
   removeFromProject,
   statusNamesToIds,
@@ -247,11 +249,9 @@ export function validateCycle(issueOrPullRequest: IssueOrPullRequest) {
   const { id, title, url } = issueOrPullRequest
 
   if (
-    [
-      statusNamesToIds.get('Todo'),
-      statusNamesToIds.get('In progress'),
-      statusNamesToIds.get('Needs review'),
-    ].includes(statusField.value)
+    cycleStatuses
+      .map((cycleStatus) => statusNamesToIds.get(cycleStatus))
+      .includes(statusField.value)
   ) {
     if (!hasCycle) {
       throw new NoCycleError(id, title, url)
@@ -265,9 +265,9 @@ export function validateCycle(issueOrPullRequest: IssueOrPullRequest) {
   }
 
   if (
-    [statusNamesToIds.get('Triage'), statusNamesToIds.get('Backlog')].includes(
-      statusField.value
-    ) &&
+    nonCycleStatuses
+      .map((nonCycleStatus) => statusNamesToIds.get(nonCycleStatus))
+      .includes(statusField.value) &&
     hasCycle
   ) {
     throw new CurrentCycleError(id, title, url)
@@ -277,7 +277,7 @@ export function validateCycle(issueOrPullRequest: IssueOrPullRequest) {
 export class NoCycleError extends Error {
   constructor(id, title, url) {
     super(
-      `"${title}" has a Status of "Todo" or "In Progress" but isn't in the current cycle`
+      `"${title}" has a Status of "Todo", "In Progress", or "Needs review" but isn't in the current cycle`
     )
     this.name = 'NoCycleError'
 

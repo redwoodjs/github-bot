@@ -97,14 +97,14 @@ describe('milestonePullRequest', () => {
   })
 
   it('throws if passed an unsupported milestone', async () => {
-    try {
-      await milestonePullRequest(content.id, {
+    await expect(
+      milestonePullRequest(content.id, {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         milestone: 'bazinga',
       })
-    } catch (e) {
-      expect(e).toMatchInlineSnapshot(`[Error: Can't add milestone bazinga]`)
-    }
+    ).rejects.toThrowErrorMatchingInlineSnapshot(
+      `"Can't add milestone bazinga"`
+    )
   })
 })

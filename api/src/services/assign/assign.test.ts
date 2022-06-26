@@ -51,15 +51,13 @@ describe('assign ', () => {
   })
 
   it("throws if the assignee isn't in the triage team", async () => {
-    try {
-      await assign(content.id, {
+    await expect(
+      assign(content.id, {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         to: 'bazinga',
       })
-    } catch (e) {
-      expect(e).toMatchInlineSnapshot(`[Error: Can't assign to bazinga]`)
-    }
+    ).rejects.toThrowErrorMatchingInlineSnapshot(`"Can't assign to bazinga"`)
   })
 
   it('chooses the next triage team member if the assignee is Core Team/Triage', async () => {

@@ -109,7 +109,7 @@ export const deleteProjectNextItemMutation = `
 `
 
 /**
- * Update a project item's field.
+ * Fields
  */
 
 export const fields = [
@@ -129,6 +129,10 @@ export let currentCycleId
 export let checkNeedsDiscussionId
 export let checkStaleId
 
+/**
+ * Priorities
+ */
+
 export const priorities = [
   '🚨 Urgent',
   '1️⃣ High',
@@ -140,15 +144,23 @@ export type Priorities = typeof priorities[number]
 
 export const priorityNamesToIds = new Map<Priorities, string>()
 
+/**
+ * Statuses
+ */
+
+export const cycleStatuses = ['Todo', 'In progress', 'Needs review'] as const
+
 export const statuses = [
   'Triage',
   'Backlog',
-  'Todo',
-  'In progress',
-  'Needs review',
+  ...cycleStatuses,
   'Done',
   'Archived',
 ] as const
+
+export const nonCycleStatuses = statuses.filter(
+  (status) => !cycleStatuses.includes(status)
+)
 
 export type Statuses = typeof statuses[number]
 
@@ -296,6 +308,10 @@ export type GetProjectNextFieldsQueryRes = {
     fields: { nodes: Array<{ name: string; id: string; settings?: string }> }
   }
 }
+
+/**
+ * Update a project item's fields
+ */
 
 export async function updateProjectItem(
   itemId: string,

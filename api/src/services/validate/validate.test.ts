@@ -2,7 +2,11 @@ import * as dateFns from 'date-fns'
 import { setupServer } from 'msw/node'
 
 import { installationHandler } from 'src/lib/github'
-import { getProjectFieldAndValueNamesToIds } from 'src/services/projects'
+import {
+  cycleStatuses,
+  getProjectFieldAndValueNamesToIds,
+  nonCycleStatuses,
+} from 'src/services/projects'
 import projectHandlers, {
   clearIssuesOrPullRequests,
   createIssueOrPullRequest,
@@ -11,11 +15,6 @@ import projectHandlers, {
 } from 'src/services/projects/projects.handlers'
 
 import {
-  CurrentCycleError,
-  MissingStatusError,
-  NoCycleError,
-  PreviousCycleError,
-  StrayError,
   validateCycle,
   validateIssuesOrPullRequest,
   validateProject,
@@ -47,118 +46,88 @@ jest.mock('chalk', () => {
 })
 
 describe('validateProject', () => {
+  it('does nothing if an issue or pull request is in the project', () => {
+    const issueOrPullRequest = createIssueOrPullRequest('foo')
+    validateProject(issueOrPullRequest)
+  })
+
   it("throws if an issue or pull request isn't in the project", () => {
     const issueOrPullRequest = createIssueOrPullRequest('foo', {
       isInProject: false,
     })
-
-    try {
+    expect(() =>
       validateProject(issueOrPullRequest)
-    } catch (e) {
-      expect(e).toBeInstanceOf(StrayError)
-      expect(e).toMatchInlineSnapshot(
-        `[StrayError: "Kiraevavi somani kihy viyoshi nihahyke kimeraeni." isn't in the project]`
-      )
-    }
-  })
-
-  it('does nothing if an issue or pull request is in the project', () => {
-    const issueOrPullRequest = createIssueOrPullRequest('foo')
-
-    validateProject(issueOrPullRequest)
+    ).toThrowErrorMatchingInlineSnapshot(
+      `"\\"Kiraevavi somani kihy viyoshi nihahyke kimeraeni.\\" isn't in the project"`
+    )
   })
 })
 
 describe('validateStatus', () => {
-  it("throws if an issue or pull request doesn't have a status", () => {
-    const issueOrPullRequest = createIssueOrPullRequest('foo')
-
-    try {
-      validateStatus(issueOrPullRequest)
-    } catch (e) {
-      expect(e).toBeInstanceOf(MissingStatusError)
-      expect(e).toMatchInlineSnapshot(
-        `[MissingStatusError: "Kiraevavi somani kihy viyoshi nihahyke kimeraeni." doesn't have a Status]`
-      )
-    }
-  })
-
   it('does nothing if an issue or pull request has a status', () => {
     const issueOrPullRequest = createIssueOrPullRequest('foo', {
       Status: 'Triage',
     })
-
     validateStatus(issueOrPullRequest)
+  })
+
+  it("throws if an issue or pull request doesn't have a status", () => {
+    const issueOrPullRequest = createIssueOrPullRequest('foo')
+    expect(() =>
+      validateStatus(issueOrPullRequest)
+    ).toThrowErrorMatchingInlineSnapshot(
+      `"\\"Kiraevavi somani kihy viyoshi nihahyke kimeraeni.\\" doesn't have a Status"`
+    )
   })
 })
 
 describe('validateCycle', () => {
-  it("throws if an issue or pull request has a status of 'Todo' or 'In progress' and isn't in the current cycle", () => {
-    let issueOrPullRequest = createIssueOrPullRequest('foo', {
-      isInProject: true,
-      Status: 'Todo',
+  for (const Status of cycleStatuses) {
+    it('does nothing if an issue or pull request has a cycle status of and is in the current cycle', () => {
+      const issueOrPullRequest = createIssueOrPullRequest('foo', {
+        Cycle: '@current',
+        Status,
+      })
+      validateCycle(issueOrPullRequest)
     })
 
-    try {
-      validateCycle(issueOrPullRequest)
-    } catch (e) {
-      expect(e).toBeInstanceOf(NoCycleError)
-      expect(e).toMatchInlineSnapshot(
-        `[NoCycleError: "Kiraevavi somani kihy viyoshi nihahyke kimeraeni." has a Status of "Todo" or "In Progress" but isn't in the current cycle]`
+    it("throws if an issue or pull request has a cycle status and isn't in the current cycle", () => {
+      const issueOrPullRequest = createIssueOrPullRequest('foo', {
+        isInProject: true,
+        Status,
+      })
+      expect(() =>
+        validateCycle(issueOrPullRequest)
+      ).toThrowErrorMatchingInlineSnapshot(
+        `"\\"Kiraevavi somani kihy viyoshi nihahyke kimeraeni.\\" has a Status of \\"Todo\\", \\"In Progress\\", or \\"Needs review\\" but isn't in the current cycle"`
+      )
+    })
+
+    it('throws if an issue or pull request has a cycle status and is in the previous cycle', () => {
+      const issueOrPullRequest = createIssueOrPullRequest('foo', {
+        Cycle: '@previous',
+        Status: 'Todo',
+      })
+      expect(() =>
+        validateCycle(issueOrPullRequest)
+      ).toThrowErrorMatchingInlineSnapshot(
+        `"\\"Kiraevavi somani kihy viyoshi nihahyke kimeraeni.\\" is in the previous cycle"`
+      )
+    })
+  }
+
+  it("throws if an issue or pull request doesn't have a cycle status and is in the cycle", () => {
+    for (const Status of nonCycleStatuses) {
+      const issueOrPullRequest = createIssueOrPullRequest('foo', {
+        Cycle: '@current',
+        Status,
+      })
+      expect(() =>
+        validateCycle(issueOrPullRequest)
+      ).toThrowErrorMatchingInlineSnapshot(
+        `"\\"Kiraevavi somani kihy viyoshi nihahyke kimeraeni.\\" has a Status of \\"Triage\\" or \\"Backlog\\" but is in the current cycle"`
       )
     }
-
-    issueOrPullRequest = createIssueOrPullRequest('foo', {
-      Status: 'In progress',
-    })
-
-    try {
-      validateCycle(issueOrPullRequest)
-    } catch (e) {
-      expect(e).toMatchInlineSnapshot(
-        `[NoCycleError: "Kiraevavi somani kihy viyoshi nihahyke kimeraeni." has a Status of "Todo" or "In Progress" but isn't in the current cycle]`
-      )
-    }
-  })
-
-  it("throws if an issue or pull request has a status of 'Todo' or 'In progress' and is in the previous cycle", () => {
-    const issueOrPullRequest = createIssueOrPullRequest('foo', {
-      Cycle: '@previous',
-      Status: 'Todo',
-    })
-
-    try {
-      validateCycle(issueOrPullRequest)
-    } catch (e) {
-      expect(e).toBeInstanceOf(PreviousCycleError)
-      expect(e).toMatchInlineSnapshot(
-        `[PreviousCycleError: "Kiraevavi somani kihy viyoshi nihahyke kimeraeni." is in the previous cycle]`
-      )
-    }
-  })
-
-  it("throws if an issue or pull request has a status of 'Triage' or 'Backlog' and is in the cycle", () => {
-    const issueOrPullRequest = createIssueOrPullRequest('foo', {
-      Status: 'Triage',
-    })
-
-    try {
-      validateCycle(issueOrPullRequest)
-    } catch (e) {
-      expect(e).toBeInstanceOf(CurrentCycleError)
-      expect(e).toMatchInlineSnapshot(
-        `[CurrentCycleError: "Kiraevavi somani kihy viyoshi nihahyke kimeraeni." has a Status of "Triage" or "Backlog" but is in the current cycle]`
-      )
-    }
-  })
-
-  it("does nothing if an issue or pull request has a status of 'Todo' or 'In progress' and is in the current cycle", () => {
-    const issueOrPullRequest = createIssueOrPullRequest('foo', {
-      Cycle: '@current',
-      Status: 'Todo',
-    })
-
-    validateCycle(issueOrPullRequest)
   })
 })
 
@@ -169,14 +138,11 @@ describe('validateStale', () => {
       Status: 'In progress',
       updatedAt: dateFns.subWeeks(new Date(), 2).toISOString(),
     })
-
-    try {
+    expect(() =>
       validateStale(issueOrPullRequest)
-    } catch (e) {
-      expect(e).toMatchInlineSnapshot(
-        `[StaleError: "Kiraevavi somani kihy viyoshi nihahyke kimeraeni." is in the current cycle but hasn't been updated in a week]`
-      )
-    }
+    ).toThrowErrorMatchingInlineSnapshot(
+      `"\\"Kiraevavi somani kihy viyoshi nihahyke kimeraeni.\\" is in the current cycle but hasn't been updated in a week"`
+    )
   })
 
   it('throws if an issue or pull request in the current cycle is marked as stale but has been updated within a week', () => {
@@ -186,14 +152,11 @@ describe('validateStale', () => {
       Status: 'In progress',
       updatedAt: new Date().toISOString(),
     })
-
-    try {
+    expect(() =>
       validateStale(issueOrPullRequest)
-    } catch (e) {
-      expect(e).toMatchInlineSnapshot(
-        `[UpdatedError: "Kiraevavi somani kihy viyoshi nihahyke kimeraeni." is marked as stale but isn't]`
-      )
-    }
+    ).toThrowErrorMatchingInlineSnapshot(
+      `"\\"Kiraevavi somani kihy viyoshi nihahyke kimeraeni.\\" is marked as stale but isn't"`
+    )
   })
 
   it('does nothing if an issue or pull request is stale and already marked as stale', () => {
@@ -203,7 +166,6 @@ describe('validateStale', () => {
       Status: 'In progress',
       updatedAt: dateFns.subWeeks(new Date(), 2).toISOString(),
     })
-
     validateStale(issueOrPullRequest)
   })
 })
@@ -230,6 +192,7 @@ describe('validateIssueOrPullRequest', () => {
       hasLinkedPullRequest: true,
       isInProject: false,
     })
+
     await validate(issueOrPullRequest)
     expect(logs.length).toBe(0)
   })
@@ -273,7 +236,7 @@ describe('validateIssueOrPullRequest', () => {
     `)
   })
 
-  it("adds issues or pull requests with a status of 'Todo' or 'In progress' to the current cycle", async () => {
+  it("adds issues or pull requests with a status of 'Todo', 'In progress', or 'Needs review' to the current cycle", async () => {
     const issueOrPullRequest = createIssueOrPullRequest('foo', {
       Status: 'Todo',
     })
@@ -285,7 +248,7 @@ describe('validateIssueOrPullRequest', () => {
     console.log(logs.join(''))
     expect(logs).toMatchInlineSnapshot(`
       Array [
-        "  ┌ ERROR: NoCycleError: \\"Kiraevavi somani kihy viyoshi nihahyke kimeraeni.\\" has a Status of \\"Todo\\" or \\"In Progress\\" but isn't in the current cycle
+        "  ┌ ERROR: NoCycleError: \\"Kiraevavi somani kihy viyoshi nihahyke kimeraeni.\\" has a Status of \\"Todo\\", \\"In Progress\\", or \\"Needs review\\" but isn't in the current cycle
       ➤ │ Kiraevavi somani kihy viyoshi nihahyke kimeraeni. 540b95dd-98a2-56fe-9c95-6e7123c148ca
         └ FIXED: added to the current cycle
       ",
@@ -319,6 +282,7 @@ describe('validateIssueOrPullRequest', () => {
       Cycle: '@current',
       Status: 'Triage',
     })
+
     issuesOrPullRequests.push(issueOrPullRequest)
     project.items.push(issueOrPullRequest.projectNextItems.nodes[0])
 
@@ -340,6 +304,7 @@ describe('validateIssueOrPullRequest', () => {
       Status: 'Todo',
       updatedAt: dateFns.subWeeks(new Date(), 2).toISOString(),
     })
+
     issuesOrPullRequests.push(issueOrPullRequest)
     project.items.push(issueOrPullRequest.projectNextItems.nodes[0])
 
@@ -362,6 +327,7 @@ describe('validateIssueOrPullRequest', () => {
       Status: 'Todo',
       updatedAt: new Date().toISOString(),
     })
+
     issuesOrPullRequests.push(issueOrPullRequest)
     project.items.push(issueOrPullRequest.projectNextItems.nodes[0])
 
