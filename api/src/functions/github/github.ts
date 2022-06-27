@@ -184,8 +184,7 @@ function handleContentLabeled(
 }
 
 async function handleAddToCycleLabel(node_id: string) {
-  await removeLabel({
-    labelableId: node_id,
+  await removeLabel(node_id, {
     label: 'action/add-to-cycle',
   })
 
@@ -208,8 +207,7 @@ async function handleAddToDiscussionQueue(node_id: string) {
 }
 
 async function handleAddToBacklog(node_id: string) {
-  await removeLabel({
-    labelableId: node_id,
+  await removeLabel(node_id, {
     label: 'action/add-to-backlog',
   })
 
