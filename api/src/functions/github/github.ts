@@ -154,7 +154,7 @@ async function handleIssuesOpened(payload: IssuesOpenedEvent) {
 
 // ------------------------
 
-function handleContentLabeled(
+async function handleContentLabeled(
   payload: (IssuesLabeledEvent | PullRequestLabeledEvent) & {
     issue?: Issue
     pull_request?: PullRequest
@@ -162,58 +162,36 @@ function handleContentLabeled(
 ) {
   const node_id = payload.issue?.node_id ?? payload.pull_request.node_id
 
+  await removeLabel(node_id, { label: payload.label.name })
+  const itemId = await addToProject(node_id)
+
+  logger.info(`Content labeled ${payload.label.name}`)
+
+  let options
+  let report
+
   switch (payload.label.name) {
     case 'action/add-to-cycle':
-      logger.info(
-        `content labeled ${payload.label.name}; adding to the current cycle`
-      )
-      return handleAddToCycleLabel(node_id)
+      options = {
+        Cycle: true,
+        Status: 'In progress',
+      }
+      report = `Added to the current cycle`
+      break
 
     case 'action/add-to-discussion-queue':
-      logger.info(
-        `content labeled ${payload.label.name}; adding to the discussion queue`
-      )
-      return handleAddToDiscussionQueue(node_id)
+      options = { 'Needs discussion': true }
+      report = `Added to the discussion queue`
+      break
 
     case 'action/add-to-backlog':
-      logger.info(
-        `content labeled ${payload.label.name}; adding to the backlog`
-      )
-      return handleAddToBacklog(node_id)
+      options = { Status: 'Backlog' }
+      report = `Added to the backlog`
+      break
   }
-}
 
-async function handleAddToCycleLabel(node_id: string) {
-  await removeLabel(node_id, {
-    label: 'action/add-to-cycle',
-  })
-
-  const itemId = await addToProject(node_id)
-
-  await updateProjectItem(itemId, {
-    Cycle: true,
-    Status: 'In progress',
-  })
-}
-
-async function handleAddToDiscussionQueue(node_id: string) {
-  await removeLabel(node_id, {
-    label: 'action/add-to-discussion-queue',
-  })
-
-  const itemId = await addToProject(node_id)
-
-  await updateProjectItem(itemId, { 'Needs discussion': true })
-}
-
-async function handleAddToBacklog(node_id: string) {
-  await removeLabel(node_id, {
-    label: 'action/add-to-backlog',
-  })
-
-  const itemId = await addToProject(node_id)
-
-  await updateProjectItem(itemId, { Status: 'Backlog' })
+  await updateProjectItem(itemId, options)
+  logger.info(report)
 }
 
 // ------------------------

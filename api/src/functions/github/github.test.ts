@@ -80,33 +80,68 @@ describe('github function', () => {
       expect(project.items.length).toBe(0)
     })
 
-    it('handles issues labeled', async () => {
-      setPayload('issues.labeled')
+    describe('handles content labeled', () => {
+      it('action/add-to-discussion-queue', async () => {
+        setPayload('action/add-to-discussion-queue')
 
-      await handler(getMockEvent(), null)
+        await handler(getMockEvent(), null)
 
-      expect(content.labels).not.toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            node_id: labelNamesToIds.get('action/add-to-discussion-queue'),
-          }),
-        ])
-      )
+        expect(content.labels).not.toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              node_id: labelNamesToIds.get('action/add-to-discussion-queue'),
+            }),
+          ])
+        )
 
-      expect(project.items).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            fieldValues: {
-              nodes: expect.arrayContaining([
-                expect.objectContaining({
-                  id: fieldNamesToIds.get('Needs discussion'),
-                  value: checkNeedsDiscussionId,
-                }),
-              ]),
-            },
-          }),
-        ])
-      )
+        expect(project.items).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              fieldValues: {
+                nodes: expect.arrayContaining([
+                  expect.objectContaining({
+                    id: fieldNamesToIds.get('Needs discussion'),
+                    value: checkNeedsDiscussionId,
+                  }),
+                ]),
+              },
+            }),
+          ])
+        )
+      })
+
+      it('action/add-to-cycle', async () => {
+        setPayload('action/add-to-cycle')
+
+        await handler(getMockEvent(), null)
+
+        expect(content.labels).not.toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              node_id: labelNamesToIds.get('action/add-to-cycle'),
+            }),
+          ])
+        )
+
+        expect(project.items).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              fieldValues: {
+                nodes: expect.arrayContaining([
+                  expect.objectContaining({
+                    id: fieldNamesToIds.get('Cycle'),
+                    value: currentCycleId,
+                  }),
+                  expect.objectContaining({
+                    id: fieldNamesToIds.get('Status'),
+                    value: statusNamesToIds.get('In progress'),
+                  }),
+                ]),
+              },
+            }),
+          ])
+        )
+      })
     })
 
     it.skip('handles issues closed', async () => {
