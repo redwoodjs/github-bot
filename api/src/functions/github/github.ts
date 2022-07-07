@@ -144,11 +144,8 @@ async function handleIssuesOpened(payload: IssuesOpenedEvent) {
 
   logger.info("Author isn't a core team maintainer")
   logger.info('Adding to project and assigning')
-
   const itemId = await addToProject(payload.issue.node_id)
-
   await updateProjectItem(itemId, { Status: 'Triage' })
-
   await assign(payload.issue.node_id, { to: 'Core Team/Triage' })
 }
 
@@ -215,20 +212,19 @@ async function handlePullRequestOpened(payload: PullRequestOpenedEvent) {
     return
   }
 
-  logger.info('Adding pull request to the project')
-
+  logger.info('Adding to project and assigning')
   const itemId = await addToProject(payload.pull_request.node_id)
-
   await updateProjectItem(itemId, { Status: 'Triage' })
 
   if (!coreTeamMaintainers.includes(payload.sender.login)) {
+    logger.info("Author isn't a core team maintainer; assigning")
+    await assign(payload.issue.node_id, { to: 'Core Team/Triage' })
     return
   }
 
   logger.info(
     'Author is a core team maintainer; updating the status field to in progress and adding to the current cycle'
   )
-
   await updateProjectItem(itemId, {
     Cycle: true,
     Status: 'In progress',

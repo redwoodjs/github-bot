@@ -79,7 +79,7 @@ describe('removeLabel', () => {
   })
 
   it('removes a label', async () => {
-    setPayload('issues.labeled')
+    setPayload('action/add-to-discussion-queue')
 
     await getLabelNamesToIds()
 

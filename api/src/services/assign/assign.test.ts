@@ -3,6 +3,7 @@ import { setupServer } from 'msw/node'
 import { content, setPayload } from 'src/functions/github/github.handlers'
 import {
   coreTeamMaintainersUsernamesToIds,
+  coreTeamTriage,
   installationHandler,
 } from 'src/lib/github'
 import { getProjectFieldAndValueNamesToIds } from 'src/services/projects'
@@ -24,7 +25,10 @@ beforeAll(async () => {
   server.listen()
   await getProjectFieldAndValueNamesToIds()
 })
-afterEach(() => server.resetHandlers())
+afterEach(() => {
+  server.resetHandlers()
+  project.items = []
+})
 afterAll(() => server.close())
 
 describe('assign ', () => {
@@ -60,6 +64,40 @@ describe('assign ', () => {
     ).rejects.toThrowErrorMatchingInlineSnapshot(`"Can't assign to bazinga"`)
   })
 
+  it("chooses jtoar if everyone's tied", async () => {
+    project.items = coreTeamTriage.map((assignee) =>
+      createProjectItem('foo', {
+        assignee,
+        Status: 'Triage',
+      })
+    )
+
+    const username = await getNextTriageTeamMember()
+
+    expect(username).toBe('jtoar') // 1
+  })
+
+  it("chooses jtoar if there's a tie", async () => {
+    project.items = coreTeamTriage.map((assignee) =>
+      createProjectItem('foo', {
+        assignee,
+        Status: 'Triage',
+      })
+    )
+
+    project.items = [
+      ...project.items,
+      createProjectItem('foo', {
+        assignee: 'callingmedic911',
+        Status: 'Triage',
+      }),
+    ]
+
+    const username = await getNextTriageTeamMember()
+
+    expect(username).toBe('jtoar')
+  })
+
   it('chooses the next triage team member if the assignee is Core Team/Triage', async () => {
     project.items = [
       createProjectItem('foo', { assignee: 'jtoar', Status: 'Triage' }),
@@ -83,39 +121,21 @@ describe('assign ', () => {
     ]
 
     let username = await getNextTriageTeamMember()
-    expect(username).toBe('dthyresson') // 1
+    console.log(username)
+    expect(['dthyresson', 'Tobbe']).toContain(username)
     project.items.push(
       createProjectItem('foo', { assignee: username, Status: 'Triage' })
     )
 
     username = await getNextTriageTeamMember()
-    expect(username).toBe('dthyresson') // 2
+    console.log(username)
+    expect(['dthyresson', 'Tobbe']).toContain(username)
     project.items.push(
       createProjectItem('foo', { assignee: username, Status: 'Triage' })
     )
 
     username = await getNextTriageTeamMember()
-    expect(username).toBe('dac09') // 2
-    project.items.push(
-      createProjectItem('foo', { assignee: username, Status: 'Triage' })
-    )
-
-    username = await getNextTriageTeamMember()
-    expect(username).toBe('dthyresson') // 3
-    project.items.push(
-      createProjectItem('foo', { assignee: username, Status: 'Triage' })
-    )
-
-    username = await getNextTriageTeamMember()
-    expect(username).toBe('dac09') // 3
-    project.items.push(
-      createProjectItem('foo', { assignee: username, Status: 'Triage' })
-    )
-
-    username = await getNextTriageTeamMember()
-    expect(username).toBe('callingmedic911') // 3
-    project.items.push(
-      createProjectItem('foo', { assignee: username, Status: 'Triage' })
-    )
+    console.log(username)
+    expect(['dac09', 'dthyresson', 'Tobbe']).toContain(username)
   })
 })

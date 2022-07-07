@@ -322,18 +322,11 @@ export function validateStale(issueOrPullRequest: IssueOrPullRequest) {
     return
   }
 
-  const hasntBeenUpdatedInAWeek = Boolean(
-    dateFns.differenceInWeeks(
-      new Date(),
-      new Date(issueOrPullRequest.updatedAt)
-    )
-  )
-
   const staleField = getField(projectNextItem, 'Stale')
 
   const { id, title, url } = issueOrPullRequest
 
-  if (hasntBeenUpdatedInAWeek) {
+  if (hasntBeenUpdatedInAWeek(new Date(issueOrPullRequest.updatedAt))) {
     if (staleField) {
       return
     }
@@ -344,6 +337,10 @@ export function validateStale(issueOrPullRequest: IssueOrPullRequest) {
   if (staleField) {
     throw new UpdatedError(id, title, url)
   }
+}
+
+export function hasntBeenUpdatedInAWeek(date: Date) {
+  return Boolean(dateFns.differenceInWeeks(new Date(), date))
 }
 
 export class StaleError extends Error {

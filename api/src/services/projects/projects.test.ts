@@ -574,6 +574,13 @@ describe('getProjectItems', () => {
                         }
                       }
                     }
+                    ...on Issue {
+      								updatedAt
+
+      							}
+      							... on PullRequest {
+      								updatedAt
+      							}
                   }
                   fieldValues(first: 10) {
                     nodes {

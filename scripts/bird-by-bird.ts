@@ -1,121 +1,33 @@
 import { execSync } from 'child_process'
 
-import { addIdsToProcessEnv } from 'api/src/services/github'
+// FIXME
 import {
-  getMainProjectTriageItems,
-  getMainProjectBacklogItems,
-  getMainProjectTodoItems,
-  getMainProjectInProgressItems,
-  getMainProjectItems,
-  getField,
-} from 'api/src/services/projects'
-import { Cli, Command, Option } from 'clipanion'
+  getProjectFieldAndValueNamesToIds,
+  getProjectItems,
+} from 'api/src/services/projects/projects'
 import prompts from 'prompts'
 
-export default async () => {
-  const [_node, _rwCli, _execCommand, _scriptName, _prismaFlag, ...args] =
-    process.argv
+export default async ({ args: _args }) => {
+  process.env.OWNER = 'redwoodjs'
 
-  const cli = new Cli()
-  cli.register(BirdByBirdCommand)
-  cli.runExit(args)
-}
+  await getProjectFieldAndValueNamesToIds()
 
-class BirdByBirdCommand extends Command {
-  status = Option.String('--status')
-  priority = Option.String('--priority')
-  stale = Option.Boolean('--stale')
-  needsDiscussion = Option.Boolean('--needs-discussion')
-  /**
-   * @todo updatedAt, createdAt
-   */
+  let birds = []
 
-  async execute() {
-    await addIdsToProcessEnv({ owner: 'redwoodjs', name: 'redwood' })
+  birds = await getProjectItems('Triage')
 
-    let birds = []
-
-    switch (this.status) {
-      case 'triage':
-        birds = await getMainProjectTriageItems()
-        break
-
-      case 'backlog':
-        birds = await getMainProjectBacklogItems()
-        break
-
-      case 'todo':
-        birds = await getMainProjectTodoItems()
-        break
-
-      case 'in progress':
-        birds = await getMainProjectInProgressItems()
-        break
-
-      default:
-        birds = await getMainProjectItems()
-    }
-
-    switch (this.priority) {
-      case 'urgent':
-        birds = birds.filter((item) => {
-          const statusField = getField(item, 'Priority')
-          return statusField?.value === process.env.URGENT_PRIORITY_FIELD_ID
-        })
-        break
-
-      case 'high':
-        birds = birds.filter((item) => {
-          const statusField = getField(item, 'Priority')
-          return statusField?.value === process.env.HIGH_PRIORITY_FIELD_ID
-        })
-        break
-
-      case 'medium':
-        birds = birds.filter((item) => {
-          const statusField = getField(item, 'Priority')
-          return statusField?.value === process.env.MEDIUM_PRIORITY_FIELD_ID
-        })
-        break
-
-      case 'low':
-        birds = birds.filter((item) => {
-          const statusField = getField(item, 'Priority')
-          return statusField?.value === process.env.LOW_PRIORITY_FIELD_ID
-        })
-        break
-
-      default:
-        break
-    }
-
-    if (this.stale) {
-      birds = birds.filter((item) => {
-        const statusField = getField(item, 'Stale')
-        return statusField?.value === process.env.CHECK_STALE_FIELD_ID
-      })
-    }
-
-    if (this.needsDiscussion) {
-      birds = birds.filter((item) => {
-        const statusField = getField(item, 'Stale')
-        return (
-          statusField?.value === process.env.CHECK_NEEDS_DISCUSSION_FIELD_ID
-        )
-      })
-    }
-
-    if (!birds.length) {
-      this.context.stdout.write(
-        `There aren't any ${this.priority} ${this.status} issues or PRs`
-      )
-      return
-    }
-
-    birds = birds.map((backlogItem) => backlogItem.content.url).filter(Boolean)
-
-    await birdByBird(birds)
+  if (!birds.length) {
+    console.log("There aren't any issues or PRs")
+    return
   }
+
+  birds = birds
+    .sort(
+      (a, b) => new Date(a.content.updatedAt) - new Date(b.content.updatedAt)
+    )
+    .map((bird) => bird.content.url)
+
+  await birdByBird(birds)
 }
 
 async function birdByBird(birds, { start = 0 } = {}) {
@@ -134,13 +46,9 @@ async function birdByBird(birds, { start = 0 } = {}) {
         initial: 0,
       },
       {
-        onCancel: () => process.exit(1),
+        onCancel: () => process.exit(0),
       }
     )
-
-    if (res === 'quit') {
-      break
-    }
 
     if (res === 'next') {
       if (!birds[i + 1]) {
@@ -160,6 +68,10 @@ async function birdByBird(birds, { start = 0 } = {}) {
 
       i--
       continue
+    }
+
+    if (res === 'quit') {
+      break
     }
   }
 }

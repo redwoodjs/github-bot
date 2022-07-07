@@ -625,6 +625,13 @@ export const getProjectItemsQuery = `
                   }
                 }
               }
+              ...on Issue {
+								updatedAt
+
+							}
+							... on PullRequest {
+								updatedAt
+							}
             }
             fieldValues(first: 10) {
               nodes {

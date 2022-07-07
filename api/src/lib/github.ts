@@ -54,17 +54,18 @@ const coreTeamTriageUsernamesToIds = {
   dthyresson: 'MDQ6VXNlcjEwNTE2MzM=',
   jtoar: 'MDQ6VXNlcjMyOTkyMzM1',
   simoncrypta: 'MDQ6VXNlcjE4MDEzNTMy',
+  Tobbe: 'MDQ6VXNlcjMwNzkz',
 }
 
 export const coreTeamTriage = Object.keys(coreTeamTriageUsernamesToIds)
 
 export const coreTeamMaintainersUsernamesToIds = {
+  alicelovescake: 'MDQ6VXNlcjY2NTQzNDQ5',
   cannikin: 'MDQ6VXNlcjMwMA==',
   mojombo: 'MDQ6VXNlcjE=',
   peterp: 'MDQ6VXNlcjQ0ODQ5',
   thedavidprice: 'MDQ6VXNlcjI5NTE=',
-  Tobbe: 'MDQ6VXNlcjMwNzkz',
-  alicelovescake: 'MDQ6VXNlcjY2NTQzNDQ5',
+  virtuoushub: 'MDQ6VXNlcjQzMDM2Mzg=',
   ...coreTeamTriageUsernamesToIds,
 }
 
