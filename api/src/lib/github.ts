@@ -53,6 +53,7 @@ const coreTeamTriageUsernamesToIds = {
   dac09: 'MDQ6VXNlcjE1MjE4Nzc=',
   dthyresson: 'MDQ6VXNlcjEwNTE2MzM=',
   jtoar: 'MDQ6VXNlcjMyOTkyMzM1',
+  'noire-munich': 'MDQ6VXNlcjEwMjcxNDA3',
   simoncrypta: 'MDQ6VXNlcjE4MDEzNTMy',
   Tobbe: 'MDQ6VXNlcjMwNzkz',
 }

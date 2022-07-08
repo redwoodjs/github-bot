@@ -80,70 +80,6 @@ describe('github function', () => {
       expect(project.items.length).toBe(0)
     })
 
-    describe('handles content labeled', () => {
-      it('action/add-to-discussion-queue', async () => {
-        setPayload('action/add-to-discussion-queue')
-
-        await handler(getMockEvent(), null)
-
-        expect(content.labels).not.toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              node_id: labelNamesToIds.get('action/add-to-discussion-queue'),
-            }),
-          ])
-        )
-
-        expect(project.items).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              fieldValues: {
-                nodes: expect.arrayContaining([
-                  expect.objectContaining({
-                    id: fieldNamesToIds.get('Needs discussion'),
-                    value: checkNeedsDiscussionId,
-                  }),
-                ]),
-              },
-            }),
-          ])
-        )
-      })
-
-      it('action/add-to-cycle', async () => {
-        setPayload('action/add-to-cycle')
-
-        await handler(getMockEvent(), null)
-
-        expect(content.labels).not.toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              node_id: labelNamesToIds.get('action/add-to-cycle'),
-            }),
-          ])
-        )
-
-        expect(project.items).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              fieldValues: {
-                nodes: expect.arrayContaining([
-                  expect.objectContaining({
-                    id: fieldNamesToIds.get('Cycle'),
-                    value: currentCycleId,
-                  }),
-                  expect.objectContaining({
-                    id: fieldNamesToIds.get('Status'),
-                    value: statusNamesToIds.get('In progress'),
-                  }),
-                ]),
-              },
-            }),
-          ])
-        )
-      })
-    })
-
     it.skip('handles issues closed', async () => {
       setPayload('issues.closed')
 
@@ -160,7 +96,7 @@ describe('github function', () => {
   })
 
   describe('pull requests', () => {
-    it.skip('opened by contributors', async () => {
+    it('handles pull requests opened by contributors', async () => {
       setPayload('pull_request.opened.contributor')
 
       await handler(getMockEvent(), null)
@@ -168,13 +104,22 @@ describe('github function', () => {
       expect(project.items).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            [fieldNamesToIds.get('Status')]: statusNamesToIds.get('Triage'),
+            fieldValues: {
+              nodes: expect.arrayContaining([
+                expect.objectContaining({
+                  id: fieldNamesToIds.get('Status'),
+                  value: statusNamesToIds.get('Triage'),
+                }),
+              ]),
+            },
           }),
         ])
       )
+
+      expect(content.assignees.length).toBe(1)
     })
 
-    it.skip('opened by the core team', async () => {
+    it.skip('handles pull requests opened by the core team', async () => {
       setPayload('pull_request.opened.coreTeam')
 
       await handler(getMockEvent(), null)
@@ -193,13 +138,13 @@ describe('github function', () => {
       expect(content.assignees.length).toBe(1)
     })
 
-    it('opened by renovate', async () => {
+    it('handles pull requests opened by renovate', async () => {
       setPayload('pull_request.opened.renovate')
       await handler(getMockEvent(), null)
       expect(project.items.length).toBe(0)
     })
 
-    it('merged into main', async () => {
+    it('handles pull requests merged into main', async () => {
       setPayload('pull_request.closed')
 
       await handler(getMockEvent(), null)
@@ -210,7 +155,7 @@ describe('github function', () => {
       )
     })
 
-    it.skip('merged into main with the next-release patch milestone', async () => {
+    it.skip('handles pull requests merged into main with the next-release patch milestone', async () => {
       setPayload('pull_request.closed.patch')
 
       await handler(getMockEvent(), null)
@@ -221,7 +166,7 @@ describe('github function', () => {
       )
     })
 
-    it.skip('merged into a branch other than main', async () => {
+    it.skip('handles pull requests merged into a branch other than main', async () => {
       setPayload('pull_request.closed')
 
       await handler(getMockEvent(), null)
@@ -229,6 +174,70 @@ describe('github function', () => {
       expect(content).toHaveProperty(
         'milestone',
         milestoneTitlesToIds.get('chore')
+      )
+    })
+  })
+
+  describe('handles content labeled', () => {
+    it('action/add-to-discussion-queue', async () => {
+      setPayload('action/add-to-discussion-queue')
+
+      await handler(getMockEvent(), null)
+
+      expect(content.labels).not.toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            node_id: labelNamesToIds.get('action/add-to-discussion-queue'),
+          }),
+        ])
+      )
+
+      expect(project.items).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            fieldValues: {
+              nodes: expect.arrayContaining([
+                expect.objectContaining({
+                  id: fieldNamesToIds.get('Needs discussion'),
+                  value: checkNeedsDiscussionId,
+                }),
+              ]),
+            },
+          }),
+        ])
+      )
+    })
+
+    it('action/add-to-cycle', async () => {
+      setPayload('action/add-to-cycle')
+
+      await handler(getMockEvent(), null)
+
+      expect(content.labels).not.toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            node_id: labelNamesToIds.get('action/add-to-cycle'),
+          }),
+        ])
+      )
+
+      expect(project.items).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            fieldValues: {
+              nodes: expect.arrayContaining([
+                expect.objectContaining({
+                  id: fieldNamesToIds.get('Cycle'),
+                  value: currentCycleId,
+                }),
+                expect.objectContaining({
+                  id: fieldNamesToIds.get('Status'),
+                  value: statusNamesToIds.get('In progress'),
+                }),
+              ]),
+            },
+          }),
+        ])
       )
     })
   })

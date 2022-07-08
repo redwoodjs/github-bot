@@ -218,7 +218,7 @@ async function handlePullRequestOpened(payload: PullRequestOpenedEvent) {
 
   if (!coreTeamMaintainers.includes(payload.sender.login)) {
     logger.info("Author isn't a core team maintainer; assigning")
-    await assign(payload.issue.node_id, { to: 'Core Team/Triage' })
+    await assign(payload.pull_request.node_id, { to: 'Core Team/Triage' })
     return
   }
 
