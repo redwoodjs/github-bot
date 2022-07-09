@@ -316,9 +316,13 @@ export class CurrentCycleError extends Error {
  */
 export function validateStale(issueOrPullRequest: IssueOrPullRequest) {
   const projectNextItem = getProjectNextItem(issueOrPullRequest)
+
+  const statusField = getField(projectNextItem, 'Status')
+  const hasTriageStatus = statusNamesToIds.get('Triage') === statusField.value
+
   const cycleField = getField(projectNextItem, 'Cycle')
 
-  if (!cycleField) {
+  if (!hasTriageStatus && !cycleField) {
     return
   }
 
