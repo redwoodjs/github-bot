@@ -105,10 +105,14 @@ describe('assign ', () => {
       createProjectItem('foo', { assignee: 'jtoar', Status: 'Triage' }),
       createProjectItem('foo', { assignee: 'jtoar', Status: 'Triage' }),
       createProjectItem('foo', { assignee: 'jtoar', Status: 'Triage' }),
-      createProjectItem('foo', { assignee: 'jtoar', Status: 'Triage' }),
       createProjectItem('foo', { assignee: 'simoncrypta', Status: 'Triage' }),
       createProjectItem('foo', { assignee: 'simoncrypta', Status: 'Triage' }),
       createProjectItem('foo', { assignee: 'simoncrypta', Status: 'Triage' }),
+      createProjectItem('foo', { assignee: 'simoncrypta', Status: 'Triage' }),
+      createProjectItem('foo', {
+        assignee: 'callingmedic911',
+        Status: 'Triage',
+      }),
       createProjectItem('foo', {
         assignee: 'callingmedic911',
         Status: 'Triage',
@@ -118,24 +122,26 @@ describe('assign ', () => {
         Status: 'Triage',
       }),
       createProjectItem('foo', { assignee: 'dac09', Status: 'Triage' }),
+      createProjectItem('foo', { assignee: 'dac09', Status: 'Triage' }),
+      createProjectItem('foo', { assignee: 'dthyresson', Status: 'Triage' }),
     ]
 
     let username = await getNextTriageTeamMember()
     console.log(username)
-    expect(['dthyresson', 'Tobbe']).toContain(username)
+    expect(['noire-munich', 'Tobbe']).toContain(username)
     project.items.push(
       createProjectItem('foo', { assignee: username, Status: 'Triage' })
     )
 
     username = await getNextTriageTeamMember()
     console.log(username)
-    expect(['dthyresson', 'Tobbe']).toContain(username)
+    expect(['noire-munich', 'Tobbe']).toContain(username)
     project.items.push(
       createProjectItem('foo', { assignee: username, Status: 'Triage' })
     )
 
     username = await getNextTriageTeamMember()
     console.log(username)
-    expect(['dac09', 'dthyresson', 'Tobbe']).toContain(username)
+    expect(['noire-munich', 'Tobbe', 'dthyresson']).toContain(username)
   })
 })
