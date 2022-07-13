@@ -3068,13 +3068,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mswjs/cookies@npm:^0.2.0":
-  version: 0.2.0
-  resolution: "@mswjs/cookies@npm:0.2.0"
+"@mswjs/cookies@npm:^0.2.0, @mswjs/cookies@npm:^0.2.2":
+  version: 0.2.2
+  resolution: "@mswjs/cookies@npm:0.2.2"
   dependencies:
     "@types/set-cookie-parser": ^2.4.0
     set-cookie-parser: ^2.4.6
-  checksum: fc94748a453e1e147f5262a1fe002859bc3382a61d866946d7b642aff195b8f05f6d479d2ed9a3401f92e3cfc57f38979cc3fbb104460154af9e53166ebcb55e
+  checksum: f950062538d431674d581309cf19884fc4d3f57e2a276164cac0c9a3250071d42464ba7825d13be14c703ca5a912d62a62626f4a068d8f36d1629dbb63bde740
   languageName: node
   linkType: hard
 
@@ -3092,9 +3092,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mswjs/interceptors@npm:^0.16.3":
-  version: 0.16.6
-  resolution: "@mswjs/interceptors@npm:0.16.6"
+"@mswjs/interceptors@npm:^0.17.2":
+  version: 0.17.2
+  resolution: "@mswjs/interceptors@npm:0.17.2"
   dependencies:
     "@open-draft/until": ^1.0.3
     "@xmldom/xmldom": ^0.7.5
@@ -3102,7 +3102,8 @@ __metadata:
     headers-polyfill: ^3.0.4
     outvariant: ^1.2.1
     strict-event-emitter: ^0.2.4
-  checksum: 661a8e3ef3e2639fb7a78bc8badd64f3506ca7ac0c8bc64e3eda1e299fc39d88fe0dee5268f9b1689538af90d05eef80e0b013af211505cdd6a22a9303c9f408
+    web-encoding: ^1.1.5
+  checksum: fed42bd15176ea11c7e3ba3ea1186498408857967697e59fa7816cd1ce4cd003b769ab39857d84f1419a01fe234b57e4d981ca78c61920eea233cbba1e3a2b69
   languageName: node
   linkType: hard
 
@@ -6911,6 +6912,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@zxing/text-encoding@npm:0.9.0":
+  version: 0.9.0
+  resolution: "@zxing/text-encoding@npm:0.9.0"
+  checksum: d15bff181d46c2ab709e7242801a8d40408aa8c19b44462e5f60e766bf59105b44957914ab6baab60d10d466a5e965f21fe890c67dfdb7d5c7f940df457b4d0d
+  languageName: node
+  linkType: hard
+
 "abab@npm:^2.0.3, abab@npm:^2.0.5":
   version: 2.0.5
   resolution: "abab@npm:2.0.5"
@@ -7317,7 +7325,7 @@ __metadata:
     "@redwoodjs/api-server": 2.0.0
     "@redwoodjs/graphql-server": 2.0.0
     "@snaplet/copycat": 0.3.0
-    msw: 0.43.1
+    msw: 0.44.0
     octokit: 1.7.1
     smee-client: 1.2.3
   languageName: unknown
@@ -7726,6 +7734,13 @@ __metadata:
   bin:
     autoprefixer: bin/autoprefixer
   checksum: 9b2688cd0ef7252ae1a565ca935a83ddd5c38b9b4c7bf895f36d88e91dbc36d2e7ccb2d34270e436498d8f372d7320a83af6ceb5d1c3bff8f8cbeb6ff33ac837
+  languageName: node
+  linkType: hard
+
+"available-typed-arrays@npm:^1.0.5":
+  version: 1.0.5
+  resolution: "available-typed-arrays@npm:1.0.5"
+  checksum: c4df567ca72d2754a6cbad20088f5f98b1065b3360178169fa9b44ea101af62c0f423fc3854fa820fd6895b6b9171b8386e71558203103ff8fc2ad503fdcc660
   languageName: node
   linkType: hard
 
@@ -11273,7 +11288,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"es-abstract@npm:^1.19.0, es-abstract@npm:^1.19.1, es-abstract@npm:^1.19.2, es-abstract@npm:^1.19.5":
+"es-abstract@npm:^1.19.0, es-abstract@npm:^1.19.1, es-abstract@npm:^1.19.2, es-abstract@npm:^1.19.5, es-abstract@npm:^1.20.0":
   version: 1.20.1
   resolution: "es-abstract@npm:1.20.1"
   dependencies:
@@ -12963,6 +12978,15 @@ __metadata:
     debug:
       optional: true
   checksum: 7519a3dd7fa3ea1ec203e8d33c2372d772cc1eafe50c2b473235dfc32923850c0803ed4118e39c64c76270dcde2942d1f1e556875325af021740cdcbda596305
+  languageName: node
+  linkType: hard
+
+"for-each@npm:^0.3.3":
+  version: 0.3.3
+  resolution: "for-each@npm:0.3.3"
+  dependencies:
+    is-callable: ^1.1.3
+  checksum: 22330d8a2db728dbf003ec9182c2d421fbcd2969b02b4f97ec288721cda63eb28f2c08585ddccd0f77cb2930af8d958005c9e72f47141dc51816127a118f39aa
   languageName: node
   linkType: hard
 
@@ -14703,7 +14727,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"is-arguments@npm:^1.1.0":
+"is-arguments@npm:^1.0.4, is-arguments@npm:^1.1.0":
   version: 1.1.1
   resolution: "is-arguments@npm:1.1.1"
   dependencies:
@@ -14771,7 +14795,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"is-callable@npm:^1.1.4, is-callable@npm:^1.2.4":
+"is-callable@npm:^1.1.3, is-callable@npm:^1.1.4, is-callable@npm:^1.2.4":
   version: 1.2.4
   resolution: "is-callable@npm:1.2.4"
   checksum: bda3c67128741129d61e1cb7ca89025ca56b39bf3564657989567c9f6d1e20d6f5579750d3c1fa8887903c6dc669fbc695e33a1363e7c5ec944077e39d24f73d
@@ -14948,6 +14972,15 @@ __metadata:
   version: 2.1.0
   resolution: "is-generator-fn@npm:2.1.0"
   checksum: 2957cab387997a466cd0bf5c1b6047bd21ecb32bdcfd8996b15747aa01002c1c88731802f1b3d34ac99f4f6874b626418bd118658cf39380fe5fff32a3af9c4d
+  languageName: node
+  linkType: hard
+
+"is-generator-function@npm:^1.0.7":
+  version: 1.0.10
+  resolution: "is-generator-function@npm:1.0.10"
+  dependencies:
+    has-tostringtag: ^1.0.0
+  checksum: df03514df01a6098945b5a0cfa1abff715807c8e72f57c49a0686ad54b3b74d394e2d8714e6f709a71eb00c9630d48e73ca1796c1ccc84ac95092c1fecc0d98b
   languageName: node
   linkType: hard
 
@@ -15214,6 +15247,19 @@ __metadata:
   dependencies:
     has-symbols: ^1.0.2
   checksum: 9381dd015f7c8906154dbcbf93fad769de16b4b961edc94f88d26eb8c555935caa23af88bda0c93a18e65560f6d7cca0fd5a3f8a8e1df6f1abbb9bead4502ef7
+  languageName: node
+  linkType: hard
+
+"is-typed-array@npm:^1.1.3, is-typed-array@npm:^1.1.9":
+  version: 1.1.9
+  resolution: "is-typed-array@npm:1.1.9"
+  dependencies:
+    available-typed-arrays: ^1.0.5
+    call-bind: ^1.0.2
+    es-abstract: ^1.20.0
+    for-each: ^0.3.3
+    has-tostringtag: ^1.0.0
+  checksum: 613b7dd6d121c331bb7456f6b678ebd74aee9d77f61c3df09da2cd7841c060d4f8cff14ae8ab54977180d5da2f2da300394810bc92a05a985b3438f55cf629b2
   languageName: node
   linkType: hard
 
@@ -17815,12 +17861,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"msw@npm:0.43.1":
-  version: 0.43.1
-  resolution: "msw@npm:0.43.1"
+"msw@npm:0.44.0":
+  version: 0.44.0
+  resolution: "msw@npm:0.44.0"
   dependencies:
-    "@mswjs/cookies": ^0.2.0
-    "@mswjs/interceptors": ^0.16.3
+    "@mswjs/cookies": ^0.2.2
+    "@mswjs/interceptors": ^0.17.2
     "@open-draft/until": ^1.0.3
     "@types/cookie": ^0.4.1
     "@types/js-levenshtein": ^1.1.1
@@ -17846,7 +17892,7 @@ __metadata:
       optional: true
   bin:
     msw: cli/index.js
-  checksum: 542b5f35fcff934a9ae60f27d5dcd1e4c93b0a273bcf052388cf64fd5bc18bc28224a2026deaf86ea0b2f6bc4867aea1f2726998db2608d0d34c054a4c795f9c
+  checksum: 732ae7c186bfba1fe4ee5ef2b73c197c896b1cedccfba4f7658573b53e05d8ca718f2816d4800f83998ade63f6f61f605bb775093ef7b02af7a14b8e8b8c35a9
   languageName: node
   linkType: hard
 
@@ -23974,6 +24020,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"util@npm:^0.12.3":
+  version: 0.12.4
+  resolution: "util@npm:0.12.4"
+  dependencies:
+    inherits: ^2.0.3
+    is-arguments: ^1.0.4
+    is-generator-function: ^1.0.7
+    is-typed-array: ^1.1.3
+    safe-buffer: ^5.1.2
+    which-typed-array: ^1.1.2
+  checksum: 3e04e6feb68bccdc9fdfa013050719b3b41ce698ff5e244ee683d675b7fb9b91c8a1594b164696ee2201cca9579c286b968d0aabd9c9069ae1667413940a4e49
+  languageName: node
+  linkType: hard
+
 "utila@npm:~0.4":
   version: 0.4.0
   resolution: "utila@npm:0.4.0"
@@ -24241,6 +24301,19 @@ __metadata:
   dependencies:
     defaults: ^1.0.3
   checksum: 5b61ca583a95e2dd85d7078400190efd452e05751a64accb8c06ce4db65d7e0b0cde9917d705e826a2e05cc2548f61efde115ffa374c3e436d04be45c889e5b4
+  languageName: node
+  linkType: hard
+
+"web-encoding@npm:^1.1.5":
+  version: 1.1.5
+  resolution: "web-encoding@npm:1.1.5"
+  dependencies:
+    "@zxing/text-encoding": 0.9.0
+    util: ^0.12.3
+  dependenciesMeta:
+    "@zxing/text-encoding":
+      optional: true
+  checksum: 59d5413338ec0894c690006f5d8508b0c88cae1d8c78606c3f326e351c672196461ed808b849fe08d0900fa56a61fcacb9ff576499068d2ead0a7bc04afa7d34
   languageName: node
   linkType: hard
 
@@ -24738,6 +24811,20 @@ __metadata:
   version: 2.0.0
   resolution: "which-module@npm:2.0.0"
   checksum: 946ffdbcd6f0cf517638f8f2319c6d51e528c3b41bc2c0f5dc3dc46047347abd7326aea5cdf5def0a8b32bdca313ac87a32ce5a76b943fe1ca876c4557e6b716
+  languageName: node
+  linkType: hard
+
+"which-typed-array@npm:^1.1.2":
+  version: 1.1.8
+  resolution: "which-typed-array@npm:1.1.8"
+  dependencies:
+    available-typed-arrays: ^1.0.5
+    call-bind: ^1.0.2
+    es-abstract: ^1.20.0
+    for-each: ^0.3.3
+    has-tostringtag: ^1.0.0
+    is-typed-array: ^1.1.9
+  checksum: bdab0d7d077015a8e9710d93951614f2a7962ed62f5240d2852c61eb578a888c4a9da5ef93ba9d0191812e05db1817168e1ab746036d39e863d555f9b68008f1
   languageName: node
   linkType: hard
 
