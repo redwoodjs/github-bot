@@ -7347,7 +7347,7 @@ __metadata:
     "@redwoodjs/api-server": 2.1.0
     "@redwoodjs/graphql-server": 2.1.0
     "@snaplet/copycat": 0.4.0
-    msw: 0.44.1
+    msw: 0.44.2
     octokit: 1.7.1
     smee-client: 1.2.3
   languageName: unknown
@@ -17604,9 +17604,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"msw@npm:0.44.1":
-  version: 0.44.1
-  resolution: "msw@npm:0.44.1"
+"msw@npm:0.44.2":
+  version: 0.44.2
+  resolution: "msw@npm:0.44.2"
   dependencies:
     "@mswjs/cookies": ^0.2.2
     "@mswjs/interceptors": ^0.17.2
@@ -17635,7 +17635,7 @@ __metadata:
       optional: true
   bin:
     msw: cli/index.js
-  checksum: d81fe5ca0db84d26431750b1d696196b2b59fd3b352c897cc4aaecb03b945cc2c3807888623c16db56d4a20f71aac2caac54e5b5e8be4f30ef305cc896cc4706
+  checksum: 3cbb55f3b1c9ff577911296c667ab8c46a9c0f9eb37fde02fdc1283d77ebcd79fb3bd7858e4c1bcc72a2661b6283f16fbced0c02d69dc0a16167f168e7b95480
   languageName: node
   linkType: hard
 
