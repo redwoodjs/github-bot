@@ -30,5 +30,5 @@
     "clean": "git clean -fdx -e .env -e \"*.pem\"",
     "validate": "yarn rw exec validate --no-prisma"
   },
-  "packageManager": "yarn@3.2.1"
+  "packageManager": "yarn@3.2.2"
 }
