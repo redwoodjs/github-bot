@@ -7300,7 +7300,7 @@ __metadata:
     "@redwoodjs/api-server": 2.2.0
     "@redwoodjs/graphql-server": 2.2.0
     "@snaplet/copycat": 0.5.0
-    msw: 0.44.2
+    msw: 0.45.0
     octokit: 1.7.1
     smee-client: 1.2.3
   languageName: unknown
@@ -17515,9 +17515,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"msw@npm:0.44.2":
-  version: 0.44.2
-  resolution: "msw@npm:0.44.2"
+"msw@npm:0.45.0":
+  version: 0.45.0
+  resolution: "msw@npm:0.45.0"
   dependencies:
     "@mswjs/cookies": ^0.2.2
     "@mswjs/interceptors": ^0.17.2
@@ -17527,7 +17527,6 @@ __metadata:
     chalk: 4.1.1
     chokidar: ^3.4.2
     cookie: ^0.4.2
-    graphql: ^16.3.0
     headers-polyfill: ^3.0.4
     inquirer: ^8.2.0
     is-node-process: ^1.0.1
@@ -17540,13 +17539,16 @@ __metadata:
     type-fest: ^1.2.2
     yargs: ^17.3.1
   peerDependencies:
+    graphql: ^15.0.0 || ^16.0.0
     typescript: ">= 4.2.x <= 4.7.x"
   peerDependenciesMeta:
+    graphql:
+      optional: true
     typescript:
       optional: true
   bin:
     msw: cli/index.js
-  checksum: 3cbb55f3b1c9ff577911296c667ab8c46a9c0f9eb37fde02fdc1283d77ebcd79fb3bd7858e4c1bcc72a2661b6283f16fbced0c02d69dc0a16167f168e7b95480
+  checksum: 6a5570980ea4d5b2941c33f15986b1fd5af3ff65c8e8b621a07fb57e61347cc396e6929aa44e08ddb1e49ee1aa01e1ea997972d49955b671c90a346b9c4f62cc
   languageName: node
   linkType: hard
 
