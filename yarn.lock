@@ -7422,7 +7422,7 @@ __metadata:
     "@redwoodjs/api-server": 2.2.3
     "@redwoodjs/graphql-server": 2.2.3
     "@snaplet/copycat": 0.5.0
-    msw: 0.45.0
+    msw: 0.46.0
     octokit: 1.7.1
     smee-client: 1.2.3
   languageName: unknown
@@ -17655,9 +17655,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"msw@npm:0.45.0":
-  version: 0.45.0
-  resolution: "msw@npm:0.45.0"
+"msw@npm:0.46.0":
+  version: 0.46.0
+  resolution: "msw@npm:0.46.0"
   dependencies:
     "@mswjs/cookies": ^0.2.2
     "@mswjs/interceptors": ^0.17.2
@@ -17676,11 +17676,11 @@ __metadata:
     path-to-regexp: ^6.2.0
     statuses: ^2.0.0
     strict-event-emitter: ^0.2.0
-    type-fest: ^1.2.2
+    type-fest: ^2.19.0
     yargs: ^17.3.1
   peerDependencies:
     graphql: ^15.0.0 || ^16.0.0
-    typescript: ">= 4.2.x <= 4.7.x"
+    typescript: ">= 4.2.x <= 4.8.x"
   peerDependenciesMeta:
     graphql:
       optional: true
@@ -17688,7 +17688,7 @@ __metadata:
       optional: true
   bin:
     msw: cli/index.js
-  checksum: 6a5570980ea4d5b2941c33f15986b1fd5af3ff65c8e8b621a07fb57e61347cc396e6929aa44e08ddb1e49ee1aa01e1ea997972d49955b671c90a346b9c4f62cc
+  checksum: 84a897770c817f63a65d30b08ffadd1ef66aee34f63de7eada96ecb2293f4e5782810c90db2859edac6f76c2fa47603244f6b2dd98b81584170c0607ee69f3c1
   languageName: node
   linkType: hard
 
@@ -23300,6 +23300,13 @@ __metadata:
   version: 1.4.0
   resolution: "type-fest@npm:1.4.0"
   checksum: a3c0f4ee28ff6ddf800d769eafafcdeab32efa38763c1a1b8daeae681920f6e345d7920bf277245235561d8117dab765cb5f829c76b713b4c9de0998a5397141
+  languageName: node
+  linkType: hard
+
+"type-fest@npm:^2.19.0":
+  version: 2.19.0
+  resolution: "type-fest@npm:2.19.0"
+  checksum: a5a7ecf2e654251613218c215c7493574594951c08e52ab9881c9df6a6da0aeca7528c213c622bc374b4e0cb5c443aa3ab758da4e3c959783ce884c3194e12cb
   languageName: node
   linkType: hard
 
