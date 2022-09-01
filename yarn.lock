@@ -7422,7 +7422,7 @@ __metadata:
     "@redwoodjs/api-server": 2.2.3
     "@redwoodjs/graphql-server": 2.2.3
     "@snaplet/copycat": 0.5.0
-    msw: 0.46.0
+    msw: 0.46.1
     octokit: 1.7.1
     smee-client: 1.2.3
   languageName: unknown
@@ -13577,10 +13577,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"graphql@npm:16.5.0, graphql@npm:^16.3.0":
+"graphql@npm:16.5.0":
   version: 16.5.0
   resolution: "graphql@npm:16.5.0"
   checksum: 082bad733549a032fe313dd94b780c0e2a46a6a362183e02e2050f6e083fb49722afb1413b069314d5ba1bc3fa14e22817820a9e61e2bbcba8d35f925d0de60e
+  languageName: node
+  linkType: hard
+
+"graphql@npm:^15.0.0 || ^16.0.0, graphql@npm:^16.3.0":
+  version: 16.6.0
+  resolution: "graphql@npm:16.6.0"
+  checksum: 3a2c15ff58b69d017618d2b224fa6f3c4a7937e1f711c3a5e0948db536b4931e6e649560b53de7cc26735e027ceea6e2d0a6bb7c29fc4639b290313e3aa71618
   languageName: node
   linkType: hard
 
@@ -17655,9 +17662,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"msw@npm:0.46.0":
-  version: 0.46.0
-  resolution: "msw@npm:0.46.0"
+"msw@npm:0.46.1":
+  version: 0.46.1
+  resolution: "msw@npm:0.46.1"
   dependencies:
     "@mswjs/cookies": ^0.2.2
     "@mswjs/interceptors": ^0.17.2
@@ -17667,6 +17674,7 @@ __metadata:
     chalk: 4.1.1
     chokidar: ^3.4.2
     cookie: ^0.4.2
+    graphql: ^15.0.0 || ^16.0.0
     headers-polyfill: ^3.0.4
     inquirer: ^8.2.0
     is-node-process: ^1.0.1
@@ -17679,16 +17687,13 @@ __metadata:
     type-fest: ^2.19.0
     yargs: ^17.3.1
   peerDependencies:
-    graphql: ^15.0.0 || ^16.0.0
     typescript: ">= 4.2.x <= 4.8.x"
   peerDependenciesMeta:
-    graphql:
-      optional: true
     typescript:
       optional: true
   bin:
     msw: cli/index.js
-  checksum: 84a897770c817f63a65d30b08ffadd1ef66aee34f63de7eada96ecb2293f4e5782810c90db2859edac6f76c2fa47603244f6b2dd98b81584170c0607ee69f3c1
+  checksum: 9fec17210c0a324433668a0f5f288f7948b0b4b35ba1d9763dc5edd1870f59ea16ce4713bc13eb4b4b2e472fa53175b613c31c3ae3c7e22dee7f99a17dc30733
   languageName: node
   linkType: hard
 
