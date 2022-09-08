@@ -4283,14 +4283,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@snaplet/copycat@npm:0.5.0":
-  version: 0.5.0
-  resolution: "@snaplet/copycat@npm:0.5.0"
+"@snaplet/copycat@npm:0.5.1":
+  version: 0.5.1
+  resolution: "@snaplet/copycat@npm:0.5.1"
   dependencies:
     "@faker-js/faker": ^6.2.0
     fictional: ^0.4.15
     uuid: ^8.3.2
-  checksum: ff53022b9d6263b4f34a0e2ba916273f8d069a1417fbf778169f867393e6225801cb3bc0ae1982facb21d2673e099b39a407e9b4fde90f172145081060d67590
+  checksum: f7e2cc6dae74be6fef90205d4070b2bdbd99e2767cbc7fbfd2f3ea6ccebaef21712b82b36492a144c1cfe32e0198058aa1e96a4dbb4dbc6923749be41bda2be7
   languageName: node
   linkType: hard
 
@@ -7421,7 +7421,7 @@ __metadata:
     "@redwoodjs/api": 2.2.3
     "@redwoodjs/api-server": 2.2.3
     "@redwoodjs/graphql-server": 2.2.3
-    "@snaplet/copycat": 0.5.0
+    "@snaplet/copycat": 0.5.1
     msw: 0.47.0
     octokit: 1.7.1
     smee-client: 1.2.3
