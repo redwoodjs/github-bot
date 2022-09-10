@@ -7,7 +7,7 @@
     "@redwoodjs/api-server": "2.2.4",
     "@redwoodjs/graphql-server": "2.2.4",
     "@snaplet/copycat": "0.5.1",
-    "msw": "0.47.0",
+    "msw": "0.47.1",
     "octokit": "1.7.1",
     "smee-client": "1.2.3"
   },
