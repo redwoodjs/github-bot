@@ -10444,10 +10444,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"date-fns@npm:2.29.2, date-fns@npm:^2.0.1, date-fns@npm:^2.16.1":
-  version: 2.29.2
-  resolution: "date-fns@npm:2.29.2"
-  checksum: 731880219eb69f53ab8bdaf6b77eb6ac7e26478319d5e08d0d1bc663e8addc7ddabce8050fd385a735d448c48224789442d31d18313060f5d9a77db80132f935
+"date-fns@npm:2.29.3, date-fns@npm:^2.0.1, date-fns@npm:^2.16.1":
+  version: 2.29.3
+  resolution: "date-fns@npm:2.29.3"
+  checksum: aa9128c876ef69a05988029d6aa3d7e5c47a1e978f18b77b48126683d1a2e6605a16c3f5293ca9f4ca790d0755b5061fcea5b469f097871cd53f6590a5c1adc4
   languageName: node
   linkType: hard
 
@@ -21007,7 +21007,7 @@ __metadata:
     "@redwoodjs/core": 2.2.4
     chalk: 4.1.2
     clipanion: 3.2.0-rc.12
-    date-fns: 2.29.2
+    date-fns: 2.29.3
     node-fetch: 2.6.7
   languageName: unknown
   linkType: soft
