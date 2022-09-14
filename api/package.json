@@ -3,9 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "dependencies": {
-    "@redwoodjs/api": "2.2.4",
-    "@redwoodjs/api-server": "2.2.4",
-    "@redwoodjs/graphql-server": "2.2.4",
+    "@redwoodjs/api": "^3.0.0-rc.320",
+    "@redwoodjs/api-server": "^3.0.0-rc.320",
+    "@redwoodjs/graphql-server": "^3.0.0-rc.320",
     "@snaplet/copycat": "0.5.1",
     "msw": "0.47.2",
     "octokit": "1.7.1",
