@@ -140,7 +140,7 @@ describe('getProjectFieldAndValueNamesToIds', () => {
   describe('uses the correct data', () => {
     it('fields', () => {
       expect(fields).toMatchInlineSnapshot(`
-        Array [
+        [
           "Cycle",
           "Needs discussion",
           "Priority",
@@ -152,7 +152,7 @@ describe('getProjectFieldAndValueNamesToIds', () => {
     })
     it('priorities', () => {
       expect(priorities).toMatchInlineSnapshot(`
-        Array [
+        [
           "🚨 Urgent",
           "1️⃣ High",
           "2️⃣ Medium",
@@ -162,7 +162,7 @@ describe('getProjectFieldAndValueNamesToIds', () => {
     })
     it('statuses', () => {
       expect(statuses).toMatchInlineSnapshot(`
-        Array [
+        [
           "Triage",
           "Backlog",
           "Todo",

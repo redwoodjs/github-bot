@@ -24,7 +24,7 @@ afterAll(() => server.close())
 
 it('uses the correct milestones', () => {
   expect(milestones).toMatchInlineSnapshot(`
-    Array [
+    [
       "next-release",
       "chore",
     ]

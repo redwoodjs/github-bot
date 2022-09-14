@@ -24,7 +24,7 @@ afterAll(() => server.close())
 
 it('uses the correct labels', () => {
   expect(labels).toMatchInlineSnapshot(`
-    Array [
+    [
       "action/add-to-cycle",
       "action/add-to-discussion-queue",
       "action/add-to-backlog",
