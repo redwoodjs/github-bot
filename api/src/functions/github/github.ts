@@ -212,6 +212,11 @@ async function handlePullRequestOpened(payload: PullRequestOpenedEvent) {
     return
   }
 
+  if (payload.pull_request.base.ref === 'release') {
+    logger.info('Pull request opened against release; returning')
+    return
+  }
+
   logger.info('Adding to project and assigning')
   const itemId = await addToProject(payload.pull_request.node_id)
   await updateProjectItem(itemId, { Status: 'Triage' })
@@ -253,8 +258,11 @@ async function handlePullRequestClosed(payload: PullRequestEvent) {
     return
   }
 
-  if (payload.pull_request.base.ref === 'main') {
-    logger.info('The pull request was merged to main')
+  if (
+    payload.pull_request.base.ref === 'main' ||
+    payload.pull_request.base.ref === 'release'
+  ) {
+    logger.info('The pull request was merged to main or release')
 
     if (payload.pull_request.milestone?.title === 'next-release-patch') {
       logger.info(
