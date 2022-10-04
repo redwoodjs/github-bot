@@ -67,4 +67,9 @@ const IGNORE_LIST = [
    * https://github.com/redwoodjs/redwood/issues/4820
    */
   'I_kwDOC2M2f85F9rMr',
+  /**
+   * Next release (3.1.0)
+   * https://github.com/redwoodjs/redwood/issues/6469
+   */
+  'I_kwDOC2M2f85S2_vg',
 ]
