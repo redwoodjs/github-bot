@@ -212,8 +212,8 @@ async function handlePullRequestOpened(payload: PullRequestOpenedEvent) {
     return
   }
 
-  if (payload.pull_request.base.ref === 'release') {
-    logger.info('Pull request opened against release; returning')
+  if (payload.pull_request.base.ref === 'next') {
+    logger.info('Pull request opened against next; returning')
     return
   }
 
@@ -260,9 +260,9 @@ async function handlePullRequestClosed(payload: PullRequestEvent) {
 
   if (
     payload.pull_request.base.ref === 'main' ||
-    payload.pull_request.base.ref === 'release'
+    payload.pull_request.base.ref === 'next'
   ) {
-    logger.info('The pull request was merged to main or release')
+    logger.info('The pull request was merged to main or next')
 
     if (payload.pull_request.milestone?.title === 'next-release-patch') {
       logger.info(
