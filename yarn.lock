@@ -8960,6 +8960,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"chalk@npm:5.1.2":
+  version: 5.1.2
+  resolution: "chalk@npm:5.1.2"
+  checksum: 7ce3d213b339ae54322e0b15f82967f01ed36bcd261fdf021a7dd3ebaf48f27f1d3dcc7af898acee73e19fd0caa52006325b12e229af76087ae7a87978f06751
+  languageName: node
+  linkType: hard
+
 "chalk@npm:^2.0.0, chalk@npm:^2.4.1":
   version: 2.4.2
   resolution: "chalk@npm:2.4.2"
@@ -20506,7 +20513,7 @@ __metadata:
   resolution: "root-workspace-0b6124@workspace:."
   dependencies:
     "@redwoodjs/core": 3.2.0
-    chalk: 4.1.2
+    chalk: 5.1.2
     clipanion: 3.2.0-rc.13
     date-fns: 2.29.3
     node-fetch: 2.6.7
