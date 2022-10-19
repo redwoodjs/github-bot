@@ -8,7 +8,7 @@
     "@redwoodjs/graphql-server": "3.2.0",
     "@snaplet/copycat": "0.5.1",
     "msw": "0.47.4",
-    "octokit": "1.7.1",
+    "octokit": "1.8.1",
     "smee-client": "1.2.3"
   },
   "devDependencies": {
