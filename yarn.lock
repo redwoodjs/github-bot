@@ -3475,17 +3475,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@octokit/webhooks-types@npm:6.7.0":
-  version: 6.7.0
-  resolution: "@octokit/webhooks-types@npm:6.7.0"
-  checksum: a68573330a39297fe34b5d73064bc0048d09008e220682718eb853940cdf3b20737b2fe9ab661931389df1e2ff3b5438de8ed1e0cc644f77eff91e155c6a9d58
-  languageName: node
-  linkType: hard
-
 "@octokit/webhooks-types@npm:6.5.0":
   version: 6.5.0
   resolution: "@octokit/webhooks-types@npm:6.5.0"
   checksum: 430c1039c890894919815e74d221a1cfa5aa8a357a56f51769df6185aeea82f83282dd99749c4d45e85553ebc9332ade90861d50560d817b5832d231c792ffc5
+  languageName: node
+  linkType: hard
+
+"@octokit/webhooks-types@npm:6.7.0":
+  version: 6.7.0
+  resolution: "@octokit/webhooks-types@npm:6.7.0"
+  checksum: a68573330a39297fe34b5d73064bc0048d09008e220682718eb853940cdf3b20737b2fe9ab661931389df1e2ff3b5438de8ed1e0cc644f77eff91e155c6a9d58
   languageName: node
   linkType: hard
 
