@@ -3475,17 +3475,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@octokit/webhooks-types@npm:6.11.0":
+  version: 6.11.0
+  resolution: "@octokit/webhooks-types@npm:6.11.0"
+  checksum: 4c99c79d56e6c0390b66aef8c59f49a7a04f9429c22c8e621fff7f591bd0685000551378c778f662e2208c07df81908115f267fac4dd3af39ef3923e2dcc1eb8
+  languageName: node
+  linkType: hard
+
 "@octokit/webhooks-types@npm:6.5.0":
   version: 6.5.0
   resolution: "@octokit/webhooks-types@npm:6.5.0"
   checksum: 430c1039c890894919815e74d221a1cfa5aa8a357a56f51769df6185aeea82f83282dd99749c4d45e85553ebc9332ade90861d50560d817b5832d231c792ffc5
-  languageName: node
-  linkType: hard
-
-"@octokit/webhooks-types@npm:6.7.0":
-  version: 6.7.0
-  resolution: "@octokit/webhooks-types@npm:6.7.0"
-  checksum: a68573330a39297fe34b5d73064bc0048d09008e220682718eb853940cdf3b20737b2fe9ab661931389df1e2ff3b5438de8ed1e0cc644f77eff91e155c6a9d58
   languageName: node
   linkType: hard
 
@@ -7416,7 +7416,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "api@workspace:api"
   dependencies:
-    "@octokit/webhooks-types": 6.7.0
+    "@octokit/webhooks-types": 6.11.0
     "@redwoodjs/api": 3.2.0
     "@redwoodjs/api-server": 3.2.0
     "@redwoodjs/graphql-server": 3.2.0
