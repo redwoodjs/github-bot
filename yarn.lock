@@ -9319,14 +9319,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"clipanion@npm:3.2.0-rc.13":
-  version: 3.2.0-rc.13
-  resolution: "clipanion@npm:3.2.0-rc.13"
+"clipanion@npm:3.2.1":
+  version: 3.2.1
+  resolution: "clipanion@npm:3.2.1"
   dependencies:
     typanion: ^3.8.0
   peerDependencies:
     typanion: "*"
-  checksum: 1a5e9a4dccd8412de539e443c1f4ec4114dbc44c6cda4c249599854dce0028571a4719a981ef5a856f899d5e155ad351dc8c55d0e5dd5f67a12bb6b7512106ff
+  checksum: 6c148bd01ae645031aeb6e9a1a16f3ce07eb754cd9981c91edcab82b09e063b805ac41e4f36039d07602334b6dbba036b030d1807c12acd7f90778a696b7ac6e
   languageName: node
   linkType: hard
 
@@ -20523,7 +20523,7 @@ __metadata:
   dependencies:
     "@redwoodjs/core": 3.2.0
     chalk: 4.1.2
-    clipanion: 3.2.0-rc.13
+    clipanion: 3.2.1
     date-fns: 2.29.3
     node-fetch: 2.6.7
   languageName: unknown
