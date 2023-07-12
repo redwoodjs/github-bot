@@ -1936,10 +1936,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@faker-js/faker@npm:^6.2.0":
-  version: 6.3.1
-  resolution: "@faker-js/faker@npm:6.3.1"
-  checksum: 83e18c4269cc4201a87ee38640dadc47af64b5f1eb96514eeab17f21d0a9fb86728e16a94707c26e7dfe25f96d651a6647613ecd1dc2c07b5d85606b51ac6150
+"@faker-js/faker@npm:^8.0.2":
+  version: 8.0.2
+  resolution: "@faker-js/faker@npm:8.0.2"
+  checksum: a7851d4abfcd93c8c9d40ca7f1a7ad2218b9dcac1b11afe9dcf0fe38f5c1d91610e56bcedf5193a5b178dc10e052baab35977853342e84ec12b1fb27b425b356
   languageName: node
   linkType: hard
 
@@ -4345,14 +4345,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@snaplet/copycat@npm:0.5.1":
-  version: 0.5.1
-  resolution: "@snaplet/copycat@npm:0.5.1"
+"@snaplet/copycat@npm:0.15.1":
+  version: 0.15.1
+  resolution: "@snaplet/copycat@npm:0.15.1"
   dependencies:
-    "@faker-js/faker": ^6.2.0
-    fictional: ^0.4.15
+    "@faker-js/faker": ^8.0.2
+    fictional: ^0.8.1
     uuid: ^8.3.2
-  checksum: f7e2cc6dae74be6fef90205d4070b2bdbd99e2767cbc7fbfd2f3ea6ccebaef21712b82b36492a144c1cfe32e0198058aa1e96a4dbb4dbc6923749be41bda2be7
+  checksum: d1b69d878b7a1947100fdf9f025314586fdfed77d97fea7770be162d43672d74094330aed752be29c662e2f1f75925b86d8e428759b9fced43695b3e95b6dbf3
   languageName: node
   linkType: hard
 
@@ -7420,7 +7420,7 @@ __metadata:
     "@redwoodjs/api": 3.2.0
     "@redwoodjs/api-server": 3.2.0
     "@redwoodjs/graphql-server": 3.2.0
-    "@snaplet/copycat": 0.5.1
+    "@snaplet/copycat": 0.15.1
     msw: 0.47.4
     octokit: 2.0.9
     smee-client: 1.2.3
@@ -10451,10 +10451,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"decimal.js@npm:^10.3.1":
-  version: 10.4.0
-  resolution: "decimal.js@npm:10.4.0"
-  checksum: 36c8700cf177e84e7c4093a1b607dd703381890e4829845977d1b2fb32db3533c65a3c43ae2a7514c45451e1d8b7a2aeb59a2793ddff3b3b130840a702f22aed
+"decimal.js@npm:^10.3.1, decimal.js@npm:^10.4.0":
+  version: 10.4.3
+  resolution: "decimal.js@npm:10.4.3"
+  checksum: 6d60206689ff0911f0ce968d40f163304a6c1bc739927758e6efc7921cfa630130388966f16bf6ef6b838cb33679fbe8e7a78a2f3c478afce841fd55ac8fb8ee
   languageName: node
   linkType: hard
 
@@ -12421,14 +12421,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fictional@npm:^0.4.15":
-  version: 0.4.15
-  resolution: "fictional@npm:0.4.15"
+"fictional@npm:^0.8.1":
+  version: 0.8.1
+  resolution: "fictional@npm:0.8.1"
   dependencies:
+    decimal.js: ^10.4.0
     fast-json-stable-stringify: ^2.1.0
-    md5: ^2.3.0
-    string-hash: ^1.1.3
-  checksum: 10450ec6a21a0da514a4eaee4139323e2d7f5479c26e97f2c98b6698ac9b092b28cba342b0cced31ade0aedb0f3bf73e16dc791cd0714c7530fb4307ab4ebdaf
+    fnv-plus: ^1.3.1
+    siphash: ^1.1.0
+  checksum: d3c0cb1396dfca0f6d787f06372eef43f02c304f4350fd482de8602bfe3ed514d22b659cbcecabfe71fd1724324d1378834849d2d6298affa2d742c399a77273
   languageName: node
   linkType: hard
 
@@ -12660,6 +12661,13 @@ __metadata:
     inherits: ^2.0.3
     readable-stream: ^2.3.6
   checksum: 2cd4f65b728d5f388197a03dafabc6a5e4f0c2ed1a2d912e288f7aa1c2996dd90875e55b50cf32c78dca55ad2e2dfae5d3db09b223838388033d87cf5920dd87
+  languageName: node
+  linkType: hard
+
+"fnv-plus@npm:^1.3.1":
+  version: 1.3.1
+  resolution: "fnv-plus@npm:1.3.1"
+  checksum: 770b253629c8e27cff3d94e68fbb94069daeac2b1df833bb03afb280c869ad43b40ecec0fe3a9b6745fa8e549b6c9b4bb6019311cf6d100b8df38497a3d2c258
   languageName: node
   linkType: hard
 
@@ -16736,7 +16744,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"md5@npm:2.3.0, md5@npm:^2.3.0":
+"md5@npm:2.3.0":
   version: 2.3.0
   resolution: "md5@npm:2.3.0"
   dependencies:
@@ -21069,6 +21077,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"siphash@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "siphash@npm:1.1.0"
+  checksum: e015d0127adb1805183c3db15b50c0ae09115ada9adf325941ed66ea1db155665071daccd28f09b7963bf61985419a8dbc44a3e98176717c298ba6124c293012
+  languageName: node
+  linkType: hard
+
 "sirv@npm:^1.0.7":
   version: 1.0.18
   resolution: "sirv@npm:1.0.18"
@@ -21579,13 +21594,6 @@ __metadata:
   version: 1.0.1
   resolution: "string-env-interpolation@npm:1.0.1"
   checksum: 410046e621e71678e71816377d799b40ba88d236708c0ad015114137fa3575f1b3cf14bfd63ec5eaa35ea43ac582308e60a8e1a3839a10f475b8db73470105bc
-  languageName: node
-  linkType: hard
-
-"string-hash@npm:^1.1.3":
-  version: 1.1.3
-  resolution: "string-hash@npm:1.1.3"
-  checksum: 179725d7706b49fbbc0a4901703a2d8abec244140879afd5a17908497e586a6b07d738f6775450aefd9f8dd729e4a0abd073fbc6fa3bd020b7a1d2369614af88
   languageName: node
   linkType: hard
 
